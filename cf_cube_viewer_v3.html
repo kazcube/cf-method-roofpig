@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CF Method Cube Viewer v3 (3x3 & Corner-only)</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/larspetrus/Roofpig/roofpig_and_three.min.js"></script>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #111;
+      color: #f5f5f5;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .layout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+    }
+    .panel {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 16px;
+      max-width: 460px;
+      flex: 1 1 380px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .roofpig {
+      width: 260px;
+      height: 320px;
+      margin: 0 auto 12px auto;
+    }
+    textarea {
+      width: 100%;
+      min-height: 60px;
+      background: #111;
+      color: #f5f5f5;
+      border-radius: 8px;
+      border: 1px solid #333;
+      padding: 8px;
+      resize: vertical;
+      font-family: monospace;
+    }
+    button {
+      margin: 4px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a2a;
+      color: #f5f5f5;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    button:hover {
+      background: #3a3a3a;
+    }
+    .btn-row {
+      margin-top: 4px;
+    }
+    .small-note {
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 4px;
+    }
+    .face-group-title {
+      margin-top: 8px;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .label-inline {
+      font-size: 13px;
+      min-width: 80px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CF Method Cube Viewer v3</h1>
+  <p style="text-align:center;font-size:13px;">
+    3x3 と「コーナーのみ表示 (2x2 相当)」の Roofpig ビューア。<br>
+    配色: U=白, D=黄, F=緑, B=青, R=赤, L=オレンジ
+  </p>
+
+  <div class="layout">
+    <!-- 3x3 Viewer Panel -->
+    <div class="panel">
+      <h2>3x3 Viewer</h2>
+      <div id="cube3" class="roofpig"
+           data-config="alg=|colors=F:g B:b U:w D:y R:r L:o|hover=3|speed=700">
+      </div>
+
+      <!-- Random / 6E Scramble Controls -->
+      <div class="btn-row">
+        <button onclick="randomScramble()">Random Scramble (20)</button>
+        <button onclick="randomScrambleApply()">Random + Apply</button>
+        <button onclick="randomScrambleApplyCorner()">Random + Apply Corner</button>
+      </div>
+      <div class="btn-row">
+        <button onclick="last6EScramble()">Last-6E Scramble (edge-biased)</button>
+      </div>
+
+      <div class="flex-row" style="margin-top:4px;">
+        <span class="label-inline">スクランブル:</span>
+        <button onclick="applyScramble()">Apply Scramble</button>
+        <button onclick="resetCube()">Reset</button>
+      </div>
+      <textarea id="scrambleInput" placeholder="例: R U R' U' F2 D' L2 ..."></textarea>
+      <div class="small-note">
+        ※ Random Scramble は WCA 形式 20手を生成します（同じ面の連続なし）。<br>
+        ※ Last-6E Scramble は今のところ「エッジ寄りの動きが多い顔 (U,D,F,B)」のスクランブルです（今後 CF-6E に合わせて精密化予定）。
+      </div>
+
+      <div class="face-group-title">面回転プリセット（Apply型：手順欄に追記）</div>
+      <div class="btn-row">
+        <button onclick='appendMove("U")'>U</button>
+        <button onclick='appendMove("U'")'>U'</button>
+        <button onclick='appendMove("U2")'>U2</button>
+        <button onclick='appendMove("R")'>R</button>
+        <button onclick='appendMove("R'")'>R'</button>
+        <button onclick='appendMove("R2")'>R2</button>
+        <button onclick='appendMove("L")'>L</button>
+        <button onclick='appendMove("L'")'>L'</button>
+        <button onclick='appendMove("L2")'>L2</button>
+      </div>
+      <div class="btn-row">
+        <button onclick='appendMove("F")'>F</button>
+        <button onclick='appendMove("F'")'>F'</button>
+        <button onclick='appendMove("F2")'>F2</button>
+        <button onclick='appendMove("B")'>B</button>
+        <button onclick='appendMove("B'")'>B'</button>
+        <button onclick='appendMove("B2")'>B2</button>
+        <button onclick='appendMove("D")'>D</button>
+        <button onclick='appendMove("D'")'>D'</button>
+        <button onclick='appendMove("D2")'>D2</button>
+      </div>
+
+      <div class="face-group-title">Apply型手順（まとめて適用）</div>
+      <textarea id="algInput" placeholder="ここに検証したい手順を入力（例: R U R' U'）"></textarea>
+      <div class="btn-row">
+        <button onclick="applyAlg()">この手順を適用（alg=）</button>
+        <button onclick="clearAlg()">手順クリア</button>
+      </div>
+
+      <div class="face-group-title">即時反映型（Immediate）</div>
+      <div class="btn-row">
+        <button onclick='immediateMove("U")'>U</button>
+        <button onclick='immediateMove("U'")'>U'</button>
+        <button onclick='immediateMove("U2")'>U2</button>
+        <button onclick='immediateMove("R")'>R</button>
+        <button onclick='immediateMove("R'")'>R'</button>
+        <button onclick='immediateMove("R2")'>R2</button>
+        <button onclick='immediateMove("L")'>L</button>
+        <button onclick='immediateMove("L'")'>L'</button>
+        <button onclick='immediateMove("L2")'>L2</button>
+      </div>
+      <div class="btn-row">
+        <button onclick='immediateMove("F")'>F</button>
+        <button onclick='immediateMove("F'")'>F'</button>
+        <button onclick='immediateMove("F2")'>F2</button>
+        <button onclick='immediateMove("B")'>B</button>
+        <button onclick='immediateMove("B'")'>B'</button>
+        <button onclick='immediateMove("B2")'>B2</button>
+        <button onclick='immediateMove("D")'>D</button>
+        <button onclick='immediateMove("D'")'>D'</button>
+        <button onclick='immediateMove("D2")'>D2</button>
+      </div>
+      <div class="small-note">
+        ※ 「Apply型」は手順をまとめて書いてから適用するモードです。<br>
+        ※ 「即時反映型」はボタンを押した瞬間に alg に 1手ずつ追記し、その場で反映します。
+      </div>
+
+      <div class="small-note">
+        Roofpig 標準 UI（再生ボタン・スライダー）で 1 手ずつの確認も可能です。
+      </div>
+    </div>
+
+    <!-- Corner-only Viewer Panel -->
+    <div class="panel">
+      <h2>Corner-only Viewer (2x2 相当)</h2>
+      <div id="cube2" class="roofpig"
+           data-config="alg=|colors=F:g B:b U:w D:y R:r L:o|pieces=corner|hover=3|speed=700">
+      </div>
+      <p class="small-note">
+        エッジを無視してコーナーのみを表示しています（pieces=corner）。<br>
+        2x2 の OCLL/OCPLL や 8 コーナー CF 法の研究に使えます。
+      </p>
+
+      <div class="face-group-title">同じ Scramble を適用</div>
+      <div class="btn-row">
+        <button onclick="applyScrambleToCorner()">Scrambleを適用（コーナーのみ）</button>
+        <button onclick="resetCorner()">Reset (コーナー)</button>
+      </div>
+
+      <div class="face-group-title">このビューのための手順</div>
+      <textarea id="algInputCorner" placeholder="2x2/8コーナー用の手順（R U R' U' など）"></textarea>
+      <div class="btn-row">
+        <button onclick="applyAlgCorner()">この手順を適用（corner alg）</button>
+        <button onclick="clearAlgCorner()">手順クリア</button>
+      </div>
+
+      <div class="small-note">
+        ※ ここも Roofpig 標準 UI で 1 手ずつ確認可能です。<br>
+        ※ 実質「2x2 CF 法ビューア」として使えます（エッジは見えますが、動きはコーナー主体になります）。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MOVES = ["U","D","L","R","F","B"];
+    const SUFF = ["", "'", "2"];
+
+    function generateScramble(n) {
+      let scr = [];
+      let lastMove = "";
+      for (let i = 0; i < n; i++) {
+        let m;
+        do {
+          m = MOVES[Math.floor(Math.random() * MOVES.length)];
+        } while (m === lastMove);
+        lastMove = m;
+        let s = SUFF[Math.floor(Math.random() * SUFF.length)];
+        scr.push(m + s);
+      }
+      return scr.join(" ");
+    }
+
+    function randomScramble() {
+      const s = generateScramble(20);
+      document.getElementById("scrambleInput").value = s;
+    }
+
+    function randomScrambleApply() {
+      const s = generateScramble(20);
+      document.getElementById("scrambleInput").value = s;
+      applyScramble();
+    }
+
+    function randomScrambleApplyCorner() {
+      const s = generateScramble(20);
+      document.getElementById("scrambleInput").value = s;
+      applyScramble();
+      applyScrambleToCorner();
+    }
+
+    // Last-6E 近似：エッジ寄りを意識して U/D/F/B のみからスクランブル生成
+    const EDGE_BIASED_MOVES = ["U","D","F","B"];
+
+    function generateEdgeBiasedScramble(n) {
+      let scr = [];
+      let lastMove = "";
+      for (let i = 0; i < n; i++) {
+        let m;
+        do {
+          m = EDGE_BIASED_MOVES[Math.floor(Math.random() * EDGE_BIASED_MOVES.length)];
+        } while (m === lastMove);
+        lastMove = m;
+        let s = SUFF[Math.floor(Math.random() * SUFF.length)];
+        scr.push(m + s);
+      }
+      return scr.join(" ");
+    }
+
+    function last6EScramble() {
+      const s = generateEdgeBiasedScramble(14);
+      document.getElementById("scrambleInput").value = s;
+      applyScramble();
+      applyScrambleToCorner();
+    }
+
+    function buildConfig(alg, extra) {
+      alg = alg || "";
+      alg = alg.trim();
+      var base = "alg=" + alg + "|colors=F:g B:b U:w D:y R:r L:o";
+      if (extra) base += "|" + extra;
+      return base;
+    }
+
+    function reparseRoofpig() {
+      if (window.Roofpig && typeof window.Roofpig.parseAll === "function") {
+        window.Roofpig.parseAll();
+      }
+    }
+
+    function applyConfigTo(divId, config) {
+      var el = document.getElementById(divId);
+      if (!el) return;
+      el.setAttribute("data-config", config);
+      reparseRoofpig();
+    }
+
+    function applyScramble() {
+      var scr = document.getElementById("scrambleInput").value || "";
+      var cfg = buildConfig(scr, "hover=3|speed=700");
+      applyConfigTo("cube3", cfg);
+    }
+
+    function resetCube() {
+      var cfg = buildConfig("", "hover=3|speed=700");
+      applyConfigTo("cube3", cfg);
+    }
+
+    // Apply型：手順欄に追記だけ
+    function appendMove(m) {
+      var ta = document.getElementById("algInput");
+      var cur = ta.value.trim();
+      if (cur.length > 0) {
+        ta.value = cur + " " + m;
+      } else {
+        ta.value = m;
+      }
+    }
+
+    function applyAlg() {
+      var alg = document.getElementById("algInput").value || "";
+      var cfg = buildConfig(alg, "hover=3|speed=700");
+      applyConfigTo("cube3", cfg);
+    }
+
+    function clearAlg() {
+      document.getElementById("algInput").value = "";
+    }
+
+    // 即時反映型：現在の alg に 1手追記してその場で反映
+    let immediateAlg = ""; // 現在の即時モード用 alg
+
+    function immediateMove(m) {
+      if (immediateAlg && immediateAlg.length > 0) {
+        immediateAlg = immediateAlg + " " + m;
+      } else {
+        immediateAlg = m;
+      }
+      var cfg = buildConfig(immediateAlg, "hover=3|speed=700");
+      applyConfigTo("cube3", cfg);
+    }
+
+    function applyScrambleToCorner() {
+      var scr = document.getElementById("scrambleInput").value || "";
+      var cfg = buildConfig(scr, "pieces=corner|hover=3|speed=700");
+      applyConfigTo("cube2", cfg);
+    }
+
+    function resetCorner() {
+      var cfg = buildConfig("", "pieces=corner|hover=3|speed=700");
+      applyConfigTo("cube2", cfg);
+    }
+
+    function applyAlgCorner() {
+      var alg = document.getElementById("algInputCorner").value || "";
+      var cfg = buildConfig(alg, "pieces=corner|hover=3|speed=700");
+      applyConfigTo("cube2", cfg);
+    }
+
+    function clearAlgCorner() {
+      document.getElementById("algInputCorner").value = "";
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      reparseRoofpig();
+    });
+  </script>
+</body>
+</html>
