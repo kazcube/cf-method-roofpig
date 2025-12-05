@@ -3,9 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>CF Method Cube Viewer v3.1.03 (GitHub版・完全動作)</title>
+
+  <!-- 1. Roofpig 本体（最優先で読み込む） -->
   <script src="../libs/roofpig_and_three.min.js"></script>
+
+  <!-- 2. jQuery（viewer.js が使う可能性があるため先に読み込む）-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <h1>CF Method Cube Viewer v3.1.03</h1>
 
@@ -23,7 +30,7 @@
         <button onclick="randomScrambleApplyCorner()">Random + Apply Corner</button>
       </div>
 
-      <textarea id="scrambleInput"></textarea>
+      <textarea id="scrambleInput" placeholder="スクランブル手順"></textarea>
       <button onclick="applyScramble()">Apply Scramble</button>
       <button onclick="resetCube()">Reset</button>
 
@@ -48,12 +55,14 @@
       <button onclick="applyScrambleToCorner()">Scramble→Corner</button>
       <button onclick="resetCorner()">Reset Corner</button>
 
-      <textarea id="algInputCorner"></textarea>
+      <textarea id="algInputCorner" placeholder="Corner手順入力"></textarea>
       <button onclick="applyAlgCorner()">Corner適用</button>
       <button onclick="clearAlgCorner()">Cornerクリア</button>
     </div>
   </div>
 
-<script src="viewer.js"></script>
+  <!-- 3. viewer.js は最後に読み込むことで Roofpig が確実に利用可能になる -->
+  <script src="viewer.js"></script>
+
 </body>
 </html>
