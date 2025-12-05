@@ -1,7 +1,0 @@
-
-body { background:#111; color:white; font-family:sans-serif; padding:16px; }
-.layout { display:flex; flex-wrap:wrap; gap:20px; }
-.panel { background:#222; padding:16px; border-radius:8px; width:360px; }
-.roofpig { width:260px; height:320px; }
-textarea { width:100%; margin-top:6px; background:#000; color:white; }
-button { margin:4px; }
