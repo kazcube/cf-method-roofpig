@@ -1,6 +1,6 @@
 // viewer.js
-window.onload = function(){
-  if(window.Roofpig && window.Roofpig.parseAll){
+window.onload = function() {
+  if (window.Roofpig && Roofpig.parseAll) {
     Roofpig.parseAll();
   }
 };
