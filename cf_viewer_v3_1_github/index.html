@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CF Method Viewer v3.1 (GitHub Version)</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>CF Method Viewer v3.1 (GitHub版)</h1>
+
+<div class="layout">
+  <div class="cube-panel">
+    <h2>3×3 Viewer</h2>
+    <div id="cube3" class="cube-wrapper"></div>
+  </div>
+
+  <div class="cube-panel corner-only">
+    <h2>Corner-only Viewer</h2>
+    <div id="cubeCorner" class="cube-wrapper"></div>
+  </div>
+
+  <div class="controls">
+    <h2>操作パネル</h2>
+
+    <div class="label">手順入力</div>
+    <textarea id="algInput"></textarea>
+
+    <div class="btn-row">
+      <button id="btnApply">Apply</button>
+      <button id="btnImmediate">Immediate Apply</button>
+      <button id="btnReset">Reset</button>
+    </div>
+
+    <div class="label">ランダムスクランブル</div>
+    <div class="btn-row">
+      <button id="btnRandom20">Random Scramble (20)</button>
+      <button id="btnRandomApply">Random + Apply</button>
+      <button id="btnRandomApplyCorner">Random + Apply Corner</button>
+    </div>
+    <div class="mono" id="randomScrambleText">(生成されていません)</div>
+
+    <div class="label">6E Scramble</div>
+    <button id="btn6E">6E Scramble + Apply</button>
+    <div class="mono" id="scramble6EText">(生成されていません)</div>
+
+    <div class="label">現在の状態</div>
+    <div class="mono" id="currentState">(solved)</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/larspetrus/Roofpig/roofpig_and_three.min.js"></script>
+<script src="viewer.js"></script>
+</body>
+</html>
