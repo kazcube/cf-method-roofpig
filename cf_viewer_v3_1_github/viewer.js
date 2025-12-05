@@ -1,4 +1,3 @@
-
 const MOVES = ["U","D","L","R","F","B"];
 const SUFF = ["", "'", "2"];
 
@@ -92,6 +91,11 @@ function immediateMove(m){
   applyConfigTo("cube3", cfg);
 }
 
-document.addEventListener("DOMContentLoaded", ()=> {
-  if(window.Roofpig) Roofpig.parseAll();
-});
+/* ============================================
+   ここが最重要：初期化は window.onload に移動
+   ============================================*/
+window.onload = () => {
+  if(window.Roofpig && typeof Roofpig.parseAll==="function"){
+    Roofpig.parseAll();
+  }
+};
