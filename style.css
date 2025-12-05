@@ -1,1 +1,2 @@
-body { background:#111; color:#f5f5f5; font-family:system-ui; }
+/* 追加でカスタムしたい場合はここに */
+body { background:#111; color:#f5f5f5; font-family:system-ui, sans-serif; }
