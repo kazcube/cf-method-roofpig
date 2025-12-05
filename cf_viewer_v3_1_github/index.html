@@ -22,34 +22,18 @@
 
   <div class="controls">
     <h2>操作パネル</h2>
-
-    <div class="label">手順入力</div>
     <textarea id="algInput"></textarea>
-
-    <div class="btn-row">
-      <button id="btnApply">Apply</button>
-      <button id="btnImmediate">Immediate Apply</button>
-      <button id="btnReset">Reset</button>
-    </div>
-
-    <div class="label">ランダムスクランブル</div>
-    <div class="btn-row">
-      <button id="btnRandom20">Random Scramble (20)</button>
-      <button id="btnRandomApply">Random + Apply</button>
-      <button id="btnRandomApplyCorner">Random + Apply Corner</button>
-    </div>
-    <div class="mono" id="randomScrambleText">(生成されていません)</div>
-
-    <div class="label">6E Scramble</div>
-    <button id="btn6E">6E Scramble + Apply</button>
-    <div class="mono" id="scramble6EText">(生成されていません)</div>
-
-    <div class="label">現在の状態</div>
-    <div class="mono" id="currentState">(solved)</div>
+    <button id="btnApply">Apply</button>
   </div>
 </div>
 
+<!-- ① three.js（Roofpig用） -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+
+<!-- ② Roofpig本体 -->
 <script src="https://cdn.jsdelivr.net/gh/larspetrus/Roofpig/roofpig/roofpig_and_three.min.js"></script>
+
+<!-- ③ viewer.js（あなたのロジック） -->
 <script src="viewer.js"></script>
 </body>
 </html>
