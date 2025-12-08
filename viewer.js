@@ -1,14 +1,15 @@
 // ==============================
-// CF Method Cube Viewer v3.1.24
-// ボタン挙動一式（3x3 + Corner）
+// CF Method Cube Viewer v3.1.25
+// DOM再生成方式 + シンプル状態管理
 // ==============================
 
 var MOVES = ["U","D","L","R","F","B"];
 var SUFF  = ["", "'", "2"];
 var EDGE_BIASED_MOVES = ["U","D","F","B"]; // Last-6E 用(暫定)
 
-var currentMode = "apply";   // "apply" or "immediate"
-var immediateAlg = "";       // 即時モード用
+var currentMode  = "apply"; // "apply" or "immediate"
+var currentAlg3  = "";      // 3x3 の現在の alg 全体
+var currentAlg2  = "";      // Corner の現在の alg 全体
 
 function setMode(mode) {
   currentMode = mode;
@@ -31,31 +32,31 @@ function generateScramble(n, moveset) {
   return scr.join(" ");
 }
 
-function randomScramble() {
-  // WCA形式20手を生成して自動適用
-  var s = generateScramble(20, MOVES);
-  document.getElementById("scrambleInput").value = s;
-  applyScramble();
+// ---- DOM再生成 + Roofpig再パース ----
+function rebuildCube(divId, alg, extra) {
+  var old = document.getElementById(divId);
+  if (!old) return;
+  var parent = old.parentNode;
+  parent.removeChild(old);
+
+  var newDiv = document.createElement("div");
+  newDiv.id = divId;
+  newDiv.className = "roofpig";
+  newDiv.style.width  = "260px";
+  newDiv.style.height = "320px";
+  newDiv.style.margin = "0 auto 12px auto";
+
+  var cfg = buildConfig(alg, extra);
+  newDiv.setAttribute("data-config", cfg);
+
+  parent.insertBefore(newDiv, parent.firstChild);
+
+  if (window.Roofpig && typeof Roofpig.parseAll === "function") {
+    Roofpig.parseAll();
+  }
 }
 
-function randomScrambleApply() {
-  // こちらも Random Scramble と同じ動作にしておく
-  randomScramble();
-}
-
-function randomScrambleApplyCorner() {
-  randomScramble();
-  applyScrambleToCorner();
-}
-
-function last6EScramble() {
-  var s = generateScramble(14, EDGE_BIASED_MOVES);
-  document.getElementById("scrambleInput").value = s;
-  applyScramble();
-  applyScrambleToCorner();
-}
-
-// ---- Roofpig 設定系 ----
+// ---- Config 文字列生成 ----
 function buildConfig(alg, extra) {
   alg = (alg || "").trim();
   var base = "alg=" + alg + "|colors=F:g B:b U:w D:y R:r L:o";
@@ -63,32 +64,43 @@ function buildConfig(alg, extra) {
   return base;
 }
 
-function reparseRoofpig() {
-  if (window.Roofpig && typeof window.Roofpig.parseAll === "function") {
-    Roofpig.parseAll();
-  }
+// ---- Scramble 系 ----
+function randomScramble() {
+  var s = generateScramble(20, MOVES);
+  document.getElementById("scrambleInput").value = s;
+  currentAlg3 = s;
+  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
 }
 
-function applyConfigTo(divId, config) {
-  var el = document.getElementById(divId);
-  if (!el) return;
-  el.setAttribute("data-config", config);
-  reparseRoofpig();
+function randomScrambleApply() {
+  randomScramble();
+}
+
+function randomScrambleApplyCorner() {
+  randomScramble();
+  currentAlg2 = currentAlg3;
+  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+}
+
+function last6EScramble() {
+  var s = generateScramble(14, EDGE_BIASED_MOVES);
+  document.getElementById("scrambleInput").value = s;
+  currentAlg3 = s;
+  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
+  currentAlg2 = s;
+  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 // ---- 3x3 用 ----
 function applyScramble() {
   var scr = document.getElementById("scrambleInput").value || "";
-  var cfg = buildConfig(scr, "hover=3|speed=700");
-  applyConfigTo("cube3", cfg);
-  // 即時モード用の履歴はリセット
-  immediateAlg = "";
+  currentAlg3 = scr;
+  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 function resetCube() {
-  var cfg = buildConfig("", "hover=3|speed=700");
-  applyConfigTo("cube3", cfg);
-  immediateAlg = "";
+  currentAlg3 = "";
+  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 // Apply型：手順欄に追記
@@ -100,23 +112,22 @@ function appendMove(m) {
 
 function applyAlg() {
   var alg = document.getElementById("algInput").value || "";
-  var cfg = buildConfig(alg, "hover=3|speed=700");
-  applyConfigTo("cube3", cfg);
+  currentAlg3 = alg;
+  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 function clearAlg() {
   document.getElementById("algInput").value = "";
 }
 
-// 即時反映型
+// 即時反映型（currentAlg3 に直書き）
 function immediateMove(m) {
-  if (immediateAlg) {
-    immediateAlg = immediateAlg + " " + m;
+  if (currentAlg3) {
+    currentAlg3 = currentAlg3 + " " + m;
   } else {
-    immediateAlg = m;
+    currentAlg3 = m;
   }
-  var cfg = buildConfig(immediateAlg, "hover=3|speed=700");
-  applyConfigTo("cube3", cfg);
+  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 function moveButton(m) {
@@ -130,19 +141,19 @@ function moveButton(m) {
 // ---- Corner-only 用 ----
 function applyScrambleToCorner() {
   var scr = document.getElementById("scrambleInput").value || "";
-  var cfg = buildConfig(scr, "pieces=corner|hover=3|speed=700");
-  applyConfigTo("cube2", cfg);
+  currentAlg2 = scr;
+  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 function resetCorner() {
-  var cfg = buildConfig("", "pieces=corner|hover=3|speed=700");
-  applyConfigTo("cube2", cfg);
+  currentAlg2 = "";
+  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 function applyAlgCorner() {
   var alg = document.getElementById("algInputCorner").value || "";
-  var cfg = buildConfig(alg, "pieces=corner|hover=3|speed=700");
-  applyConfigTo("cube2", cfg);
+  currentAlg2 = alg;
+  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 function clearAlgCorner() {
@@ -151,5 +162,7 @@ function clearAlgCorner() {
 
 // ---- 初期化 ----
 window.onload = function() {
-  reparseRoofpig();
+  if (window.Roofpig && typeof Roofpig.parseAll === "function") {
+    Roofpig.parseAll();
+  }
 };
