@@ -1,6 +1,6 @@
 // ==============================
-// CF Method Cube Viewer v3.1.27
-// Roofpigインスタンスのalgを直接書き換える安定版
+// CF Method Cube Viewer v3.1.28
+// algを書き換え + スライダーを末尾に送ってスクランブル表示
 // ==============================
 
 var MOVES = ["U","D","L","R","F","B"];
@@ -36,26 +36,38 @@ function generateScramble(n, moveset) {
 function getRoofpigInstance(divId) {
   try {
     if (!window.Roofpig || !Roofpig.Roofpiglet || !Roofpig.Roofpiglet.instances) return null;
-    // 多くのバージョンで divId キーの連想配列になっている
     var inst = Roofpig.Roofpiglet.instances[divId];
     if (inst) return inst;
-    // 念のため全インスタンスを走査して id が一致するものを探す
     for (var k in Roofpig.Roofpiglet.instances) {
       if (!Roofpig.Roofpiglet.instances.hasOwnProperty(k)) continue;
       var obj = Roofpig.Roofpiglet.instances[k];
-      if (obj && obj.divId === divId) return obj;
-      if (obj && obj.div && obj.div.id === divId) return obj;
+      if (obj && (obj.divId === divId || (obj.div && obj.div.id === divId))) return obj;
     }
     return null;
   } catch (e) {
-    if (window.console && console.warn) console.warn("getRoofpigInstance error", e);
+    console.warn("getRoofpigInstance error", e);
     return null;
   }
 }
 
+// ---- スライダー操作（末尾 or 先頭に送る）----
+function setSlider(divId, toEnd) {
+  var root = document.getElementById(divId);
+  if (!root) return;
+  var slider = root.querySelector('input[type="range"]');
+  if (!slider) return;
+  try {
+    slider.value = toEnd ? slider.max : slider.min || 0;
+    var ev = document.createEvent("Event");
+    ev.initEvent("input", true, true);
+    slider.dispatchEvent(ev);
+  } catch (e) {
+    console.warn("setSlider error", e);
+  }
+}
+
 // ---- alg 更新 + 再描画（DOMはいじらない）----
-function updateAlg(divId, alg, extra) {
-  // data-config 文字列も一応更新しておく
+function updateAlg(divId, alg, extra, toEnd) {
   var el = document.getElementById(divId);
   if (el) {
     var cfg = buildConfig(alg, extra);
@@ -63,29 +75,29 @@ function updateAlg(divId, alg, extra) {
   }
 
   var rp = getRoofpigInstance(divId);
-  if (!rp) return;
+  if (rp) {
+    try {
+      if (rp.options) rp.options.alg = alg;
+      if (rp.config) rp.config.alg = alg;
+      if (rp.state)  rp.state.alg  = alg;
+      if (rp.alg)    rp.alg        = alg;
 
-  try {
-    // よくある構造: options.alg / config.alg などを片っ端から更新
-    if (rp.options) rp.options.alg = alg;
-    if (rp.config) rp.config.alg = alg;
-    if (rp.state)  rp.state.alg  = alg;
-    if (rp.alg)    rp.alg        = alg;
-
-    // 再計算メソッドを順番に試す
-    if (typeof rp.recalc === "function") {
-      rp.recalc();
-    } else if (typeof rp.setupAnimation === "function") {
-      rp.setupAnimation();
-    } else if (typeof rp.init === "function") {
-      rp.init();
-    } else if (typeof rp.parse === "function") {
-      rp.parse();
+      if (typeof rp.recalc === "function") {
+        rp.recalc();
+      } else if (typeof rp.setupAnimation === "function") {
+        rp.setupAnimation();
+      } else if (typeof rp.init === "function") {
+        rp.init();
+      } else if (typeof rp.parse === "function") {
+        rp.parse();
+      }
+    } catch (e) {
+      console.warn("updateAlg error", e);
     }
-
-  } catch (e) {
-    if (window.console && console.warn) console.warn("updateAlg error", e);
   }
+
+  // スライダー位置を更新（末尾 or 先頭）
+  setSlider(divId, toEnd);
 }
 
 // ---- Config 文字列生成 ----
@@ -101,7 +113,7 @@ function randomScramble() {
   var s = generateScramble(20, MOVES);
   document.getElementById("scrambleInput").value = s;
   currentAlg3 = s;
-  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700", true);
 }
 
 function randomScrambleApply() {
@@ -111,28 +123,28 @@ function randomScrambleApply() {
 function randomScrambleApplyCorner() {
   randomScramble();
   currentAlg2 = currentAlg3;
-  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700", true);
 }
 
 function last6EScramble() {
   var s = generateScramble(14, EDGE_BIASED_MOVES);
   document.getElementById("scrambleInput").value = s;
   currentAlg3 = s;
-  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700", true);
   currentAlg2 = s;
-  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700", true);
 }
 
 // ---- 3x3 用 ----
 function applyScramble() {
   var scr = document.getElementById("scrambleInput").value || "";
   currentAlg3 = scr;
-  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700", true);
 }
 
 function resetCube() {
   currentAlg3 = "";
-  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700", false);
 }
 
 // Apply型：手順欄に追記
@@ -145,7 +157,7 @@ function appendMove(m) {
 function applyAlg() {
   var alg = document.getElementById("algInput").value || "";
   currentAlg3 = alg;
-  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700", true);
 }
 
 function clearAlg() {
@@ -159,7 +171,7 @@ function immediateMove(m) {
   } else {
     currentAlg3 = m;
   }
-  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700", true);
 }
 
 function moveButton(m) {
@@ -174,18 +186,18 @@ function moveButton(m) {
 function applyScrambleToCorner() {
   var scr = document.getElementById("scrambleInput").value || "";
   currentAlg2 = scr;
-  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700", true);
 }
 
 function resetCorner() {
   currentAlg2 = "";
-  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700", false);
 }
 
 function applyAlgCorner() {
   var alg = document.getElementById("algInputCorner").value || "";
   currentAlg2 = alg;
-  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700", true);
 }
 
 function clearAlgCorner() {
@@ -194,7 +206,6 @@ function clearAlgCorner() {
 
 // ---- 初期化 ----
 window.onload = function() {
-  // 初回パース
   if (window.Roofpig && typeof Roofpig.parseAll === "function") {
     Roofpig.parseAll();
   }
