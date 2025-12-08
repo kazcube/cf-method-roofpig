@@ -1,6 +1,6 @@
 // ==============================
-// CF Method Cube Viewer v3.1.26
-// DOM再生成方式（replaceChild） + シンプル状態管理
+// CF Method Cube Viewer v3.1.27
+// Roofpigインスタンスのalgを直接書き換える安定版
 // ==============================
 
 var MOVES = ["U","D","L","R","F","B"];
@@ -32,26 +32,59 @@ function generateScramble(n, moveset) {
   return scr.join(" ");
 }
 
-// ---- DOM再生成（replaceChild で安全に差し替え） ----
-function rebuildCube(divId, alg, extra) {
-  var old = document.getElementById(divId);
-  if (!old) return;
-  var parent = old.parentNode;
+// ---- Roofpigインスタンス取得 ----
+function getRoofpigInstance(divId) {
+  try {
+    if (!window.Roofpig || !Roofpig.Roofpiglet || !Roofpig.Roofpiglet.instances) return null;
+    // 多くのバージョンで divId キーの連想配列になっている
+    var inst = Roofpig.Roofpiglet.instances[divId];
+    if (inst) return inst;
+    // 念のため全インスタンスを走査して id が一致するものを探す
+    for (var k in Roofpig.Roofpiglet.instances) {
+      if (!Roofpig.Roofpiglet.instances.hasOwnProperty(k)) continue;
+      var obj = Roofpig.Roofpiglet.instances[k];
+      if (obj && obj.divId === divId) return obj;
+      if (obj && obj.div && obj.div.id === divId) return obj;
+    }
+    return null;
+  } catch (e) {
+    if (window.console && console.warn) console.warn("getRoofpigInstance error", e);
+    return null;
+  }
+}
 
-  var newDiv = document.createElement("div");
-  newDiv.id = divId;
-  newDiv.className = "roofpig";
-  newDiv.style.width  = "260px";
-  newDiv.style.height = "320px";
-  newDiv.style.margin = "0 auto 12px auto";
+// ---- alg 更新 + 再描画（DOMはいじらない）----
+function updateAlg(divId, alg, extra) {
+  // data-config 文字列も一応更新しておく
+  var el = document.getElementById(divId);
+  if (el) {
+    var cfg = buildConfig(alg, extra);
+    el.setAttribute("data-config", cfg);
+  }
 
-  var cfg = buildConfig(alg, extra);
-  newDiv.setAttribute("data-config", cfg);
+  var rp = getRoofpigInstance(divId);
+  if (!rp) return;
 
-  parent.replaceChild(newDiv, old);
+  try {
+    // よくある構造: options.alg / config.alg などを片っ端から更新
+    if (rp.options) rp.options.alg = alg;
+    if (rp.config) rp.config.alg = alg;
+    if (rp.state)  rp.state.alg  = alg;
+    if (rp.alg)    rp.alg        = alg;
 
-  if (window.Roofpig && typeof Roofpig.parseAll === "function") {
-    Roofpig.parseAll();
+    // 再計算メソッドを順番に試す
+    if (typeof rp.recalc === "function") {
+      rp.recalc();
+    } else if (typeof rp.setupAnimation === "function") {
+      rp.setupAnimation();
+    } else if (typeof rp.init === "function") {
+      rp.init();
+    } else if (typeof rp.parse === "function") {
+      rp.parse();
+    }
+
+  } catch (e) {
+    if (window.console && console.warn) console.warn("updateAlg error", e);
   }
 }
 
@@ -68,7 +101,7 @@ function randomScramble() {
   var s = generateScramble(20, MOVES);
   document.getElementById("scrambleInput").value = s;
   currentAlg3 = s;
-  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 function randomScrambleApply() {
@@ -78,28 +111,28 @@ function randomScrambleApply() {
 function randomScrambleApplyCorner() {
   randomScramble();
   currentAlg2 = currentAlg3;
-  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 function last6EScramble() {
   var s = generateScramble(14, EDGE_BIASED_MOVES);
   document.getElementById("scrambleInput").value = s;
   currentAlg3 = s;
-  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
   currentAlg2 = s;
-  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 // ---- 3x3 用 ----
 function applyScramble() {
   var scr = document.getElementById("scrambleInput").value || "";
   currentAlg3 = scr;
-  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 function resetCube() {
   currentAlg3 = "";
-  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 // Apply型：手順欄に追記
@@ -112,7 +145,7 @@ function appendMove(m) {
 function applyAlg() {
   var alg = document.getElementById("algInput").value || "";
   currentAlg3 = alg;
-  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 function clearAlg() {
@@ -126,7 +159,7 @@ function immediateMove(m) {
   } else {
     currentAlg3 = m;
   }
-  rebuildCube("cube3", currentAlg3, "hover=3|speed=700");
+  updateAlg("cube3", currentAlg3, "hover=3|speed=700");
 }
 
 function moveButton(m) {
@@ -141,18 +174,18 @@ function moveButton(m) {
 function applyScrambleToCorner() {
   var scr = document.getElementById("scrambleInput").value || "";
   currentAlg2 = scr;
-  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 function resetCorner() {
   currentAlg2 = "";
-  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 function applyAlgCorner() {
   var alg = document.getElementById("algInputCorner").value || "";
   currentAlg2 = alg;
-  rebuildCube("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
+  updateAlg("cube2", currentAlg2, "pieces=corner|hover=3|speed=700");
 }
 
 function clearAlgCorner() {
@@ -161,6 +194,7 @@ function clearAlgCorner() {
 
 // ---- 初期化 ----
 window.onload = function() {
+  // 初回パース
   if (window.Roofpig && typeof Roofpig.parseAll === "function") {
     Roofpig.parseAll();
   }
