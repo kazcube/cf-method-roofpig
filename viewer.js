@@ -1,6 +1,6 @@
 // ==============================
-// CF Method Cube Viewer v3.1.25
-// DOM再生成方式 + シンプル状態管理
+// CF Method Cube Viewer v3.1.26
+// DOM再生成方式（replaceChild） + シンプル状態管理
 // ==============================
 
 var MOVES = ["U","D","L","R","F","B"];
@@ -32,12 +32,11 @@ function generateScramble(n, moveset) {
   return scr.join(" ");
 }
 
-// ---- DOM再生成 + Roofpig再パース ----
+// ---- DOM再生成（replaceChild で安全に差し替え） ----
 function rebuildCube(divId, alg, extra) {
   var old = document.getElementById(divId);
   if (!old) return;
   var parent = old.parentNode;
-  parent.removeChild(old);
 
   var newDiv = document.createElement("div");
   newDiv.id = divId;
@@ -49,7 +48,7 @@ function rebuildCube(divId, alg, extra) {
   var cfg = buildConfig(alg, extra);
   newDiv.setAttribute("data-config", cfg);
 
-  parent.insertBefore(newDiv, parent.firstChild);
+  parent.replaceChild(newDiv, old);
 
   if (window.Roofpig && typeof Roofpig.parseAll === "function") {
     Roofpig.parseAll();
