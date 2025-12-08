@@ -1,5 +1,5 @@
 // ==============================
-// CF Method Cube Viewer v3.1.23
+// CF Method Cube Viewer v3.1.24
 // ボタン挙動一式（3x3 + Corner）
 // ==============================
 
@@ -32,18 +32,19 @@ function generateScramble(n, moveset) {
 }
 
 function randomScramble() {
+  // WCA形式20手を生成して自動適用
   var s = generateScramble(20, MOVES);
   document.getElementById("scrambleInput").value = s;
+  applyScramble();
 }
 
 function randomScrambleApply() {
+  // こちらも Random Scramble と同じ動作にしておく
   randomScramble();
-  applyScramble();
 }
 
 function randomScrambleApplyCorner() {
   randomScramble();
-  applyScramble();
   applyScrambleToCorner();
 }
 
