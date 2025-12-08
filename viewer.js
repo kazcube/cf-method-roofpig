@@ -1,31 +1,38 @@
 // ==============================
-// CF Method Cube Viewer v3.1.22
+// CF Method Cube Viewer v3.1.23
 // ボタン挙動一式（3x3 + Corner）
 // ==============================
 
-const MOVES = ["U","D","L","R","F","B"];
-const SUFF  = ["", "'", "2"];
-const EDGE_BIASED_MOVES = ["U","D","F","B"]; // Last-6E 用(暫定)
+var MOVES = ["U","D","L","R","F","B"];
+var SUFF  = ["", "'", "2"];
+var EDGE_BIASED_MOVES = ["U","D","F","B"]; // Last-6E 用(暫定)
+
+var currentMode = "apply";   // "apply" or "immediate"
+var immediateAlg = "";       // 即時モード用
+
+function setMode(mode) {
+  currentMode = mode;
+}
 
 // ---- Scramble 生成 ----
 function generateScramble(n, moveset) {
   moveset = moveset || MOVES;
-  let scr = [];
-  let last = "";
-  for (let i = 0; i < n; i++) {
-    let m;
+  var scr = [];
+  var last = "";
+  for (var i = 0; i < n; i++) {
+    var m;
     do {
       m = moveset[Math.floor(Math.random() * moveset.length)];
     } while (m === last);
     last = m;
-    let s = SUFF[Math.floor(Math.random() * SUFF.length)];
+    var s = SUFF[Math.floor(Math.random() * SUFF.length)];
     scr.push(m + s);
   }
   return scr.join(" ");
 }
 
 function randomScramble() {
-  const s = generateScramble(20, MOVES);
+  var s = generateScramble(20, MOVES);
   document.getElementById("scrambleInput").value = s;
 }
 
@@ -41,7 +48,7 @@ function randomScrambleApplyCorner() {
 }
 
 function last6EScramble() {
-  const s = generateScramble(14, EDGE_BIASED_MOVES);
+  var s = generateScramble(14, EDGE_BIASED_MOVES);
   document.getElementById("scrambleInput").value = s;
   applyScramble();
   applyScrambleToCorner();
@@ -50,7 +57,7 @@ function last6EScramble() {
 // ---- Roofpig 設定系 ----
 function buildConfig(alg, extra) {
   alg = (alg || "").trim();
-  let base = "alg=" + alg + "|colors=F:g B:b U:w D:y R:r L:o";
+  var base = "alg=" + alg + "|colors=F:g B:b U:w D:y R:r L:o";
   if (extra) base += "|" + extra;
   return base;
 }
@@ -62,7 +69,7 @@ function reparseRoofpig() {
 }
 
 function applyConfigTo(divId, config) {
-  const el = document.getElementById(divId);
+  var el = document.getElementById(divId);
   if (!el) return;
   el.setAttribute("data-config", config);
   reparseRoofpig();
@@ -70,26 +77,29 @@ function applyConfigTo(divId, config) {
 
 // ---- 3x3 用 ----
 function applyScramble() {
-  const scr = document.getElementById("scrambleInput").value || "";
-  const cfg = buildConfig(scr, "hover=3|speed=700");
+  var scr = document.getElementById("scrambleInput").value || "";
+  var cfg = buildConfig(scr, "hover=3|speed=700");
   applyConfigTo("cube3", cfg);
+  // 即時モード用の履歴はリセット
+  immediateAlg = "";
 }
 
 function resetCube() {
-  const cfg = buildConfig("", "hover=3|speed=700");
+  var cfg = buildConfig("", "hover=3|speed=700");
   applyConfigTo("cube3", cfg);
+  immediateAlg = "";
 }
 
 // Apply型：手順欄に追記
 function appendMove(m) {
-  const ta  = document.getElementById("algInput");
-  const cur = ta.value.trim();
+  var ta  = document.getElementById("algInput");
+  var cur = ta.value.trim();
   ta.value = cur ? cur + " " + m : m;
 }
 
 function applyAlg() {
-  const alg = document.getElementById("algInput").value || "";
-  const cfg = buildConfig(alg, "hover=3|speed=700");
+  var alg = document.getElementById("algInput").value || "";
+  var cfg = buildConfig(alg, "hover=3|speed=700");
   applyConfigTo("cube3", cfg);
 }
 
@@ -98,29 +108,39 @@ function clearAlg() {
 }
 
 // 即時反映型
-let immediateAlg = "";
-
 function immediateMove(m) {
-  immediateAlg = immediateAlg ? immediateAlg + " " + m : m;
-  const cfg = buildConfig(immediateAlg, "hover=3|speed=700");
+  if (immediateAlg) {
+    immediateAlg = immediateAlg + " " + m;
+  } else {
+    immediateAlg = m;
+  }
+  var cfg = buildConfig(immediateAlg, "hover=3|speed=700");
   applyConfigTo("cube3", cfg);
+}
+
+function moveButton(m) {
+  if (currentMode === "apply") {
+    appendMove(m);
+  } else {
+    immediateMove(m);
+  }
 }
 
 // ---- Corner-only 用 ----
 function applyScrambleToCorner() {
-  const scr = document.getElementById("scrambleInput").value || "";
-  const cfg = buildConfig(scr, "pieces=corner|hover=3|speed=700");
+  var scr = document.getElementById("scrambleInput").value || "";
+  var cfg = buildConfig(scr, "pieces=corner|hover=3|speed=700");
   applyConfigTo("cube2", cfg);
 }
 
 function resetCorner() {
-  const cfg = buildConfig("", "pieces=corner|hover=3|speed=700");
+  var cfg = buildConfig("", "pieces=corner|hover=3|speed=700");
   applyConfigTo("cube2", cfg);
 }
 
 function applyAlgCorner() {
-  const alg = document.getElementById("algInputCorner").value || "";
-  const cfg = buildConfig(alg, "pieces=corner|hover=3|speed=700");
+  var alg = document.getElementById("algInputCorner").value || "";
+  var cfg = buildConfig(alg, "pieces=corner|hover=3|speed=700");
   applyConfigTo("cube2", cfg);
 }
 
