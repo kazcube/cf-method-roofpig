@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CF Viewer v4 (cubing.js)</title>
+<script type="module">
+  import "https://cdn.cubing.net/js/cubing/twisty";
+</script>
+<link rel="stylesheet" href="style_v4.css">
+<script src="viewer_v4.js"></script>
+</head>
+<body>
+<h1>CF Viewer v4</h1>
+<div class="container">
+  <twisty-player id="cube3" puzzle="3x3x3"></twisty-player>
+  <twisty-player id="cube2" puzzle="3x3x3"
+    experimental-puzzle-appearance='{"overridePuzzleColors":{"edge":"transparent","center":"transparent"}}'>
+  </twisty-player>
+</div>
+
+<div class="controls">
+  <button onclick="randomScramble()">Random Scramble</button>
+  <button onclick="resetAll()">Reset</button>
+  <br>
+  <button onclick="move('U')">U</button>
+  <button onclick="move(`U'`)">U'</button>
+  <button onclick="move('U2')">U2</button>
+</div>
+
+</body>
+</html>
