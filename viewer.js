@@ -1,10 +1,17 @@
+// CF Method Cube Viewer v4.5.1
+//  - Scramble 過程 ON: 完成 -> スクランブル までを再生してスクランブル状態で停止
+//  - Scramble 過程 OFF: 一気にスクランブル状態へ（過程なし）
+//  - Solve: 直近 Scramble の逆手順を、スクランブル状態から完成まで再生
+//  - 1手進む / 1手戻る: fullAlg 全体を stepIndex で部分適用
+//  - Corner Viewer: mainCube と同じ 3D 角度・色を使い、同じ alg を同期
+
 window.CFV = (function () {
   const MOVES = ["U", "D", "L", "R", "F", "B"];
   const SUFF = ["", "'", "2"];
 
-  let fullAlg = "";
-  let lastScrambleAlg = "";
-  let stepIndex = 0;
+  let fullAlg = "";        // 現在の「全手順」
+  let lastScrambleAlg = ""; // 直近の Scramble 手順
+  let stepIndex = 0;       // 何手目まで適用しているか
 
   function getMainCube() {
     return document.getElementById("mainCube");
@@ -18,8 +25,8 @@ window.CFV = (function () {
     if (!str) return [];
     return str
       .split(/\s+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith("//"));
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0 && !s.startsWith("//"));
   }
 
   function movesToString(moves) {
@@ -71,26 +78,6 @@ window.CFV = (function () {
     corner.alg = prefix;
   }
 
-  function playFromFraction(t) {
-    const main = getMainCube();
-    const corner = getCornerCube();
-    if (!main || !corner) return;
-
-    main.alg = fullAlg;
-    corner.alg = fullAlg;
-
-    if (main.timeline && typeof main.timeline.set === "function") {
-      try {
-        main.timeline.set(Math.max(0, Math.min(1, t)));
-      } catch (e) {
-        console.warn("timeline.set エラー:", e);
-      }
-    }
-    if (typeof main.play === "function") {
-      main.play();
-    }
-  }
-
   function randomScramble() {
     const scrambleMoves = generateScramble(20);
     const scrambleStr = movesToString(scrambleMoves);
@@ -102,14 +89,34 @@ window.CFV = (function () {
     if (ta) ta.value = scrambleStr;
 
     const showPath = document.getElementById("showScramblePath");
-    const tokens = scrambleMoves;
+    const main = getMainCube();
+    const corner = getCornerCube();
+    if (!main || !corner) return;
+
     if (showPath && showPath.checked) {
+      // 完成 -> スクランブル までをアニメーション再生
+      // fullAlg は Scramble 全体
       stepIndex = 0;
-      refreshCubes();
-      playFromFraction(0);
-      stepIndex = tokens.length;
+      // 再生用に alg をセット
+      main.alg = scrambleStr;
+      corner.alg = scrambleStr;
+
+      // タイムラインを先頭に戻してから再生
+      if (main.timeline && typeof main.timeline.set === "function") {
+        try {
+          main.timeline.set(0);
+        } catch (e) {
+          console.warn("timeline.set エラー:", e);
+        }
+      }
+      if (typeof main.play === "function") {
+        main.play();
+      }
+      // 内部状態としては「スクランブル完了位置」まで進んだことにしておく
+      stepIndex = scrambleMoves.length;
     } else {
-      stepIndex = tokens.length;
+      // 過程なし：スクランブル状態のみ表示
+      stepIndex = scrambleMoves.length;
       refreshCubes();
     }
   }
@@ -204,9 +211,19 @@ window.CFV = (function () {
 
     refreshCubes();
 
-    if (total > 0) {
-      const startFraction = startIndex / total;
-      playFromFraction(startFraction);
+    const main = getMainCube();
+    if (!main) return;
+
+    // solve 部分のみを再生するため、全体を渡して startIndex/total から再生
+    if (main.timeline && typeof main.timeline.set === "function") {
+      try {
+        main.timeline.set(startIndex / total);
+      } catch (e) {
+        console.warn("timeline.set エラー:", e);
+      }
+    }
+    if (typeof main.play === "function") {
+      main.play();
     }
   }
 
