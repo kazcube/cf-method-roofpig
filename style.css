@@ -1,2 +1,113 @@
-/* 追加でカスタムしたい場合はここに */
-body { background:#111; color:#f5f5f5; font-family:system-ui, sans-serif; }
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 16px;
+  background: #111;
+  color: #f5f5f5;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 4px;
+  font-size: 22px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 12px;
+  color: #ccc;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.panel {
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 12px 16px 16px;
+  max-width: 480px;
+  flex: 1 1 360px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.panel h2 {
+  text-align: center;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.controls {
+  margin-top: 8px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.row-moves .btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.label {
+  min-width: 86px;
+  font-size: 13px;
+}
+
+.inline {
+  font-size: 12px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 52px;
+  background: #111;
+  color: #f5f5f5;
+  border-radius: 8px;
+  border: 1px solid #333;
+  padding: 6px 8px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+               "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: #f5f5f5;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+button:hover {
+  background: #3a3a3a;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #333;
+  margin: 8px 0;
+}
+
+.note {
+  font-size: 11px;
+  color: #bbb;
+  margin-top: 6px;
+  line-height: 1.5;
+}
