@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>CF Viewer v4.3.1 (cubing.js版・Solve & Rotation Fix)</title>
+
+  <!-- cubing.js: twisty-player 本体 -->
+  <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #111;
+      color: #f5f5f5;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 4px 0;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 12px;
+      color: #ccc;
+      margin-bottom: 12px;
+    }
+    .layout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .panel {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 12px;
+      max-width: 440px;
+      flex: 1 1 360px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    twisty-player {
+      width: 320px;
+      height: 320px;
+      display: block;
+      margin: 0 auto 8px auto;
+      background: none;
+    }
+    .small-note {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 56px;
+      background: #111;
+      color: #f5f5f5;
+      border-radius: 8px;
+      border: 1px solid #333;
+      padding: 6px;
+      resize: vertical;
+      font-family: monospace;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    button {
+      margin: 3px;
+      padding: 5px 9px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a2a;
+      color: #f5f5f5;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    button:hover {
+      background: #3a3a3a;
+    }
+    .btn-row {
+      margin-top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+    .label-inline {
+      font-size: 12px;
+      min-width: 80px;
+    }
+    .mode-row {
+      margin-top: 4px;
+      font-size: 12px;
+    }
+    .mode-row label {
+      margin-right: 12px;
+      cursor: pointer;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CF Viewer v4.3.1 (cubing.js)</h1>
+  <div class="subtitle">
+    左: 3x3 CF Viewer / 右: Corner Viewer（3x3同期）<br>
+    Scramble / Solve / X・Y・Z（x,y,z 手順として適用）＋マウス自由回転
+  </div>
+
+  <!-- Cube 全体回転ボタン（実際は x, y, z 手順として適用） -->
+  <div class="panel" style="max-width:900px;margin:0 auto 16px auto;">
+    <div class="section-title">Cube Rotation（x, y, z 手順による全体回転）</div>
+    <div class="small-note">
+      ※ x, y, z / x', y', z', x2, y2, z2 を手順として適用します。<br>
+      ※ 実機も同じ向きに持ち替えれば、Viewer と実機の対応が保てます。<br>
+      ※ マウスドラッグでも自由に 3D 回転できます（UI は回転しません）。
+    </div>
+    <div class="btn-row">
+      <span class="label-inline">X軸（前後）:</span>
+      <button class="rot-move" data-rot="x">X</button>
+      <button class="rot-move" data-rot="x'">X'</button>
+      <button class="rot-move" data-rot="x2">X2</button>
+    </div>
+    <div class="btn-row">
+      <span class="label-inline">Y軸（左右）:</span>
+      <button class="rot-move" data-rot="y">Y</button>
+      <button class="rot-move" data-rot="y'">Y'</button>
+      <button class="rot-move" data-rot="y2">Y2</button>
+    </div>
+    <div class="btn-row">
+      <span class="label-inline">Z軸（U面回転）:</span>
+      <button class="rot-move" data-rot="z">Z</button>
+      <button class="rot-move" data-rot="z'">Z'</button>
+      <button class="rot-move" data-rot="z2">Z2</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- 3x3 Viewer Panel -->
+    <div class="panel">
+      <h2>3x3 Viewer</h2>
+
+      <twisty-player
+        id="cube3"
+        puzzle="3x3x3"
+        background="none"
+      >
+      </twisty-player>
+
+      <!-- Scramble / Solve / Reset -->
+      <div class="btn-row">
+        <button id="btnRandomScramble">Random Scramble</button>
+        <button id="btnApplyScramble">Apply Scramble</button>
+        <button id="btnSolve">Solve</button>
+        <button id="btnResetAll">Reset</button>
+      </div>
+
+      <div class="flex-row">
+        <span class="label-inline">スクランブル手順:</span>
+      </div>
+
+      <textarea id="scrambleInput" placeholder="スクランブル手順が表示されます"></textarea>
+
+      <div class="small-note">
+        ※ Random Scramble は 3x3 の 20手スクランブルを生成します。<br>
+        ※ Apply Scramble は現在のスクランブル欄の手順をそのまま適用します。
+      </div>
+
+      <div class="mode-row">
+        【ボタン動作モード】 
+        <label><input type="radio" name="mode" value="apply" checked> Apply</label>
+        <label><input type="radio" name="mode" value="immediate"> Immediate</label>
+      </div>
+
+      <!-- Move Buttons -->
+      <div class="btn-row">
+        <button class="mv" data-m="U">U</button>
+        <button class="mv" data-m="U'">U'</button>
+        <button class="mv" data-m="U2">U2</button>
+
+        <button class="mv" data-m="R">R</button>
+        <button class="mv" data-m="R'">R'</button>
+        <button class="mv" data-m="R2">R2</button>
+
+        <button class="mv" data-m="L">L</button>
+        <button class="mv" data-m="L'">L'</button>
+        <button class="mv" data-m="L2">L2</button>
+      </div>
+
+      <div class="btn-row">
+        <button class="mv" data-m="F">F</button>
+        <button class="mv" data-m="F'">F'</button>
+        <button class="mv" data-m="F2">F2</button>
+
+        <button class="mv" data-m="B">B</button>
+        <button class="mv" data-m="B'">B'</button>
+        <button class="mv" data-m="B2">B2</button>
+
+        <button class="mv" data-m="D">D</button>
+        <button class="mv" data-m="D'">D'</button>
+        <button class="mv" data-m="D2">D2</button>
+      </div>
+
+      <div class="section-title">Apply 手順入力</div>
+
+      <textarea id="algInput" placeholder="例: R U R' U'"></textarea>
+
+      <div class="btn-row">
+        <button id="btnApplyAlg">Apply（3x3）</button>
+        <button id="btnClearAlg">Clear</button>
+      </div>
+    </div>
+
+    <!-- Corner Viewer Panel -->
+    <div class="panel">
+      <h2>Corner Viewer（3x3同期）</h2>
+
+      <twisty-player
+        id="cube2"
+        puzzle="3x3x3"
+        background="none"
+      >
+      </twisty-player>
+
+      <div class="small-note">
+        ※ 今は 3x3 と同じ状態を共有するビューです（エッジも表示）。<br>
+        ※ 今後、コーナーのみ表示（エッジ透明）版にも拡張できます。
+      </div>
+
+      <div class="section-title">Corner 用：同じ Scramble / 手順を適用</div>
+
+      <div class="btn-row">
+        <button id="btnScrambleCorner">Apply Scramble (Corner)</button>
+        <button id="btnResetCorner">Reset (Corner)</button>
+      </div>
+
+      <div class="section-title">Corner 専用 手順</div>
+
+      <textarea id="algInputCorner" placeholder="Corner 手順（例: R U R' U' など）"></textarea>
+
+      <div class="btn-row">
+        <button id="btnApplyAlgCorner">Apply Corner</button>
+        <button id="btnClearAlgCorner">Clear Corner</button>
+      </div>
+    </div>
+  </div> <!-- layout 終了 -->
+
+  <script type="module">
+    const cube3 = document.getElementById("cube3");
+    const cube2 = document.getElementById("cube2");
+
+    let alg3 = "";
+    let alg2 = "";
+
+    const MOVES = ["U","D","L","R","F","B"];
+    const SUFF  = ["", "'", "2"];
+
+    function generateScramble(n){
+      let s = [], last="";
+      for(let i=0;i<n;i++){
+        let m;
+        do{ m = MOVES[Math.floor(Math.random()*MOVES.length)]; }
+        while(m===last);
+        last = m;
+        let suf = SUFF[Math.floor(Math.random()*SUFF.length)];
+        s.push(m+suf);
+      }
+      return s.join(" ");
+    }
+
+    function applyToCube(cube, alg){
+      if (!cube) return;
+      cube.alg = alg || "";
+    }
+
+    /* -----------------------------
+       Scramble / Apply / Solve / Reset
+       ----------------------------- */
+
+    document.getElementById("btnRandomScramble").onclick = ()=>{
+      const s = generateScramble(20);
+      document.getElementById("scrambleInput").value = s;
+
+      alg3 = s;
+      alg2 = s;
+      applyToCube(cube3, alg3);
+      applyToCube(cube2, alg2);
+    };
+
+    document.getElementById("btnApplyScramble").onclick = ()=>{
+      const s = document.getElementById("scrambleInput").value.trim();
+      if (!s) return;
+
+      alg3 = s;
+      alg2 = s;
+      applyToCube(cube3, alg3);
+      applyToCube(cube2, alg2);
+    };
+
+    document.getElementById("btnSolve").onclick = ()=>{
+      if (cube3 && cube3.timeline) {
+        cube3.timeline.set(0);
+        cube3.play();
+      }
+      if (cube2 && cube2.timeline) {
+        cube2.timeline.set(0);
+        cube2.play();
+      }
+    };
+
+    document.getElementById("btnResetAll").onclick = ()=>{
+      alg3 = "";
+      alg2 = "";
+      applyToCube(cube3, "");
+      applyToCube(cube2, "");
+      document.getElementById("algInput").value = "";
+    };
+
+    /* -----------------------------
+       Apply / Immediate モード
+       ----------------------------- */
+
+    function getMode() {
+      const radios = document.querySelectorAll('input[name="mode"]');
+      for (const r of radios) {
+        if (r.checked) return r.value;
+      }
+      return "apply";
+    }
+
+    function appendMove(m) {
+      const ta = document.getElementById("algInput");
+      const cur = ta.value.trim();
+      ta.value = cur ? cur + " " + m : m;
+    }
+
+    function applyAlg() {
+      const val = document.getElementById("algInput").value.trim();
+      alg3 = val;
+      applyToCube(cube3, alg3);
+    }
+
+    function clearAlg() {
+      document.getElementById("algInput").value = "";
+    }
+
+    function immediateMove(m) {
+      alg3 = (alg3 + " " + m).trim();
+      applyToCube(cube3, alg3);
+      alg2 = alg3;
+      applyToCube(cube2, alg2);
+    }
+
+    document.getElementById("btnApplyAlg").onclick = applyAlg;
+    document.getElementById("btnClearAlg").onclick = clearAlg;
+
+    document.querySelectorAll(".mv").forEach(btn=>{
+      btn.onclick = ()=>{
+        const m = btn.dataset.m;
+        const mode = getMode();
+
+        if (mode === "apply") {
+          appendMove(m);
+        } else {
+          immediateMove(m);
+        }
+      };
+    });
+
+    /* -----------------------------
+       Corner Viewer 制御
+       ----------------------------- */
+
+    document.getElementById("btnScrambleCorner").onclick = ()=>{
+      const s = document.getElementById("scrambleInput").value.trim();
+      if (!s) return;
+      alg2 = s;
+      applyToCube(cube2, alg2);
+    };
+
+    document.getElementById("btnResetCorner").onclick = ()=>{
+      alg2 = "";
+      applyToCube(cube2, "");
+      document.getElementById("algInputCorner").value = "";
+    };
+
+    document.getElementById("btnApplyAlgCorner").onclick = ()=>{
+      const val = document.getElementById("algInputCorner").value.trim();
+      alg2 = val;
+      applyToCube(cube2, alg2);
+    };
+
+    document.getElementById("btnClearAlgCorner").onclick = ()=>{
+      document.getElementById("algInputCorner").value = "";
+    };
+
+    /* -----------------------------
+       Cube Rotation ボタン（x, y, z 手順として適用）
+       ----------------------------- */
+
+    function applyRotationMove(rot) {
+      // rot: "x", "x'", "x2" など
+      const mode = getMode();
+
+      if (mode === "apply") {
+        // Applyモードでは algInput にだけ追記
+        const ta = document.getElementById("algInput");
+        const cur = ta.value.trim();
+        ta.value = cur ? cur + " " + rot : rot;
+      } else {
+        // Immediateモードでは即時に適用
+        immediateMove(rot);
+      }
+    }
+
+    document.querySelectorAll(".rot-move").forEach(btn=>{
+      btn.onclick = ()=>{
+        const rot = btn.dataset.rot;
+        applyRotationMove(rot);
+      };
+    });
+  </script>
+</body>
+</html>
