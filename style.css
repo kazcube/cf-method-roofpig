@@ -111,3 +111,12 @@ hr {
   margin-top: 6px;
   line-height: 1.5;
 }
+
+
+twisty-player {
+  width: 200px !important;
+  height: 200px !important;
+  max-width: 200px !important;
+  max-height: 200px !important;
+  margin: 0 auto 8px !important;
+}
