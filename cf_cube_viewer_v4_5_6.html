@@ -2,13 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>CF Method Cube Viewer v4.5.2 (cubing.js版)</title>
+  <title>CF Method Cube Viewer v4.5.6</title>
   <!-- cubing.js / twisty-player -->
   <script type="module" src="https://cdn.cubing.net/js/cubing/twisty"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>CF Method Cube Viewer v4.5.2</h1>
+  <h1>CF Method Cube Viewer v4.5.6</h1>
   <p class="subtitle">
     左：通常 3x3 ビューア（操作用） ／ 右：コーナーのみ 3D ビューア（構図・色を左と揃え）<br>
     U=白, D=黄, F=緑, B=青, R=赤, L=オレンジ
@@ -18,7 +18,7 @@
     <!-- Main 3x3 viewer -->
     <section class="panel">
       <h2>3x3 Viewer</h2>
-      <twisty-player id="mainCube" viewer-aufgabe="size-fixed"
+      <twisty-player id="mainCube"
         puzzle="3x3x3"
         background="none"
         control-panel="full"
@@ -107,7 +107,7 @@
     <!-- Corner-only 3D Viewer -->
     <section class="panel">
       <h2>Corner Viewer（3D・コーナーのみ）</h2>
-      <twisty-player id="cornerCube" viewer-aufgabe="size-fixed"
+      <twisty-player id="cornerCube"
         puzzle="3x3x3"
         background="none"
         control-panel="none"
