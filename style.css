@@ -113,9 +113,15 @@ hr {
 }
 
 
-/* v4.6.1 — Corner Cube edges fully transparent */
-#cornerCube svg path[fill="#CCCCCC"],
-#cornerCube svg path[fill="#AAAAAA"],
-#cornerCube svg path[fill="#999999"] {
-  fill: rgba(0, 0, 0, 0) !important;
+/* v4.6.3 — fully transparent edges for right cube */
+#cornerCube svg path,
+#cornerCube svg polygon,
+#cornerCube svg rect {
+  fill: none !important;
+  stroke: none !important;
+}
+/* restore corner colors */
+#cornerCube svg g[fill] path {
+  fill: inherit !important;
+  stroke: inherit !important;
 }
