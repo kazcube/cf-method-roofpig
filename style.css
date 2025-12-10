@@ -111,27 +111,3 @@ hr {
   margin-top: 6px;
   line-height: 1.5;
 }
-
-
-/* v4.7.0 corner viewer modes */
-.corner-mode {
-  display: none;
-}
-.corner-mode.active {
-  display: block;
-}
-
-.corner-mode-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.corner-side-by-side {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-}

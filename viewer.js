@@ -10,14 +10,9 @@ window.CFV = (function () {
     return document.getElementById("mainCube");
   }
 
-  function getCornerCubes() {
-  return Array.from(document.querySelectorAll(".corner-viewer"));
-}
-
-function getCornerCube() {
-  // for backward compatibility: first corner viewer
-  return document.getElementById("cornerCube");
-}
+  function getCornerCube() {
+    return document.getElementById("cornerCube");
+  }
 
   function parseMoves(str) {
     if (!str) return [];
@@ -64,8 +59,8 @@ function getCornerCube() {
 
   function refreshCubes() {
     const main = getMainCube();
-    const corners = getCornerCubes();
-    if (!main || corners.length === 0) return;
+    const corner = getCornerCube();
+    if (!main || !corner) return;
 
     const tokens = parseMoves(fullAlg);
     const clampedIndex = Math.max(0, Math.min(stepIndex, tokens.length));
@@ -73,13 +68,13 @@ function getCornerCube() {
 
     const prefix = movesToString(tokens.slice(0, clampedIndex));
     main.alg = prefix;
-    corners.forEach(c => { c.alg = prefix; });
+    corner.alg = prefix;
   }
 
   function playFromFraction(t) {
     const main = getMainCube();
-    const corners = getCornerCubes();
-    if (!main || corners.length === 0) return;
+    const corner = getCornerCube();
+    if (!main || !corner) return;
 
     main.alg = fullAlg;
     corner.alg = fullAlg;
@@ -138,9 +133,9 @@ function getCornerCube() {
     stepIndex = 0;
 
     const main = getMainCube();
-    const corners = getCornerCubes();
+    const corner = getCornerCube();
     if (main) main.alg = "";
-    corners.forEach(c => { c.alg = ""; });
+    if (corner) corner.alg = "";
 
     const taScr = document.getElementById("scrambleInput");
     const taAlg = document.getElementById("algInput");
@@ -219,16 +214,6 @@ function getCornerCube() {
     refreshCubes();
   });
 
-
-  function setCornerMode(mode) {
-    const modes = ["A", "B", "C"];
-    modes.forEach(m => {
-      const el = document.getElementById("cornerMode" + m);
-      if (el) {
-        el.classList.toggle("active", m === mode);
-      }
-    });
-  }
   return {
     randomScramble,
     applyScrambleFromText,
@@ -239,6 +224,5 @@ function getCornerCube() {
     stepForward,
     stepBackward,
     solveFromLastScramble,
-    setCornerMode,
   };
 })();
