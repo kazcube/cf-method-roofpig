@@ -113,29 +113,8 @@ hr {
 }
 
 
-/* Force Twistypayer rendering size */
+/* v4.5.7 minimal CSS — scale handled by viewport-scale attribute */
 twisty-player {
-  --twisty-viewport-size: 140px !important;
-  width: 160px !important;
-  height: 160px !important;
-  max-width: 160px !important;
-  max-height: 160px !important;
-}
-
-/* Main cube slightly larger */
-#mainCube {
-  --twisty-viewport-size: 160px !important;
-  width: 180px !important;
-  height: 180px !important;
-  max-width: 180px !important;
-  max-height: 180px !important;
-}
-
-/* Corner cube smaller */
-#cornerCube {
-  --twisty-viewport-size: 120px !important;
-  width: 150px !important;
-  height: 150px !important;
-  max-width: 150px !important;
-  max-height: 150px !important;
+  max-width: 240px !important;
+  margin: 0 auto 8px !important;
 }
