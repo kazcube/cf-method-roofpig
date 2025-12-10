@@ -114,11 +114,9 @@ hr {
 
 
 #mainCube {
-  width: 240px !important;
-  height: 240px !important;
+  --twisty-viewport-size: 180px !important;
 }
 
 #cornerCube {
-  width: 180px !important;
-  height: 180px !important;
+  --twisty-viewport-size: 150px !important;
 }
