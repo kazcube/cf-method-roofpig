@@ -104,14 +104,30 @@ window.CFV = (function () {
     const showPath = document.getElementById("showScramblePath");
     const tokens = scrambleMoves;
     if (showPath && showPath.checked) {
+      // 完成状態から 1 手ずつスクランブルを適用するアニメーション
       stepIndex = 0;
       refreshCubes();
-      playFromFraction(0);
-      stepIndex = tokens.length;
+
+      const main = getMainCube();
+      const corner = getCornerCube();
+      if (!main || !corner) return;
+
+      let i = 0;
+      function step() {
+        if (i > tokens.length) return;
+        stepIndex = i;
+        refreshCubes();
+        i += 1;
+        if (i <= tokens.length) {
+          setTimeout(step, 80);
+        }
+      }
+      step();
     } else {
       stepIndex = tokens.length;
       refreshCubes();
     }
+  }
   }
 
   function applyScrambleFromText() {
@@ -185,15 +201,42 @@ window.CFV = (function () {
   }
 
   function solveFromLastScramble() {
-    // v4.7.2: jump to scramble state first, then play only solve alg
-    const main = getMainCube();
-    const corners = (typeof getCornerCubes === 'function') ? getCornerCubes() : [getCornerCube()];
-    if (!main) return;
-
-    if (typeof lastScramble !== 'undefined' && lastScramble) {
-      main.alg = lastScramble;
-      corners.forEach(c => { if (c) c.alg = lastScramble; });
+    const scrMoves = parseMoves(lastScrambleAlg);
+    if (scrMoves.length === 0) {
+      console.warn("Solve: lastScrambleAlg がありません。");
+      return;
     }
+    const invMoves = invertMoves(scrMoves);
+    const tokens = scrMoves.concat(invMoves);
+
+    // この fullAlg は「スクランブル + その逆手順」のフルシーケンス
+    fullAlg = movesToString(tokens);
+
+    // スクランブル手順ぶんの位置から（=スクランブル状態から）
+    // 逆手順だけをアニメーションで再生する
+    const startIndex = scrMoves.length;
+    const endIndex = tokens.length;
+
+    stepIndex = startIndex;
+    refreshCubes();
+
+    // 手動ステップアニメーション
+    const main = getMainCube();
+    const corner = getCornerCube();
+    if (!main || !corner) return;
+
+    let i = startIndex;
+    function step() {
+      if (i > endIndex) return;
+      stepIndex = i;
+      refreshCubes();
+      i += 1;
+      if (i <= endIndex) {
+        setTimeout(step, 80);
+      }
+    }
+    step();
+  }
 
 
     const scrMoves = parseMoves(lastScrambleAlg);
