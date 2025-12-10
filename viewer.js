@@ -10,9 +10,14 @@ window.CFV = (function () {
     return document.getElementById("mainCube");
   }
 
-  function getCornerCube() {
-    return document.getElementById("cornerCube");
-  }
+  function getCornerCubes() {
+  return Array.from(document.querySelectorAll(".corner-viewer"));
+}
+
+function getCornerCube() {
+  // for backward compatibility: first corner viewer
+  return document.getElementById("cornerCube");
+}
 
   function parseMoves(str) {
     if (!str) return [];
@@ -59,8 +64,8 @@ window.CFV = (function () {
 
   function refreshCubes() {
     const main = getMainCube();
-    const corner = getCornerCube();
-    if (!main || !corner) return;
+    const corners = getCornerCubes();
+    if (!main || corners.length === 0) return;
 
     const tokens = parseMoves(fullAlg);
     const clampedIndex = Math.max(0, Math.min(stepIndex, tokens.length));
@@ -68,13 +73,13 @@ window.CFV = (function () {
 
     const prefix = movesToString(tokens.slice(0, clampedIndex));
     main.alg = prefix;
-    corner.alg = prefix;
+    corners.forEach(c => { c.alg = prefix; });
   }
 
   function playFromFraction(t) {
     const main = getMainCube();
-    const corner = getCornerCube();
-    if (!main || !corner) return;
+    const corners = getCornerCubes();
+    if (!main || corners.length === 0) return;
 
     main.alg = fullAlg;
     corner.alg = fullAlg;
@@ -133,9 +138,9 @@ window.CFV = (function () {
     stepIndex = 0;
 
     const main = getMainCube();
-    const corner = getCornerCube();
+    const corners = getCornerCubes();
     if (main) main.alg = "";
-    if (corner) corner.alg = "";
+    corners.forEach(c => { c.alg = ""; });
 
     const taScr = document.getElementById("scrambleInput");
     const taAlg = document.getElementById("algInput");
@@ -214,6 +219,16 @@ window.CFV = (function () {
     refreshCubes();
   });
 
+
+  function setCornerMode(mode) {
+    const modes = ["A", "B", "C"];
+    modes.forEach(m => {
+      const el = document.getElementById("cornerMode" + m);
+      if (el) {
+        el.classList.toggle("active", m === mode);
+      }
+    });
+  }
   return {
     randomScramble,
     applyScrambleFromText,
@@ -224,5 +239,6 @@ window.CFV = (function () {
     stepForward,
     stepBackward,
     solveFromLastScramble,
+    setCornerMode,
   };
 })();

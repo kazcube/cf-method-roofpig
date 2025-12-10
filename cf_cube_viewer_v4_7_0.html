@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>CF Method Cube Viewer v4.7.0</title>
+  <!-- cubing.js / twisty-player -->
+  <script type="module" src="https://cdn.cubing.net/js/cubing/twisty"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>CF Method Cube Viewer v4.7.0</h1>
+  <p class="subtitle">
+    左：通常 3x3 ビューア（操作用） ／ 右：上面 OCLL 用コーナービュー（参考用）<br>
+    U=白, D=黄, F=緑, B=青, R=赤, L=オレンジ
+  </p>
+
+  <div class="layout">
+    <!-- Main 3x3 viewer -->
+    <section class="panel">
+      <h2>3x3 Viewer</h2>
+      <twisty-player id="mainCube"
+        puzzle="3x3x3"
+        background="none"
+        control-panel="full"
+        experimental-setup-anchor="end"
+        camera-latitude="30"
+        camera-longitude="-35"
+        style="width: 280px; height: 280px; margin: 0 auto 8px;"
+      ></twisty-player>
+
+      <div class="controls">
+        <div class="row">
+          <button type="button" onclick="CFV.randomScramble()">Random Scramble (20)</button>
+          <label class="inline">
+            <input type="checkbox" id="showScramblePath">
+            Scramble 過程を表示
+          </label>
+        </div>
+
+        <div class="row">
+          <span class="label">Scramble 手順:</span>
+          <button type="button" onclick="CFV.applyScrambleFromText()">Apply Scramble</button>
+          <button type="button" onclick="CFV.resetAll()">Reset</button>
+        </div>
+        <textarea id="scrambleInput" placeholder="例: R U R' U' F2 D' L2 ..."></textarea>
+
+        <div class="row">
+          <button type="button" onclick="CFV.solveFromLastScramble()">Solve（スクランブルから完成まで）</button>
+        </div>
+
+        <hr>
+
+        <div class="row">
+          <span class="label">手順入力:</span>
+          <button type="button" onclick="CFV.applyAlgFromText()">Apply（現在位置から追加）</button>
+          <button type="button" onclick="CFV.clearAlgInput()">クリア</button>
+        </div>
+        <textarea id="algInput" placeholder="例: R U R' U'"></textarea>
+
+        <div class="row row-moves">
+          <span class="label">1手追加:</span>
+          <div class="btn-group">
+            <button type="button" onclick="CFV.appendMove('U')">U</button>
+            <button type="button" onclick="CFV.appendMove('U\'')">U'</button>
+            <button type="button" onclick="CFV.appendMove('U2')">U2</button>
+            <button type="button" onclick="CFV.appendMove('R')">R</button>
+            <button type="button" onclick="CFV.appendMove('R\'')">R'</button>
+            <button type="button" onclick="CFV.appendMove('R2')">R2</button>
+            <button type="button" onclick="CFV.appendMove('L')">L</button>
+            <button type="button" onclick="CFV.appendMove('L\'')">L'</button>
+            <button type="button" onclick="CFV.appendMove('L2')">L2</button>
+          </div>
+        </div>
+
+        <div class="row row-moves">
+          <span class="label"></span>
+          <div class="btn-group">
+            <button type="button" onclick="CFV.appendMove('F')">F</button>
+            <button type="button" onclick="CFV.appendMove('F\'')">F'</button>
+            <button type="button" onclick="CFV.appendMove('F2')">F2</button>
+            <button type="button" onclick="CFV.appendMove('B')">B</button>
+            <button type="button" onclick="CFV.appendMove('B\'')">B'</button>
+            <button type="button" onclick="CFV.appendMove('B2')">B2</button>
+            <button type="button" onclick="CFV.appendMove('D')">D</button>
+            <button type="button" onclick="CFV.appendMove('D\'')">D'</button>
+            <button type="button" onclick="CFV.appendMove('D2')">D2</button>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+          <span class="label">1手ずつ確認:</span>
+          <button type="button" onclick="CFV.stepBackward()">◀ 1手戻る</button>
+          <button type="button" onclick="CFV.stepForward()">1手進む ▶</button>
+        </div>
+
+        <p class="note">
+          ・スライダーは cubing.js 標準のものです。<br>
+          ・Scramble / Solve を押すと、左右のキューブが同じ状態になります。
+        </p>
+      </div>
+    </section>
+
+    
+    <!-- Corner Viewer with 3 modes -->
+    <section class="panel">
+      <h2>Corner Viewer（OCLL / 上面, Back View, Side-by-Side）</h2>
+
+      <div class="corner-mode-buttons">
+        <button type="button" onclick="CFV.setCornerMode('A')">Mode A：3D Corners Only</button>
+        <button type="button" onclick="CFV.setCornerMode('B')">Mode B：Back View</button>
+        <button type="button" onclick="CFV.setCornerMode('C')">Mode C：Side-by-Side</button>
+      </div>
+
+      <div id="cornerModeA" class="corner-mode active">
+        <twisty-player id="cornerCube"
+          class="corner-viewer"
+          puzzle="3x3x3"
+          background="none"
+          control-panel="none"
+          experimental-setup-anchor="end"
+          camera-latitude="30"
+          camera-longitude="-35"
+          disable-fancy="true"
+          experimental-piecemask="corners-only"
+          style="width: 230px; height: 230px; margin: 0 auto 8px;"
+        ></twisty-player>
+      </div>
+
+      <div id="cornerModeB" class="corner-mode">
+        <twisty-player id="cornerCubeBack"
+          class="corner-viewer"
+          puzzle="3x3x3"
+          background="none"
+          control-panel="none"
+          experimental-setup-anchor="end"
+          camera-latitude="30"
+          camera-longitude="145"
+          disable-fancy="true"
+          experimental-piecemask="corners-only"
+          style="width: 230px; height: 230px; margin: 0 auto 8px;"
+        ></twisty-player>
+      </div>
+
+      <div id="cornerModeC" class="corner-mode">
+        <div class="corner-side-by-side">
+          <twisty-player id="cornerCubeTop"
+            class="corner-viewer"
+            puzzle="3x3x3"
+            background="none"
+            control-panel="none"
+            experimental-setup-anchor="end"
+            camera-latitude="90"
+            camera-longitude="0"
+            disable-fancy="true"
+            experimental-piecemask="corners-only"
+            style="width: 180px; height: 180px;"
+          ></twisty-player>
+
+          <twisty-player id="cornerCubeSide"
+            class="corner-viewer"
+            puzzle="3x3x3"
+            background="none"
+            control-panel="none"
+            experimental-setup-anchor="end"
+            camera-latitude="0"
+            camera-longitude="0"
+            disable-fancy="true"
+            experimental-piecemask="corners-only"
+            style="width: 180px; height: 180px;"
+          ></twisty-player>
+        </div>
+      </div>
+
+      <p class="note">
+        Mode A：正面から見た 3D コーナーのみビュー<br>
+        Mode B：背面から見た 3D コーナーのみビュー（エッジは視界外）<br>
+        Mode C：上面＋側面を横並びにした Side-by-Side ビュー<br>
+        ・どのモードでも左の 3x3 Viewer と同じ Scramble / Alg が反映されます。
+      </p>
+    </section>
+
+  </div>
+
+  <script src="viewer.js"></script>
+</body>
+</html>
