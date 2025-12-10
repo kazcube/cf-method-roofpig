@@ -185,6 +185,17 @@ window.CFV = (function () {
   }
 
   function solveFromLastScramble() {
+    // v4.7.2: jump to scramble state first, then play only solve alg
+    const main = getMainCube();
+    const corners = (typeof getCornerCubes === 'function') ? getCornerCubes() : [getCornerCube()];
+    if (!main) return;
+
+    if (typeof lastScramble !== 'undefined' && lastScramble) {
+      main.alg = lastScramble;
+      corners.forEach(c => { if (c) c.alg = lastScramble; });
+    }
+
+
     const scrMoves = parseMoves(lastScrambleAlg);
     if (scrMoves.length === 0) {
       console.warn("Solve: lastScrambleAlg がありません。");
