@@ -111,3 +111,11 @@ hr {
   margin-top: 6px;
   line-height: 1.5;
 }
+
+
+/* v4.6.1 — Corner Cube edges fully transparent */
+#cornerCube svg path[fill="#CCCCCC"],
+#cornerCube svg path[fill="#AAAAAA"],
+#cornerCube svg path[fill="#999999"] {
+  fill: rgba(0, 0, 0, 0) !important;
+}
