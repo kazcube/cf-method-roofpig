@@ -11,7 +11,7 @@ window.CFV = (function () {
   }
 
   function getCornerCube() {
-    return document.getElementById("cornerCube");
+    return document.getElementById("cornerCubeBack") || document.getElementById("cornerCube");
   }
 
   function parseMoves(str) {
@@ -103,6 +103,7 @@ window.CFV = (function () {
 
     const showPath = document.getElementById("showScramblePath");
     const tokens = scrambleMoves;
+
     if (showPath && showPath.checked) {
       // 完成状態から 1 手ずつスクランブルを適用するアニメーション
       stepIndex = 0;
@@ -127,7 +128,6 @@ window.CFV = (function () {
       stepIndex = tokens.length;
       refreshCubes();
     }
-  }
   }
 
   function applyScrambleFromText() {
@@ -165,12 +165,36 @@ window.CFV = (function () {
     const addMoves = parseMoves(ta.value);
     if (addMoves.length === 0) return;
 
+    const modeEl = document.querySelector('input[name="algApplyMode"]:checked');
+    const mode = modeEl ? modeEl.value : 'apply';
+
     const baseTokens = parseMoves(fullAlg).slice(0, stepIndex);
     const newTokens = baseTokens.concat(addMoves);
-
     fullAlg = movesToString(newTokens);
-    stepIndex = newTokens.length;
-    refreshCubes();
+
+    if (mode === 'apply') {
+      // 一発で適用
+      stepIndex = newTokens.length;
+      refreshCubes();
+    } else {
+      // Immediate: 現在位置から 1 手ずつ適用
+      const tokens = newTokens;
+      const main = getMainCube();
+      const corner = getCornerCube();
+      if (!main || !corner) return;
+
+      let i = baseTokens.length;
+      function step() {
+        if (i > tokens.length) return;
+        stepIndex = i;
+        refreshCubes();
+        i += 1;
+        if (i <= tokens.length) {
+          setTimeout(step, 80);
+        }
+      }
+      step();
+    }
   }
 
   function clearAlgInput() {
@@ -209,59 +233,28 @@ window.CFV = (function () {
     const invMoves = invertMoves(scrMoves);
     const tokens = scrMoves.concat(invMoves);
 
-    // この fullAlg は「スクランブル + その逆手順」のフルシーケンス
     fullAlg = movesToString(tokens);
 
-    // スクランブル手順ぶんの位置から（=スクランブル状態から）
-    // 逆手順だけをアニメーションで再生する
-    const startIndex = scrMoves.length;
-    const endIndex = tokens.length;
-
-    stepIndex = startIndex;
-    refreshCubes();
-
-    // 手動ステップアニメーション
     const main = getMainCube();
     const corner = getCornerCube();
     if (!main || !corner) return;
 
-    let i = startIndex;
+    // スクランブル状態にセット
+    stepIndex = scrMoves.length;
+    refreshCubes();
+
+    // スクランブル状態から逆手順だけ 1 手ずつ再生
+    let i = scrMoves.length;
     function step() {
-      if (i > endIndex) return;
+      if (i > tokens.length) return;
       stepIndex = i;
       refreshCubes();
       i += 1;
-      if (i <= endIndex) {
+      if (i <= tokens.length) {
         setTimeout(step, 80);
       }
     }
     step();
-  }
-
-
-    const scrMoves = parseMoves(lastScrambleAlg);
-    if (scrMoves.length === 0) {
-      console.warn("Solve: lastScrambleAlg がありません。");
-      return;
-    }
-    const invMoves = invertMoves(scrMoves);
-
-    const currentTokens = parseMoves(fullAlg);
-    const baseTokens = currentTokens.slice(0, scrMoves.length);
-    const newTokens = baseTokens.concat(invMoves);
-
-    fullAlg = movesToString(newTokens);
-
-    const total = newTokens.length;
-    const startIndex = scrMoves.length;
-    stepIndex = startIndex;
-
-    refreshCubes();
-
-    if (total > 0) {
-      const startFraction = startIndex / total;
-      playFromFraction(startFraction);
-    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
