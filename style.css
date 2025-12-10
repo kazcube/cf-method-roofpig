@@ -111,10 +111,3 @@ hr {
   margin-top: 6px;
   line-height: 1.5;
 }
-
-
-/* v4.5.7 minimal CSS — scale handled by viewport-scale attribute */
-twisty-player {
-  max-width: 240px !important;
-  margin: 0 auto 8px !important;
-}
