@@ -1,0 +1,6 @@
+
+body{background:#111;color:#eee;font-family:sans-serif;text-align:center}
+.ctrl{margin:10px}
+button{margin:2px;padding:6px}
+#scene{perspective:800px;width:300px;height:300px;margin:auto}
+#cube{width:120px;height:120px;margin:90px auto;transform-style:preserve-3d}
