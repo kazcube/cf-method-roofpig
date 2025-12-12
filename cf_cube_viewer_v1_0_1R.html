@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>CF Method Cube Viewer v1.0.1R (Roofpig)</title>
+
+  <!-- Rシリーズ専用レイアウト -->
+  <link rel="stylesheet" href="viewer_R.css">
+
+  <!-- Roofpig 本体 -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="roofpig_and_three.min.js"></script>
+</head>
+<body>
+  <div class="page">
+    <h1>CF Method Cube Viewer v1.0.1R (Roofpig)</h1>
+    <p class="subtitle">左：通常 3x3 ビューア（操作用） ／ 右：Corner 強調ビュー（擬似コーナーオンリー）</p>
+    <p class="subtitle">U=白, D=黄, F=緑, B=青, R=赤, L=オレンジ</p>
+
+    <!-- 3x3 Viewer コントロール -->
+    <section class="panel panel-ctrl">
+      <h2>3x3 Viewer</h2>
+
+      <div class="ctrl-row">
+        <button id="btnRandomScrambleR">Random Scramble (20)</button>
+        <label class="inline-label">
+          <input type="checkbox" id="chkShowTraceR" disabled>
+          Scramble 過程を表示（Roofpig版では表示のみ）
+        </label>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Scramble 手順：</span>
+        <textarea id="scrambleTextR" class="scramble-text" rows="2"></textarea>
+        <button id="btnApplyScrambleR">Apply Scramble</button>
+        <button id="btnResetR">Reset</button>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Solve（スクランブルから完成まで）：</span>
+        <button id="btnSolveR">Solve</button>
+        <span class="hint">※ v1.0.1R では「Scramble の逆手順」を表示します。</span>
+      </div>
+
+      <hr class="divider">
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">手順入力：</span>
+        <input id="algInputR" class="alg-input" type="text" placeholder="例: R U R' U'">
+        <button id="btnApplyAlgR">Apply（現在位置から追加）</button>
+        <button id="btnClearAlgR">クリア</button>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">現在の状態（scramble + alg）：</span>
+        <textarea id="stateMovesR" class="state-text" rows="2" readonly></textarea>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">適用方法：</span>
+        <label class="inline-label">
+          <input type="radio" name="applyModeR" value="apply" checked>
+          Apply（一発）
+        </label>
+        <label class="inline-label disabled">
+          <input type="radio" name="applyModeR" value="immediate" disabled>
+          Immediate（1手ずつ）
+        </label>
+        <span class="hint">※ Roofpig 版では Apply（一発）のみ有効です。</span>
+      </div>
+
+      <div class="ctrl-row moves-row">
+        <span class="ctrl-label">1手追加：</span>
+        <div class="moves-block">
+          <div class="moves-line">
+            <button class="move-btn" data-move="U">U</button>
+            <button class="move-btn" data-move="U'">U'</button>
+            <button class="move-btn" data-move="U2">U2</button>
+            <button class="move-btn" data-move="R">R</button>
+            <button class="move-btn" data-move="R'">R'</button>
+            <button class="move-btn" data-move="R2">R2</button>
+            <button class="move-btn" data-move="L">L</button>
+            <button class="move-btn" data-move="L'">L'</button>
+            <button class="move-btn" data-move="L2">L2</button>
+          </div>
+          <div class="moves-line">
+            <button class="move-btn" data-move="F">F</button>
+            <button class="move-btn" data-move="F'">F'</button>
+            <button class="move-btn" data-move="F2">F2</button>
+            <button class="move-btn" data-move="B">B</button>
+            <button class="move-btn" data-move="B'">B'</button>
+            <button class="move-btn" data-move="B2">B2</button>
+            <button class="move-btn" data-move="D">D</button>
+            <button class="move-btn" data-move="D'">D'</button>
+            <button class="move-btn" data-move="D2">D2</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctrl-row step-row">
+        <span class="ctrl-label">1手ずつ確認：</span>
+        <button id="btnStepBackR" disabled>◀ 1手戻る</button>
+        <button id="btnStepForwardR" disabled>1手進む ▶</button>
+        <span class="hint">※ v1.0.1R ではレイアウトのみ再現（今後実装予定）。</span>
+      </div>
+    </section>
+
+    <!-- キューブビュー -->
+    <div class="cube-row">
+      <div class="cube-block">
+        <h2>左：3×3 全体ビュー</h2>
+        <div id="mainCubeR" class="cube-container"></div>
+      </div>
+
+      <div class="cube-block">
+        <h2>右：Corner 強調ビュー（擬似コーナーオンリー）</h2>
+        <div id="cornerCubeR" class="cube-container right-view"></div>
+      </div>
+    </div>
+
+    <p class="note">
+      ※ v1.0.1R は Roofpig ベースのテスト版です。<br>
+      ・WebGL 非対応環境では Roofpig が自動的に Canvas / 画像描画モードに切り替わります。<br>
+      ・右ビューは <code>solved=*-/c</code> と <code>colored=*/c</code> を利用し、さらに CSS でエッジ・センターを暗くしてコーナーを強調表示しています。<br>
+      ・将来的に v4.8.x 系と同様のステップ再生 UI を追加予定です。
+    </p>
+  </div>
+
+  <script src="viewer_R.js"></script>
+</body>
+</html>

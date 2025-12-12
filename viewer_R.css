@@ -1,6 +1,196 @@
-body { background:#111; color:#eee; font-family:sans-serif; }
-.controls { background:#222; padding:10px; border-radius:8px; margin-bottom:10px; }
-textarea { width:100%; height:40px; background:#000; color:#0f0; }
-.cube-row { display:flex; gap:20px; }
-.cube-block { background:#222; padding:10px; border-radius:8px; }
-.cube-container { width:260px; height:260px; }
+body {
+  margin: 0;
+  padding: 0;
+  background: #111;
+  color: #eee;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.page {
+  padding: 16px;
+}
+
+h1 {
+  font-size: 20px;
+  margin: 0 0 4px 0;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.panel-ctrl {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #1c1c1c;
+}
+
+.panel-ctrl h2 {
+  font-size: 16px;
+  margin: 0 0 8px 0;
+}
+
+.ctrl-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.ctrl-label {
+  min-width: 130px;
+  font-size: 12px;
+}
+
+.inline-label {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inline-label.disabled {
+  opacity: 0.5;
+}
+
+.scramble-text,
+.state-text {
+  flex: 1;
+  min-width: 220px;
+  resize: vertical;
+  font-family: "Consolas", "Menlo", "Courier New", monospace;
+  font-size: 12px;
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #000;
+  color: #eee;
+}
+
+.alg-input {
+  flex: 1;
+  min-width: 220px;
+  font-family: "Consolas", "Menlo", "Courier New", monospace;
+  font-size: 12px;
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #000;
+  color: #eee;
+}
+
+button {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #666;
+  background: #333;
+  color: #eee;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button:hover:not(:disabled) {
+  background: #444;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #444;
+  margin: 8px 0;
+}
+
+.hint {
+  font-size: 10px;
+  color: #aaa;
+}
+
+.moves-row .moves-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.moves-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.move-btn {
+  min-width: 32px;
+  text-align: center;
+  padding: 2px 4px;
+}
+
+.cube-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.cube-block {
+  background: #1c1c1c;
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #444;
+}
+
+.cube-block h2 {
+  font-size: 14px;
+  margin: 0 0 6px 0;
+}
+
+.cube-container {
+  width: 240px;
+  height: 240px;
+  overflow: hidden;      /* 枠からはみ出さないようにする */
+}
+
+.cube-container .roofpig {
+  width: 100%;
+  height: 100%;
+}
+
+.note {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #ccc;
+}
+
+/* 右ビュー：Corner 強調用
+   - solved/colored 設定に加え、CSSでもエッジ&センターを暗くする。
+   - Roofpig の描画構造に依存するため !important で上書き。
+*/
+.right-view canvas {
+  /* WebGL/Canvas モード時の安全策として一応指定（必要に応じて調整） */
+}
+
+#cornerCubeR .roofpig {
+  /* 右ビュー全体のコンテナクラス。後続の sticker スタイルを適用しやすくするため */
+}
+
+/* 可能な範囲でエッジ & センターを暗くする。
+   Roofpig は solved/colored を使うので、ここでは「全体のコントラスト調整」程度に留める。
+*/
+#cornerCubeR .roofpig .sticker.solved {
+  opacity: 0.25 !important;
+}
+
+#cornerCubeR .roofpig .sticker.ignored {
+  opacity: 0.15 !important;
+}
+
+#cornerCubeR .roofpig .sticker.colored {
+  opacity: 1 !important;
+}
