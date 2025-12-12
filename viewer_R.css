@@ -32,11 +32,34 @@ h1 { margin: 0 0 4px 0; font-size: 20px; }
   overflow: hidden;
 }
 
+/* Roofpig cube area */
 .cube-container .roofpig {
   width: 100%;
   height: 100%;
 }
 
+/* ================================
+   (A) WebGL fallback error → 完全非表示
+   ================================ */
+.rp-error,
+.rp-failure,
+.rp-fallback,
+.rp-info {
+  display: none !important;
+}
+
+/* ================================
+   (B) Fallback PNG を枠内に収める
+   ================================ */
+.cube-container img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  display: block;
+  margin: 0 auto;
+}
+
+/* UI Panel */
 .panel-ctrl {
   background: #1a1a1a;
   padding: 10px;
