@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>CF Method Cube Viewer v4.8.1</title>
+
+  <!-- WebGL2→WebGL1 自動フォールバック -->
+  <script>
+  function getBestWebGLContext(canvas) {
+      let gl = canvas.getContext("webgl2", { antialias: true });
+      if (gl) return gl;
+      gl = canvas.getContext("webgl", { antialias: true }) ||
+           canvas.getContext("experimental-webgl", { antialias: true });
+      return gl;
+  }
+  window.createTwistyGL = function(canvas) {
+      return getBestWebGLContext(canvas);
+  };
+  </script>
+
+  <script type="module" src="https://cdn.cubing.net/js/cubing/twisty"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>CF Method Cube Viewer v4.8.1</h1>
+
+  <twisty-player puzzle="3x3x3" background="none"
+      control-panel="full"
+      style="width:280px;height:280px;">
+  </twisty-player>
+
+  <script src="viewer.js"></script>
+</body>
+</html>
