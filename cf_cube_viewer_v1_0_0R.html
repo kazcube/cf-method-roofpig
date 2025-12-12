@@ -4,11 +4,7 @@
   <meta charset="UTF-8">
   <title>CF Method Cube Viewer v1.0.0R (Roofpig)</title>
 
-  <!-- レイアウト用 CSS（本プロジェクト専用） -->
   <link rel="stylesheet" href="viewer_R.css">
-
-  <!-- Roofpig 本体（既存ファイルを同じフォルダに置いてください） -->
-  <link rel="stylesheet" href="roofpig.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="roofpig_and_three.min.js"></script>
 </head>
@@ -16,23 +12,17 @@
   <h1>CF Method Cube Viewer v1.0.0R (Roofpig)</h1>
 
   <div id="controlsR" class="controls">
-    <div class="controls-row">
-      <label for="scrambleTextR">Scramble (20手)：</label>
-      <textarea id="scrambleTextR" class="scramble-text" rows="2" readonly></textarea>
-      <button id="btnRandomScrambleR">Random Scramble (20)</button>
-      <button id="btnResetR">Reset</button>
-    </div>
+    <button id="btnRandomScrambleR">Random Scramble (20)</button>
+    <button id="btnResetR">Reset</button>
+    <br><br>
+    <input id="algInputR" type="text" placeholder="例: R U R' U'">
+    <button id="btnApplyAlgR">Apply Alg</button>
 
-    <div class="controls-row">
-      <label for="algInputR">追加アルゴリズム（現在の状態に適用）：</label>
-      <input id="algInputR" class="alg-input" type="text" placeholder="例: R U R' U'">
-      <button id="btnApplyAlgR">Apply Alg</button>
-    </div>
+    <p>Scramble:</p>
+    <textarea id="scrambleTextR" readonly></textarea>
 
-    <div class="controls-row">
-      <label for="stateMovesR">現在の状態（scramble + alg）：</label>
-      <textarea id="stateMovesR" class="state-text" rows="2" readonly></textarea>
-    </div>
+    <p>現在の状態:</p>
+    <textarea id="stateMovesR" readonly></textarea>
   </div>
 
   <div class="cube-row">
@@ -42,17 +32,10 @@
     </div>
 
     <div class="cube-block">
-      <h2>右：Corner 強調ビュー（擬似コーナーオンリー）</h2>
+      <h2>右：Corner 強調ビュー</h2>
       <div id="cornerCubeR" class="cube-container"></div>
     </div>
   </div>
-
-  <p class="note">
-    ※ v1.0.0R は Roofpig ベースのテスト版です。<br>
-    ・すべての環境で動作するよう <strong>canvas モード（flags=canvas）</strong> を使用しています。<br>
-    ・右ビューは Roofpig の <code>solved</code> / <code>colored</code> を利用してエッジ・センターを暗くし、コーナーを強調表示しています。<br>
-    ・Scramble / 追加アルゴリズムは「状態」を更新する Viewer で、ステップ再生は今後のバージョンで追加予定です。
-  </p>
 
   <script src="viewer_R.js"></script>
 </body>
