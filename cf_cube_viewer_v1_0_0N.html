@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>CF Method Cube Viewer v1.0.0N (Non‑WebGL)</title>
+  <link rel="stylesheet" href="viewer_N.css" />
+</head>
+<body>
+  <div class="page">
+    <h1>CF Method Cube Viewer v1.0.0N (Non‑WebGL)</h1>
+    <p class="subtitle">
+      WebGL を一切使わずに動作するテスト版ビューアです。左：通常 3x3 ビュー ／ 右：Corner 強調ビュー。
+    </p>
+
+    <div class="cube-row">
+      <div class="cube-block">
+        <h2>左：3×3 全体ビュー</h2>
+        <canvas id="mainCanvas" width="240" height="240"></canvas>
+      </div>
+
+      <div class="cube-block">
+        <h2>右：Corner 強調ビュー</h2>
+        <canvas id="cornerCanvas" width="240" height="240"></canvas>
+      </div>
+    </div>
+
+    <section class="panel panel-ctrl">
+      <div class="ctrl-row">
+        <button id="btnRandomScramble">Random Scramble (20)</button>
+        <button id="btnReset">Reset</button>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Scramble 手順：</span>
+        <textarea id="scrambleText" class="scramble-text" rows="2" readonly></textarea>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">手順入力：</span>
+        <input id="algInput" class="alg-input" type="text" placeholder="例: R U R' U'" />
+        <button id="btnApplyAlg">Apply（※今はテキストのみ反映）</button>
+        <button id="btnClearAlg">Clear</button>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">現在の状態：</span>
+        <textarea id="stateMoves" class="state-text" rows="2" readonly></textarea>
+      </div>
+
+      <p class="note">
+        ※ v1.0.0N では、キューブ画像は常に「完成状態」を表示しています。<br />
+        Scramble / 手順はテキストのみ更新されます。<br />
+        今後のバージョンで、2D キューブ描画ロジックに連動させていく予定です。
+      </p>
+    </section>
+  </div>
+
+  <script src="viewer_N.js"></script>
+</body>
+</html>
