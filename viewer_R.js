@@ -1,16 +1,22 @@
+
 (function(){
 
   let scrambleMovesR = "";
   let appliedAlgR = "";
 
-  const MOVES = ["U","U'","U2","R","R'","R2","F","F'","F2","L","L'","L2","B","B'","B2","D","D'","D2"];
+  const MOVES = ["U","U'","U2","R","R'","R2",
+                 "F","F'","F2","L","L'","L2",
+                 "B","B'","B2","D","D'","D2"];
 
   function generateRandomScramble(len){
     let res=[],prev=null;
     for(let i=0;i<len;i++){
       while(true){
         let mv = MOVES[Math.floor(Math.random()*MOVES.length)];
-        if(mv[0]!==prev){ res.push(mv); prev=mv[0]; break; }
+        if(mv[0]!==prev){
+          res.push(mv); prev=mv[0];
+          break;
+        }
       }
     }
     return res.join(" ");
@@ -49,53 +55,58 @@
 
   function rebuild(){
     if(!window.CubeAnimation) return;
+
     document.getElementById("mainCubeR").innerHTML="";
     document.getElementById("cornerCubeR").innerHTML="";
+
     CubeAnimation.create_in_dom("#mainCubeR", cfgMain(), "class='roofpig'");
     CubeAnimation.create_in_dom("#cornerCubeR", cfgCorner(), "class='roofpig'");
-    document.getElementById("scrambleTextR").value=scrambleMovesR;
-    document.getElementById("stateMovesR").value=getState();
+
+    document.getElementById("scrambleTextR").value = scrambleMovesR;
+    document.getElementById("stateMovesR").value = getState();
   }
 
   function setup(){
-    document.getElementById("btnRandomScrambleR").onclick=()=>{
-      scrambleMovesR=generateRandomScramble(20);
-      appliedAlgR="";
+
+    document.getElementById("btnRandomScrambleR").onclick = ()=>{
+      scrambleMovesR = generateRandomScramble(20);
+      appliedAlgR = "";
       rebuild();
     };
 
-    document.getElementById("btnResetR").onclick=()=>{
-      scrambleMovesR="";
-      appliedAlgR="";
+    document.getElementById("btnResetR").onclick = ()=>{
+      scrambleMovesR = "";
+      appliedAlgR = "";
       rebuild();
     };
 
-    document.getElementById("btnApplyScrambleR").onclick=()=>{
-      scrambleMovesR=document.getElementById("scrambleTextR").value.trim();
-      appliedAlgR="";
+    document.getElementById("btnApplyScrambleR").onclick = ()=>{
+      scrambleMovesR = document.getElementById("scrambleTextR").value.trim();
+      appliedAlgR = "";
       rebuild();
     };
 
-    document.getElementById("btnSolveR").onclick=()=>{
-      appliedAlgR=invertMoves(scrambleMovesR);
+    document.getElementById("btnSolveR").onclick = ()=>{
+      appliedAlgR = invertMoves(scrambleMovesR);
       rebuild();
     };
 
-    document.getElementById("btnApplyAlgR").onclick=()=>{
-      let a=document.getElementById("algInputR").value.trim();
-      if(a) appliedAlgR = appliedAlgR? appliedAlgR+" "+a : a;
+    document.getElementById("btnApplyAlgR").onclick = ()=>{
+      const a = document.getElementById("algInputR").value.trim();
+      if (!a) return;
+      appliedAlgR = appliedAlgR ? (appliedAlgR + " " + a) : a;
       rebuild();
     };
 
-    document.getElementById("btnClearAlgR").onclick=()=>{
-      appliedAlgR="";
-      document.getElementById("algInputR").value="";
+    document.getElementById("btnClearAlgR").onclick = ()=>{
+      appliedAlgR = "";
+      document.getElementById("algInputR").value = "";
       rebuild();
     };
 
   }
 
-  document.addEventListener("DOMContentLoaded",()=>{
+  document.addEventListener("DOMContentLoaded", ()=>{
     setup();
     rebuild();
   });
