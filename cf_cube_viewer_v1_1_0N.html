@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>CF Method Cube Viewer v1.1.0N (CSS 3D)</title>
+  <link rel="stylesheet" href="viewer_3d.css" />
+</head>
+<body>
+  <div class="page">
+    <h1>CF Method Cube Viewer v1.1.0N (CSS 3D, Non-WebGL)</h1>
+    <p class="subtitle">
+      WebGL を一切使わずに、CSS 3D だけでルービックキューブを表示するテスト版です。<br>
+      左：通常 3x3 ビュー ／ 右：Corner 強調ビュー（エッジ・センターはグレー）。<br>
+      マウスドラッグ / スワイプで視点を回転できます。
+    </p>
+
+    <div class="cube-row">
+      <div class="cube-block">
+        <h2>左：3×3 全体ビュー</h2>
+        <div class="cube-scene" id="scene-main">
+          <div class="cube3d" id="cube-main">
+            <!-- faces -->
+            <div class="face face-U">
+              <div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+            </div>
+            <div class="face face-D">
+              <div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+            </div>
+            <div class="face face-F">
+              <div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+            </div>
+            <div class="face face-B">
+              <div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+            </div>
+            <div class="face face-R">
+              <div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+            </div>
+            <div class="face face-L">
+              <div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cube-block">
+        <h2>右：Corner 強調ビュー</h2>
+        <div class="cube-scene" id="scene-corner">
+          <div class="cube3d cube-corner" id="cube-corner">
+            <div class="face face-U">
+              <div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+<div class="sticker" data-face="U"></div>
+            </div>
+            <div class="face face-D">
+              <div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+<div class="sticker" data-face="D"></div>
+            </div>
+            <div class="face face-F">
+              <div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+<div class="sticker" data-face="F"></div>
+            </div>
+            <div class="face face-B">
+              <div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+<div class="sticker" data-face="B"></div>
+            </div>
+            <div class="face face-R">
+              <div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+<div class="sticker" data-face="R"></div>
+            </div>
+            <div class="face face-L">
+              <div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+<div class="sticker" data-face="L"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="panel panel-ctrl">
+      <p class="note">
+        ※ v1.1.0N では、キューブは常に完成状態で、視点回転のみ対応しています。<br>
+        今後のバージョンで Scramble / Alg と連動した回転アニメーションを追加予定です。
+      </p>
+    </section>
+  </div>
+
+  <script src="viewer_3d.js"></script>
+</body>
+</html>
