@@ -93,13 +93,6 @@
       rebuild();
     };
 
-    document.querySelectorAll(".move-btn").forEach(btn=>{
-      btn.onclick=()=>{
-        let mv=btn.getAttribute("data-move");
-        let box=document.getElementById("algInputR");
-        box.value = box.value? box.value+" "+mv : mv;
-      };
-    });
   }
 
   document.addEventListener("DOMContentLoaded",()=>{
