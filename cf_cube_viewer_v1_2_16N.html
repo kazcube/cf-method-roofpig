@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CF Viewer v1.2.16N</title>
+  <link rel="stylesheet" href="viewer_3d_v1_2_16.css" />
+</head>
+<body>
+  <div class="page">
+    <h1>CF Viewer v1.2.16N</h1>
+    <p class="subtitle">操作完全復旧 / 描画品質改善</p>
+
+    <div class="cube-row">
+      <div class="cube-block">
+        <h2>左：Full Cube</h2>
+        <div class="cube-scene" id="scene-main">
+          <div class="cube3d" id="cube-main"></div>
+        </div>
+      </div>
+
+      <div class="cube-block">
+        <h2>右：Corner Cube</h2>
+        <div class="cube-scene" id="scene-corner">
+          <div class="cube3d" id="cube-corner"></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="ctrl-row">
+        <button onclick="moveU()">U</button>
+        <button onclick="moveUp()">U'</button>
+        <button onclick="moveR()">R</button>
+        <button onclick="moveRp()">R'</button>
+        <button onclick="moveF()">F</button>
+        <button onclick="moveFp()">F'</button>
+      </div>
+      <div class="ctrl-row">
+        <button onclick="moveL()">L</button>
+        <button onclick="moveLp()">L'</button>
+        <button onclick="moveB()">B</button>
+        <button onclick="moveBp()">B'</button>
+        <button onclick="moveD()">D</button>
+        <button onclick="moveDp()">D'</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="viewer_3d_v1_2_16.js"></script>
+</body>
+</html>

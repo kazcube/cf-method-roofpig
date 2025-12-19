@@ -1,0 +1,27 @@
+
+body{margin:0;background:#111;color:#eee;font-family:sans-serif;}
+.page{padding:12px}
+.cube-row{display:flex;gap:20px}
+.cube-block{background:#222;padding:10px;border-radius:10px}
+.cube-scene{width:260px;height:260px;perspective:900px}
+.cube3d{width:140px;height:140px;position:relative;margin:60px auto;
+  transform-style:preserve-3d;
+  transform:rotateX(-30deg) rotateY(35deg);
+}
+.face{
+  position:absolute;width:140px;height:140px;
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  gap:2px;
+  backface-visibility:hidden;
+}
+.sticker{
+  background:#555;
+  box-shadow:inset 0 0 0 1px #000;
+}
+.face-U{transform:rotateX(90deg) translateZ(70.1px)}
+.face-D{transform:rotateX(-90deg) translateZ(70.1px)}
+.face-F{transform:translateZ(70.1px)}
+.face-B{transform:rotateY(180deg) translateZ(70.1px)}
+.face-R{transform:rotateY(90deg) translateZ(70.1px)}
+.face-L{transform:rotateY(-90deg) translateZ(70.1px)}
+button{margin:2px}
