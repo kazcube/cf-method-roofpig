@@ -1,0 +1,129 @@
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #111;
+  color: #eee;
+  font-family: system-ui, sans-serif;
+}
+
+.page { padding: 12px; }
+
+h1 { margin: 0 0 4px 0; font-size: 20px; }
+
+.subtitle { font-size: 12px; margin-bottom: 10px; color: #ccc; }
+
+.cube-row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 16px; }
+
+.cube-block {
+  background: #202020;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.cube-scene {
+  width: 260px;
+  height: 260px;
+  margin: 0 auto;
+  perspective: 900px;
+  cursor: grab;
+}
+
+.cube-scene.dragging { cursor: grabbing; }
+
+.cube3d {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 60px auto;
+  transform-style: preserve-3d;
+  transition: transform 0.05s linear;
+}
+
+.face {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  transform-style: preserve-3d;
+}
+
+.sticker { border-radius: 2px; box-shadow: 0 0 2px #000; }
+
+.face-U { transform: rotateX(90deg) translateZ(70px); }
+.face-D { transform: rotateX(-90deg) translateZ(70px); }
+.face-F { transform: translateZ(70px); }
+.face-B { transform: rotateY(180deg) translateZ(70px); }
+.face-R { transform: rotateY(90deg) translateZ(70px); }
+.face-L { transform: rotateY(-90deg) translateZ(70px); }
+
+#cube-main .sticker[data-face="U"] { background: #ffffff; }
+#cube-main .sticker[data-face="D"] { background: #ffff00; }
+#cube-main .sticker[data-face="F"] { background: #00aa00; }
+#cube-main .sticker[data-face="B"] { background: #0000aa; }
+#cube-main .sticker[data-face="R"] { background: #dd0000; }
+#cube-main .sticker[data-face="L"] { background: #ff8800; }
+
+#cube-corner .sticker { background: #555555; }
+
+.panel-ctrl {
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.ctrl-label { min-width: 120px; font-size: 12px; }
+
+textarea, input {
+  background: #000;
+  color: #0f0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 4px;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+}
+
+.state-text { flex: 1; min-width: 240px; }
+.alg-input { flex: 1; min-width: 240px; }
+
+button {
+  background: #333;
+  color: #eee;
+  border: 1px solid #666;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+button:hover { background: #444; }
+
+.note { font-size: 11px; color: #aaa; }
+
+
+/* === 3D FORCE FIX (v1.2.12N) === */
+.cube-scene {
+  perspective: 900px !important;
+  perspective-origin: 50% 50% !important;
+}
+
+.cube3d {
+  transform-style: preserve-3d !important;
+}
+
+.face {
+  transform-style: preserve-3d !important;
+}
