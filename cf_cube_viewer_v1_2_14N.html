@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CF Viewer v1.2.14N</title>
+  <link rel="stylesheet" href="viewer_3d_v1_2_14.css" />
+</head>
+<body>
+  <div class="page">
+    <h1>CF Viewer v1.2.14N</h1>
+    <p class="subtitle">✅ 3D表示 / ✅ ボタン反応復旧 / ✅ 右：コーナーのみ着色</p>
+
+    <div class="cube-row">
+      <div class="cube-block">
+        <h2>左：Full Cube</h2>
+        <div class="cube-scene" id="scene-main">
+          <div class="cube3d" id="cube-main">
+            <div class="face face-U"><div class="sticker" data-face="U" data-index="0"></div>
+<div class="sticker" data-face="U" data-index="1"></div>
+<div class="sticker" data-face="U" data-index="2"></div>
+<div class="sticker" data-face="U" data-index="3"></div>
+<div class="sticker" data-face="U" data-index="4"></div>
+<div class="sticker" data-face="U" data-index="5"></div>
+<div class="sticker" data-face="U" data-index="6"></div>
+<div class="sticker" data-face="U" data-index="7"></div>
+<div class="sticker" data-face="U" data-index="8"></div></div>
+            <div class="face face-D"><div class="sticker" data-face="D" data-index="0"></div>
+<div class="sticker" data-face="D" data-index="1"></div>
+<div class="sticker" data-face="D" data-index="2"></div>
+<div class="sticker" data-face="D" data-index="3"></div>
+<div class="sticker" data-face="D" data-index="4"></div>
+<div class="sticker" data-face="D" data-index="5"></div>
+<div class="sticker" data-face="D" data-index="6"></div>
+<div class="sticker" data-face="D" data-index="7"></div>
+<div class="sticker" data-face="D" data-index="8"></div></div>
+            <div class="face face-F"><div class="sticker" data-face="F" data-index="0"></div>
+<div class="sticker" data-face="F" data-index="1"></div>
+<div class="sticker" data-face="F" data-index="2"></div>
+<div class="sticker" data-face="F" data-index="3"></div>
+<div class="sticker" data-face="F" data-index="4"></div>
+<div class="sticker" data-face="F" data-index="5"></div>
+<div class="sticker" data-face="F" data-index="6"></div>
+<div class="sticker" data-face="F" data-index="7"></div>
+<div class="sticker" data-face="F" data-index="8"></div></div>
+            <div class="face face-B"><div class="sticker" data-face="B" data-index="0"></div>
+<div class="sticker" data-face="B" data-index="1"></div>
+<div class="sticker" data-face="B" data-index="2"></div>
+<div class="sticker" data-face="B" data-index="3"></div>
+<div class="sticker" data-face="B" data-index="4"></div>
+<div class="sticker" data-face="B" data-index="5"></div>
+<div class="sticker" data-face="B" data-index="6"></div>
+<div class="sticker" data-face="B" data-index="7"></div>
+<div class="sticker" data-face="B" data-index="8"></div></div>
+            <div class="face face-R"><div class="sticker" data-face="R" data-index="0"></div>
+<div class="sticker" data-face="R" data-index="1"></div>
+<div class="sticker" data-face="R" data-index="2"></div>
+<div class="sticker" data-face="R" data-index="3"></div>
+<div class="sticker" data-face="R" data-index="4"></div>
+<div class="sticker" data-face="R" data-index="5"></div>
+<div class="sticker" data-face="R" data-index="6"></div>
+<div class="sticker" data-face="R" data-index="7"></div>
+<div class="sticker" data-face="R" data-index="8"></div></div>
+            <div class="face face-L"><div class="sticker" data-face="L" data-index="0"></div>
+<div class="sticker" data-face="L" data-index="1"></div>
+<div class="sticker" data-face="L" data-index="2"></div>
+<div class="sticker" data-face="L" data-index="3"></div>
+<div class="sticker" data-face="L" data-index="4"></div>
+<div class="sticker" data-face="L" data-index="5"></div>
+<div class="sticker" data-face="L" data-index="6"></div>
+<div class="sticker" data-face="L" data-index="7"></div>
+<div class="sticker" data-face="L" data-index="8"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cube-block">
+        <h2>右：Corner Cube（Corners only）</h2>
+        <div class="cube-scene" id="scene-corner">
+          <div class="cube3d" id="cube-corner">
+            <div class="face face-U"><div class="sticker" data-face="U" data-index="0"></div>
+<div class="sticker" data-face="U" data-index="1"></div>
+<div class="sticker" data-face="U" data-index="2"></div>
+<div class="sticker" data-face="U" data-index="3"></div>
+<div class="sticker" data-face="U" data-index="4"></div>
+<div class="sticker" data-face="U" data-index="5"></div>
+<div class="sticker" data-face="U" data-index="6"></div>
+<div class="sticker" data-face="U" data-index="7"></div>
+<div class="sticker" data-face="U" data-index="8"></div></div>
+            <div class="face face-D"><div class="sticker" data-face="D" data-index="0"></div>
+<div class="sticker" data-face="D" data-index="1"></div>
+<div class="sticker" data-face="D" data-index="2"></div>
+<div class="sticker" data-face="D" data-index="3"></div>
+<div class="sticker" data-face="D" data-index="4"></div>
+<div class="sticker" data-face="D" data-index="5"></div>
+<div class="sticker" data-face="D" data-index="6"></div>
+<div class="sticker" data-face="D" data-index="7"></div>
+<div class="sticker" data-face="D" data-index="8"></div></div>
+            <div class="face face-F"><div class="sticker" data-face="F" data-index="0"></div>
+<div class="sticker" data-face="F" data-index="1"></div>
+<div class="sticker" data-face="F" data-index="2"></div>
+<div class="sticker" data-face="F" data-index="3"></div>
+<div class="sticker" data-face="F" data-index="4"></div>
+<div class="sticker" data-face="F" data-index="5"></div>
+<div class="sticker" data-face="F" data-index="6"></div>
+<div class="sticker" data-face="F" data-index="7"></div>
+<div class="sticker" data-face="F" data-index="8"></div></div>
+            <div class="face face-B"><div class="sticker" data-face="B" data-index="0"></div>
+<div class="sticker" data-face="B" data-index="1"></div>
+<div class="sticker" data-face="B" data-index="2"></div>
+<div class="sticker" data-face="B" data-index="3"></div>
+<div class="sticker" data-face="B" data-index="4"></div>
+<div class="sticker" data-face="B" data-index="5"></div>
+<div class="sticker" data-face="B" data-index="6"></div>
+<div class="sticker" data-face="B" data-index="7"></div>
+<div class="sticker" data-face="B" data-index="8"></div></div>
+            <div class="face face-R"><div class="sticker" data-face="R" data-index="0"></div>
+<div class="sticker" data-face="R" data-index="1"></div>
+<div class="sticker" data-face="R" data-index="2"></div>
+<div class="sticker" data-face="R" data-index="3"></div>
+<div class="sticker" data-face="R" data-index="4"></div>
+<div class="sticker" data-face="R" data-index="5"></div>
+<div class="sticker" data-face="R" data-index="6"></div>
+<div class="sticker" data-face="R" data-index="7"></div>
+<div class="sticker" data-face="R" data-index="8"></div></div>
+            <div class="face face-L"><div class="sticker" data-face="L" data-index="0"></div>
+<div class="sticker" data-face="L" data-index="1"></div>
+<div class="sticker" data-face="L" data-index="2"></div>
+<div class="sticker" data-face="L" data-index="3"></div>
+<div class="sticker" data-face="L" data-index="4"></div>
+<div class="sticker" data-face="L" data-index="5"></div>
+<div class="sticker" data-face="L" data-index="6"></div>
+<div class="sticker" data-face="L" data-index="7"></div>
+<div class="sticker" data-face="L" data-index="8"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Move：</span>
+        <button onclick="doMove('U')">U</button>
+        <button onclick="doMove("U'")">U'</button>
+        <button onclick="doMove('R')">R</button>
+        <button onclick="doMove("R'")">R'</button>
+        <button onclick="doMove('F')">F</button>
+        <button onclick="doMove("F'")">F'</button>
+      </div>
+      <div class="ctrl-row">
+        <span class="ctrl-label"></span>
+        <button onclick="doMove('L')">L</button>
+        <button onclick="doMove("L'")">L'</button>
+        <button onclick="doMove('B')">B</button>
+        <button onclick="doMove("B'")">B'</button>
+        <button onclick="doMove('D')">D</button>
+        <button onclick="doMove("D'")">D'</button>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">Alg：</span>
+        <input id="algInput" class="alg-input" placeholder="例: R U R' U' F2 L2 D' B2" />
+        <button onclick="applyAlgFromInput()">Apply Alg</button>
+        <button onclick="resetAll()">Reset</button>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">履歴：</span>
+        <textarea id="stateMoves" class="state-text" rows="2" readonly></textarea>
+      </div>
+
+      <p class="note">
+        ※ 面マッピング：R→旧F / F→旧L / L→旧B / B→旧R（U/Dはそのまま）<br/>
+        ※ 右キューブはコーナーのみ色表示（エッジ・センターはグレー）
+      </p>
+    </section>
+  </div>
+
+  <script src="viewer_3d_v1_2_14.js"></script>
+</body>
+</html>
