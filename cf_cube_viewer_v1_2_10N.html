@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <title>CF Method Cube Viewer v1.2.10N (CSS 3D, Remap)</title>
-  <link rel="stylesheet" href="viewer_3d_v1_2_10.css" />
+  <link rel="stylesheet" href="viewer_3d_v1_2_7.css" />
+<style>
+/* === v1.2.10N : render quality fix === */
+.face {
+  backface-visibility: hidden;
+}
+.sticker {
+  box-shadow: inset 0 0 0 1px #000;
+}
+</style>
 </head>
 <body>
   <div class="page">
@@ -185,6 +194,6 @@
     </section>
   </div>
 
-  <script src="viewer_3d_v1_2_10.js"></script>
+  <script src="viewer_3d_v1_2_7.js"></script>
 </body>
 </html>
