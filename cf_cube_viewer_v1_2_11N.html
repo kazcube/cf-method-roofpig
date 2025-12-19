@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>CF Method Cube Viewer v1.2.11N (CSS 3D, Remap)</title>
-  <link rel="stylesheet" href="viewer_3d_v1_2_11.css" />
+  <link rel="stylesheet" href="viewer_3d_v1_2_7.css" />
 </head>
 <body>
   <div class="page">
@@ -152,8 +152,8 @@
       </div>
       <div class="ctrl-row">
         <span class="ctrl-label"></span>
-        <button class="btn-move" data-move="L">L</button>
-        <button class="btn-move" data-move="L'">L'</button>
+        <button class="btn-move" data-move="L'">L</button>
+        <button class="btn-move" data-move="L">L'</button>
         <button class="btn-move" data-move="B">B</button>
         <button class="btn-move" data-move="B'">B'</button>
         <button class="btn-move" data-move="D">D</button>
@@ -185,6 +185,42 @@
     </section>
   </div>
 
-  <script src="viewer_3d_v1_2_11.js"></script>
+  <script src="viewer_3d_v1_2_7.js"></script>
+
+<script>
+/* v1.2.11N: Fix L direction by swapping input tokens BEFORE the original handlers run.
+   - Swaps L <-> L' for button inputs (via data-move) and for Alg input (btnApplyAlg capture).
+   - This avoids touching viewer_3d_v1_2_7.js internals.
+*/
+(function(){
+  function swapLtokens(str){
+    // swap tokens L and L' safely
+    // Use placeholders to avoid double-replace issues.
+    return str
+      .replace(/(^|\s)L'(\s|$)/g, "$1__LP__" + "$2")
+      .replace(/(^|\s)L(\s|$)/g,  "$1L'" + "$2")
+      .replace(/__LP__/g, "L");
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    // Safety: ensure button dataset is swapped (in case HTML replacement missed)
+    document.querySelectorAll('button.btn-move').forEach(btn=>{
+      const mv = btn.getAttribute("data-move");
+      if (mv === "L") btn.setAttribute("data-move","L'");
+      else if (mv === "L'") btn.setAttribute("data-move","L");
+    });
+
+    const algInput = document.getElementById("algInput");
+    const btnApply = document.getElementById("btnApplyAlg");
+    if (algInput && btnApply){
+      // Capture phase: runs before original click handler (bubble)
+      btnApply.addEventListener("click", function(){
+        algInput.value = swapLtokens(algInput.value);
+      }, true);
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
