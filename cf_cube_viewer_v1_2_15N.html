@@ -2,18 +2,21 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CF Viewer v1.2.15N</title>
-  <link rel="stylesheet" href="viewer_3d_v1_2_15.css" />
+  <title>CF Method Cube Viewer v1.2.15N (CSS 3D, Remap)</title>
+  <link rel="stylesheet" href="viewer_3d_v1_2_7.css" />
 </head>
 <body>
   <div class="page">
-    <h1>CF Viewer v1.2.15N</h1>
-    <p class="subtitle">✅ 3D表示 / ✅ ボタン反応復旧 / ✅ 右：コーナーのみ着色</p>
+    <h1>CF Method Cube Viewer v1.2.15N (CSS 3D, Non-WebGL)</h1>
+    <p class="subtitle">
+      v1.2.15N は <strong>3Dキューブ表示（CSS 3D）</strong>＋<strong>内部状態</strong>＋<strong>6面回転</strong> 対応版です。<br>
+      さらに、操作の面割り当てを調整しています（ご指定：R→旧F、F→旧L、L→旧B、B→旧R）。<br>
+      マウスドラッグ / スワイプで視点を回転、ボタンや Alg 入力でキューブを操作できます。
+    </p>
 
     <div class="cube-row">
       <div class="cube-block">
-        <h2>左：Full Cube</h2>
+        <h2>左：3×3 全体ビュー</h2>
         <div class="cube-scene" id="scene-main">
           <div class="cube3d" id="cube-main">
             <div class="face face-U"><div class="sticker" data-face="U" data-index="0"></div>
@@ -75,9 +78,9 @@
       </div>
 
       <div class="cube-block">
-        <h2>右：Corner Cube（Corners only）</h2>
+        <h2>右：Corner 強調ビュー</h2>
         <div class="cube-scene" id="scene-corner">
-          <div class="cube3d" id="cube-corner">
+          <div class="cube3d cube-corner" id="cube-corner">
             <div class="face face-U"><div class="sticker" data-face="U" data-index="0"></div>
 <div class="sticker" data-face="U" data-index="1"></div>
 <div class="sticker" data-face="U" data-index="2"></div>
@@ -137,45 +140,80 @@
       </div>
     </div>
 
-    <section class="panel">
+    <section class="panel panel-ctrl">
       <div class="ctrl-row">
         <span class="ctrl-label">Move：</span>
-        <button onclick="moveU()">U</button>
-        <button onclick="moveUp()">U'</button>
-        <button onclick="moveR()">R</button>
-        <button onclick="moveRp()">R'</button>
-        <button onclick="moveF()">F</button>
-        <button onclick="moveFp()">F'</button>
+        <button class="btn-move" data-move="U">U</button>
+        <button class="btn-move" data-move="U'">U'</button>
+        <button class="btn-move" data-move="R">R</button>
+        <button class="btn-move" data-move="R'">R'</button>
+        <button class="btn-move" data-move="F">F</button>
+        <button class="btn-move" data-move="F'">F'</button>
       </div>
       <div class="ctrl-row">
         <span class="ctrl-label"></span>
-        <button onclick="moveL()">L</button>
-        <button onclick="moveLp()">L'</button>
-        <button onclick="moveB()">B</button>
-        <button onclick="moveBp()">B'</button>
-        <button onclick="moveD()">D</button>
-        <button onclick="moveDp()">D'</button>
+        <button class="btn-move" data-move="L">L</button>
+        <button class="btn-move" data-move="L'">L'</button>
+        <button class="btn-move" data-move="B">B</button>
+        <button class="btn-move" data-move="B'">B'</button>
+        <button class="btn-move" data-move="D">D</button>
+        <button class="btn-move" data-move="D'">D'</button>
       </div>
 
       <div class="ctrl-row">
         <span class="ctrl-label">Alg：</span>
-        <input id="algInput" class="alg-input" placeholder="例: R U R' U' F2 L2 D' B2" />
-        <button onclick="applyAlgFromInput()">Apply Alg</button>
-        <button onclick="resetAll()">Reset</button>
+        <input id="algInput" class="alg-input" type="text" placeholder="例: R U R' U' F2 L2 D' B2" />
+        <button id="btnApplyAlg">Apply Alg</button>
+        <button id="btnClearAlg">Clear</button>
       </div>
 
       <div class="ctrl-row">
-        <span class="ctrl-label">履歴：</span>
+        <span class="ctrl-label">現在の手順履歴：</span>
         <textarea id="stateMoves" class="state-text" rows="2" readonly></textarea>
       </div>
 
+      <div class="ctrl-row">
+        <span class="ctrl-label">操作：</span>
+        <button id="btnResetState">Reset（完成状態に戻す）</button>
+      </div>
+
       <p class="note">
-        ※ 面マッピング：R→旧F / F→旧L / L→旧B / B→旧R（U/Dはそのまま）<br/>
-        ※ 右キューブはコーナーのみ色表示（エッジ・センターはグレー）
+        ※ v1.2.15N：回転アニメーションはまだなく、ステッカーの色が一瞬で切り替わります。<br>
+        ※ 面割り当て：R→旧F、F→旧L、L→旧B、B→旧R（U/Dはそのまま）。<br>
+        ※ v1.2.2N で発生していた「ボタンだけ表示」状態は解消されています。
       </p>
     </section>
   </div>
 
-  <script src="viewer_3d_v1_2_15.js"></script>
+  <script src="viewer_3d_v1_2_7.js"></script>
+
+<script>
+/* v1.2.15N history source fix
+ * - Record user button move before internal remap
+ * - Use it for history display
+ */
+(function(){
+  let lastUserMove = null;
+
+  // Hook button clicks (btn-move is 7N convention)
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest && e.target.closest(".btn-move");
+    if (!btn) return;
+    const mv = btn.getAttribute("data-move");
+    if (mv) lastUserMove = mv;
+  }, true); // capture
+
+  // Wrap appendMove
+  const origAppend = window.appendMove;
+  if (typeof origAppend === "function"){
+    window.appendMove = function(m){
+      const use = lastUserMove || m;
+      lastUserMove = null;
+      return origAppend.call(this, use);
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
