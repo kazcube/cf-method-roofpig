@@ -33,6 +33,8 @@ h1 { margin: 0 0 4px 0; font-size: 20px; }
 .cube-scene.dragging { cursor: grabbing; }
 
 .cube3d {
+  /* Initial view rotated left 90deg for control alignment */
+  transform: rotateY(-90deg);
   position: relative;
   width: 140px;
   height: 140px;
