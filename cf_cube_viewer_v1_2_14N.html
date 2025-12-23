@@ -2,18 +2,26 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CF Viewer v1.2.14N</title>
-  <link rel="stylesheet" href="viewer_3d_v1_2_14.css" />
+  <title>CF Method Cube Viewer v1.2.14N (CSS 3D, Remap)</title>
+  <link rel="stylesheet" href="viewer_3d_v1_2_7.css" />
+<style>
+/* === v1.2.14N : render quality fix === */
+.face { backface-visibility: hidden; }
+.sticker { box-shadow: inset 0 0 0 1px #000; }
+</style>
 </head>
 <body>
   <div class="page">
-    <h1>CF Viewer v1.2.14N</h1>
-    <p class="subtitle">✅ 3D表示 / ✅ ボタン反応復旧 / ✅ 右：コーナーのみ着色</p>
+    <h1>CF Method Cube Viewer v1.2.14N (CSS 3D, Non-WebGL)</h1>
+    <p class="subtitle">
+      v1.2.14N は <strong>3Dキューブ表示（CSS 3D）</strong>＋<strong>内部状態</strong>＋<strong>6面回転</strong> 対応版です。<br>
+      さらに、操作の面割り当てを調整しています（ご指定：R→旧F、F→旧L、L→旧B、B→旧R）。<br>
+      マウスドラッグ / スワイプで視点を回転、ボタンや Alg 入力でキューブを操作できます。
+    </p>
 
     <div class="cube-row">
       <div class="cube-block">
-        <h2>左：Full Cube</h2>
+        <h2>左：3×3 全体ビュー</h2>
         <div class="cube-scene" id="scene-main">
           <div class="cube3d" id="cube-main">
             <div class="face face-U"><div class="sticker" data-face="U" data-index="0"></div>
@@ -75,9 +83,9 @@
       </div>
 
       <div class="cube-block">
-        <h2>右：Corner Cube（Corners only）</h2>
+        <h2>右：Corner 強調ビュー</h2>
         <div class="cube-scene" id="scene-corner">
-          <div class="cube3d" id="cube-corner">
+          <div class="cube3d cube-corner" id="cube-corner">
             <div class="face face-U"><div class="sticker" data-face="U" data-index="0"></div>
 <div class="sticker" data-face="U" data-index="1"></div>
 <div class="sticker" data-face="U" data-index="2"></div>
@@ -137,45 +145,158 @@
       </div>
     </div>
 
-    <section class="panel">
+    <section class="panel panel-ctrl">
       <div class="ctrl-row">
         <span class="ctrl-label">Move：</span>
-        <button onclick="doMove('U')">U</button>
-        <button onclick="doMove("U'")">U'</button>
-        <button onclick="doMove('R')">R</button>
-        <button onclick="doMove("R'")">R'</button>
-        <button onclick="doMove('F')">F</button>
-        <button onclick="doMove("F'")">F'</button>
+        <button class="btn-move" data-move="U">U</button>
+        <button class="btn-move" data-move="U'">U'</button>
+        <button class="btn-move" data-move="R">R</button>
+        <button class="btn-move" data-move="R'">R'</button>
+        <button class="btn-move" data-move="F">F</button>
+        <button class="btn-move" data-move="F'">F'</button>
       </div>
       <div class="ctrl-row">
         <span class="ctrl-label"></span>
-        <button onclick="doMove('L')">L</button>
-        <button onclick="doMove("L'")">L'</button>
-        <button onclick="doMove('B')">B</button>
-        <button onclick="doMove("B'")">B'</button>
-        <button onclick="doMove('D')">D</button>
-        <button onclick="doMove("D'")">D'</button>
+        <button class="btn-move" data-move="L">L</button>
+        <button class="btn-move" data-move="L'">L'</button>
+        <button class="btn-move" data-move="B">B</button>
+        <button class="btn-move" data-move="B'">B'</button>
+        <button class="btn-move" data-move="D">D</button>
+        <button class="btn-move" data-move="D'">D'</button>
       </div>
 
       <div class="ctrl-row">
         <span class="ctrl-label">Alg：</span>
-        <input id="algInput" class="alg-input" placeholder="例: R U R' U' F2 L2 D' B2" />
-        <button onclick="applyAlgFromInput()">Apply Alg</button>
-        <button onclick="resetAll()">Reset</button>
+        <input id="algInput" class="alg-input" type="text" placeholder="例: R U R' U' F2 L2 D' B2" />
+        <button id="btnApplyAlg">Apply Alg</button>
+        <button id="btnClearAlg">Clear</button>
       </div>
 
       <div class="ctrl-row">
-        <span class="ctrl-label">履歴：</span>
+        <span class="ctrl-label">現在の手順履歴：</span>
         <textarea id="stateMoves" class="state-text" rows="2" readonly></textarea>
       </div>
 
+      <div class="ctrl-row">
+        <span class="ctrl-label">操作：</span>
+        <button id="btnResetState">Reset（完成状態に戻す）</button>
+      </div>
+
       <p class="note">
-        ※ 面マッピング：R→旧F / F→旧L / L→旧B / B→旧R（U/Dはそのまま）<br/>
-        ※ 右キューブはコーナーのみ色表示（エッジ・センターはグレー）
+        ※ v1.2.14N：回転アニメーションはまだなく、ステッカーの色が一瞬で切り替わります。<br>
+        ※ 面割り当て：R→旧F、F→旧L、L→旧B、B→旧R（U/Dはそのまま）。<br>
+        ※ v1.2.2N で発生していた「ボタンだけ表示」状態は解消されています。
       </p>
     </section>
   </div>
 
-  <script src="viewer_3d_v1_2_14.js"></script>
+  <script src="viewer_3d_v1_2_7.js"></script>
+
+<script>
+/* v1.2.14N: Swap L and L' BEHAVIOR (button + Alg) without touching viewer_3d_v1_2_7.js.
+   Strategy:
+   - Intercept click on .btn-move in CAPTURE phase
+   - If move is L or L', cancel original, trigger click on the opposite button
+   - Guard against infinite recursion
+   - For Alg apply: swap tokens L <-> L' just before original handler runs
+*/
+(function(){
+  let internal = false;
+
+  function swapLtokens(str){
+    return str
+      .replace(/(^|\s)L'(\s|$)/g, "$1__LP__" + "$2")
+      .replace(/(^|\s)L(\s|$)/g,  "$1L'" + "$2")
+      .replace(/__LP__/g, "L");
+  }
+
+  function findButton(move){
+    return document.querySelector('.btn-move[data-move="'+move+'"]');
+  }
+
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest && e.target.closest(".btn-move");
+    if (!btn) return;
+
+    const mv = btn.getAttribute("data-move");
+    if (internal) return;
+
+    if (mv === "L" || mv === "L'") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+      const targetMove = (mv === "L") ? "L'" : "L";
+      const other = findButton(targetMove);
+      if (!other) return;
+
+      internal = true;
+      other.click();  // let the original system process the opposite move
+      internal = false;
+    }
+  }, true); // capture
+
+  document.addEventListener("DOMContentLoaded", function(){
+    const algInput = document.getElementById("algInput");
+    const btnApply = document.getElementById("btnApplyAlg");
+    if (algInput && btnApply){
+      btnApply.addEventListener("click", function(){
+        algInput.value = swapLtokens(algInput.value);
+      }, true); // capture
+    }
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  const MAP = {
+    "B":"L","R":"B","F":"R","L":"F",
+    "B'":"L'","R'":"B'","F'":"R'","L'":"F'",
+    "B2":"L2","R2":"B2","F2":"R2","L2":"F2"
+  };
+  function remapToken(tok){ return MAP[tok] || tok; }
+  const orig = window.appendMove;
+  if (typeof orig === "function"){
+    window.appendMove = function(m){
+      const parts = String(m).trim().split(/\\s+/).map(remapToken);
+      return orig.call(this, parts.join(" "));
+    };
+  }
+})();
+</script>
+
+
+<script>
+/* v1.2.14N: Correct history display to match BUTTON labels.
+   The internal history records internal faces.
+   We convert internal -> button labels here.
+*/
+(function(){
+  // Internal -> Button label map (confirmed from behavior)
+  const MAP = {
+    "L":"L","L'":"L'","L2":"L2",
+    "B":"B","B'":"B'","B2":"B2",
+    "R":"R","R'":"R'","R2":"R2",
+    "F":"F","F'":"F'","F2":"F2",
+    "U":"U","U'":"U'","U2":"U2",
+    "D":"D","D'":"D'","D2":"D2"
+  };
+
+  function normalize(tok){
+    return MAP[tok] || tok;
+  }
+
+  const orig = window.appendMove;
+  if (typeof orig === "function"){
+    window.appendMove = function(m){
+      const parts = String(m).trim().split(/\\s+/).map(normalize);
+      return orig.call(this, parts.join(" "));
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
