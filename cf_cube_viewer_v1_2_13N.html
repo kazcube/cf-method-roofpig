@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <title>CF Method Cube Viewer v1.2.13N (CSS 3D, Remap)</title>
-  <link rel="stylesheet" href="viewer_3d_v1_2_13.css" />
+  <link rel="stylesheet" href="viewer_3d_v1_2_7.css" />
+<style>
+/* === v1.2.13N : render quality fix === */
+.face { backface-visibility: hidden; }
+.sticker { box-shadow: inset 0 0 0 1px #000; }
+</style>
 </head>
 <body>
   <div class="page">
@@ -185,6 +190,82 @@
     </section>
   </div>
 
-  <script src="viewer_3d_v1_2_13.js"></script>
+  <script src="viewer_3d_v1_2_7.js"></script>
+
+<script>
+/* v1.2.13N: Swap L and L' BEHAVIOR (button + Alg) without touching viewer_3d_v1_2_7.js.
+   Strategy:
+   - Intercept click on .btn-move in CAPTURE phase
+   - If move is L or L', cancel original, trigger click on the opposite button
+   - Guard against infinite recursion
+   - For Alg apply: swap tokens L <-> L' just before original handler runs
+*/
+(function(){
+  let internal = false;
+
+  function swapLtokens(str){
+    return str
+      .replace(/(^|\s)L'(\s|$)/g, "$1__LP__" + "$2")
+      .replace(/(^|\s)L(\s|$)/g,  "$1L'" + "$2")
+      .replace(/__LP__/g, "L");
+  }
+
+  function findButton(move){
+    return document.querySelector('.btn-move[data-move="'+move+'"]');
+  }
+
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest && e.target.closest(".btn-move");
+    if (!btn) return;
+
+    const mv = btn.getAttribute("data-move");
+    if (internal) return;
+
+    if (mv === "L" || mv === "L'") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+      const targetMove = (mv === "L") ? "L'" : "L";
+      const other = findButton(targetMove);
+      if (!other) return;
+
+      internal = true;
+      other.click();  // let the original system process the opposite move
+      internal = false;
+    }
+  }, true); // capture
+
+  document.addEventListener("DOMContentLoaded", function(){
+    const algInput = document.getElementById("algInput");
+    const btnApply = document.getElementById("btnApplyAlg");
+    if (algInput && btnApply){
+      btnApply.addEventListener("click", function(){
+        algInput.value = swapLtokens(algInput.value);
+      }, true); // capture
+    }
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  const MAP = {
+    "B":"L","R":"B","F":"R","L":"F",
+    "B'":"L'","R'":"B'","F'":"R'","L'":"F'",
+    "B2":"L2","R2":"B2","F2":"R2","L2":"F2"
+  };
+  function remapToken(tok){ return MAP[tok] || tok; }
+  const orig = window.appendMove;
+  if (typeof orig === "function"){
+    window.appendMove = function(m){
+      const parts = String(m).trim().split(/\\s+/).map(remapToken);
+      return orig.call(this, parts.join(" "));
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
