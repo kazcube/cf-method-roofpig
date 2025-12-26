@@ -113,12 +113,3 @@ button {
 button:hover { background: #444; }
 
 .note { font-size: 11px; color: #aaa; }
-
-
-/* v1.2.17N: rotate view left 90deg without touching JS (wrapper transform) */
-.cube-rotwrap{
-  width: 140px;
-  height: 140px;
-  transform-style: preserve-3d;
-  transform: rotateY(-90deg);
-}
