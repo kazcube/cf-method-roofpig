@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-applyAlg-parse-setMove-play-rAF2-20260205-1844";
+const CFV_VERSION = "v3.1.28-applyAlg-direct-instance-20260205-1858";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -335,37 +335,22 @@ if (window.CFV) {
 
 function applyAlg() {
   const cube3 = document.getElementById("cube3");
-  if (!cube3) return;
-
   const ta = document.getElementById("algInput");
-  if (!ta) return;
+  if (!cube3 || !ta) return;
 
   const alg = (ta.value || "").trim();
   if (!alg) return;
 
-  const config = cube3.getAttribute("data-config") || "";
-  const nextConfig = config.includes("alg=")
-    ? config.replace(/alg=[^|]*/g, `alg=${alg}`)
-    : `${config}|alg=${alg}`;
-
-  cube3.setAttribute("data-config", nextConfig);
-
-  if (window.Roofpig && typeof window.Roofpig.parse === "function" && typeof window.requestAnimationFrame === "function") {
-    window.requestAnimationFrame(() => {
-      window.Roofpig.parse(cube3);
-
-      window.requestAnimationFrame(() => {
-        if (cube3.roofpig) {
-          if (typeof cube3.roofpig.setMove === "function") {
-            cube3.roofpig.setMove(0);
-          }
-          if (typeof cube3.roofpig.play === "function") {
-            cube3.roofpig.play();
-          }
-        }
-      });
-    });
+  const rp = cube3.roofpig || cube3._roofpig || cube3.__roofpig;
+  if (!rp) {
+    console.warn("Roofpig instance not found");
+    return;
   }
+
+  rp.alg = alg;
+
+  if (typeof rp.setMove === "function") rp.setMove(0);
+  if (typeof rp.play === "function") rp.play();
 }
 
 window.applyAlg = applyAlg;
