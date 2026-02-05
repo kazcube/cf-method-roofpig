@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-preparseall-onload-instance-apply-20260205-1912";
+const CFV_VERSION = "v3.1.30-phase1-jquery-instance-apply-20260205-2035";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -344,16 +344,15 @@ function applyAlg() {
   const alg = (ta.value || "").trim();
   if (!alg) return;
 
-  const rp = cube3.roofpig || cube3._roofpig || cube3.__roofpig;
+  const rp = window.jQuery ? window.jQuery(cube3).data("roofpig") : null;
   if (!rp) {
-    console.warn("Roofpig instance not found");
+    console.warn("Roofpig instance not found (jQuery data)");
     return;
   }
 
   rp.alg = alg;
-
-  if (typeof rp.setMove === "function") rp.setMove(0);
-  if (typeof rp.play === "function") rp.play();
+  rp.setMove(0);
+  rp.play();
 }
 
 window.applyAlg = applyAlg;
