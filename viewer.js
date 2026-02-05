@@ -230,21 +230,20 @@ window.CFV = (function () {
     faceMoveMode = mode;
   }
 
-   function moveButton(move) {
-   const rawMove = move;
-   if (!rawMove) return;
+  function moveButton(move) {
+    const rawMove = move;
+    if (!rawMove) return;
 
-   const normalized = normalizeFaceMove(rawMove);
-   if (!normalized) return;
-   if (!isValidFaceMove(normalized)) return;
+    const normalized = normalizeFaceMove(rawMove);
+    if (!normalized) return;
+    if (!isValidFaceMove(normalized)) return;
 
-   if (faceMoveMode === "apply") {
-     applyFaceMoveToAlgInput(normalized);
-   }
+    if (faceMoveMode === "apply") {
+      applyFaceMoveToAlgInput(normalized);
+    }
 
-   appendMove(normalized);
+    appendMove(normalized);
   }
-
 
   function appendMove(move) {
     if (!move) return;
@@ -324,3 +323,27 @@ if (window.CFV) {
   window.setMode = window.CFV.setMode;
   window.moveButton = window.CFV.moveButton;
 }
+
+function applyAlg() {
+  const ta = document.getElementById("algInput");
+  if (!ta) return;
+
+  const alg = (ta.value || "").trim();
+  if (!alg) return;
+
+  const cube3 = document.getElementById("cube3");
+  if (!cube3) return;
+
+  const config = cube3.getAttribute("data-config") || "";
+  const nextConfig = config.includes("alg=")
+    ? config.replace(/alg=[^|]*/, `alg=${alg}`)
+    : `alg=${alg}${config ? `|${config}` : ""}`;
+
+  cube3.setAttribute("data-config", nextConfig);
+
+  if (window.Roofpig && typeof window.Roofpig.parseAll === "function") {
+    window.Roofpig.parseAll();
+  }
+}
+
+window.applyAlg = applyAlg;
