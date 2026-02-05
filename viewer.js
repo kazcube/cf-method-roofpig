@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-applyAlg-direct-instance-20260205-1858";
+const CFV_VERSION = "v3.1.28-preparseall-onload-instance-apply-20260205-1912";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -310,6 +310,9 @@ window.CFV = (function () {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    if (window.Roofpig && typeof window.Roofpig.parseAll === "function") {
+      window.Roofpig.parseAll();
+    }
     // refreshCubes();
   });
 
