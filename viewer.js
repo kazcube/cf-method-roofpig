@@ -1,3 +1,13 @@
+// ===== CF Method Cube Viewer =====
+const CFV_VERSION = "v3.1.28-applyAlg-dom-rebuild-rAF-20260207";
+
+console.log(
+  "%c[CFV] viewer.js loaded",
+  "color: #4CAF50; font-weight: bold;",
+  CFV_VERSION,
+  new Date().toISOString()
+);
+
 window.CFV = (function () {
   const MOVES = ["U", "D", "L", "R", "F", "B"];
   const SUFF = ["", "'", "2"];
