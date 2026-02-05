@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-applyAlg-dom-rebuild-rAF-20260205-1635";
+const CFV_VERSION = "v3.1.28-applyAlg-dom-rebuild-rAF-20260205-1702";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -344,6 +344,8 @@ function applyAlg() {
   if (!oldCube || !oldCube.parentNode) return;
 
   const parent = oldCube.parentNode;
+  const oldWidth = oldCube.offsetWidth;
+  const oldHeight = oldCube.offsetHeight;
   const oldConfig = oldCube.getAttribute("data-config") || "";
 
   const preservedConfig = oldConfig
@@ -364,6 +366,8 @@ function applyAlg() {
   const newCube = document.createElement("div");
   newCube.id = "cube3";
   newCube.className = "roofpig";
+  if (oldWidth > 0) newCube.style.width = `${oldWidth}px`;
+  if (oldHeight > 0) newCube.style.height = `${oldHeight}px`;
   newCube.setAttribute("data-config", `alg=${alg}|${preservedConfig.join("|")}`);
 
   parent.replaceChild(newCube, oldCube);
