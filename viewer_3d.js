@@ -1,4 +1,3 @@
-
 // CSS 3D Rubik's Cube viewer (v1.1.0N)
 // Drag to rotate view (applies to both main and corner cubes)
 

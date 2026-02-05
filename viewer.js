@@ -5,6 +5,7 @@ window.CFV = (function () {
   let fullAlg = "";
   let lastScrambleAlg = "";
   let stepIndex = 0;
+  let faceMoveMode = "apply";
 
   function getMainCube() {
     return document.getElementById("mainCube");
@@ -202,6 +203,29 @@ window.CFV = (function () {
     if (ta) ta.value = "";
   }
 
+  function appendMoveToAlgInput(move) {
+    if (!move) return;
+    const ta = document.getElementById("algInput");
+    if (!ta) return;
+    const next = ta.value ? `${ta.value.trim()} ${move}` : move;
+    ta.value = next;
+  }
+
+  function setMode(mode) {
+    if (mode !== "apply" && mode !== "immediate") return;
+    faceMoveMode = mode;
+  }
+
+  function moveButton(move) {
+    if (!move) return;
+    const normalized = move.trim();
+    if (!normalized) return;
+    if (faceMoveMode === "apply") {
+      appendMoveToAlgInput(normalized);
+    }
+    appendMove(normalized);
+  }
+
   function appendMove(move) {
     if (!move) return;
     const baseTokens = parseMoves(fullAlg).slice(0, stepIndex);
@@ -268,8 +292,15 @@ window.CFV = (function () {
     applyAlgFromText,
     clearAlgInput,
     appendMove,
+    moveButton,
     stepForward,
     stepBackward,
+    setMode,
     solveFromLastScramble,
   };
 })();
+
+if (window.CFV) {
+  window.setMode = window.CFV.setMode;
+  window.moveButton = window.CFV.moveButton;
+}
