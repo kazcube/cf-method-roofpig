@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-applyAlg-reuse-cube3-rAF-20260205-1750";
+const CFV_VERSION = "v3.1.28-applyAlg-double-rAF-setMove0-20260205-1752";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -334,8 +334,6 @@ if (window.CFV) {
 }
 
 function applyAlg() {
-  console.log("[applyAlg] called");
-
   const cube3 = document.getElementById("cube3");
   if (!cube3) return;
 
@@ -352,21 +350,16 @@ function applyAlg() {
 
   cube3.setAttribute("data-config", nextConfig);
 
-  if (window.Roofpig && typeof window.Roofpig.parse === "function") {
-    const run = () => {
+  if (window.Roofpig && typeof window.Roofpig.parse === "function" && typeof window.requestAnimationFrame === "function") {
+    window.requestAnimationFrame(() => {
       window.Roofpig.parse(cube3);
 
-      // ★ここが重要：再生位置をリセット
-      if (cube3.roofpig && typeof cube3.roofpig.setMove === "function") {
-        cube3.roofpig.setMove(0);
-      }
-    };
-
-    if (typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(run);
-    } else {
-      setTimeout(run, 0);
-    }
+      window.requestAnimationFrame(() => {
+        if (cube3.roofpig && typeof cube3.roofpig.setMove === "function") {
+          cube3.roofpig.setMove(0);
+        }
+      });
+    });
   }
 }
 
