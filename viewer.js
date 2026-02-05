@@ -360,7 +360,11 @@ function applyAlg() {
   parent.replaceChild(newCube, oldCube);
 
   if (window.Roofpig && typeof window.Roofpig.parseAll === "function") {
-    window.Roofpig.parseAll();
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(() => window.Roofpig.parseAll());
+    } else {
+      setTimeout(() => window.Roofpig.parseAll(), 0);
+    }
   }
 }
 
