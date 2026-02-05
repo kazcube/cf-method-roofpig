@@ -335,7 +335,6 @@ function applyAlg() {
   if (!oldCube || !oldCube.parentNode) return;
 
   const parent = oldCube.parentNode;
-  const referenceNode = oldCube.nextSibling;
   const oldConfig = oldCube.getAttribute("data-config") || "";
 
   const preservedConfig = oldConfig
@@ -358,8 +357,7 @@ function applyAlg() {
   newCube.className = "roofpig";
   newCube.setAttribute("data-config", `alg=${alg}|${preservedConfig.join("|")}`);
 
-  parent.removeChild(oldCube);
-  parent.insertBefore(newCube, referenceNode);
+  parent.replaceChild(newCube, oldCube);
 
   if (window.Roofpig && typeof window.Roofpig.parseAll === "function") {
     window.Roofpig.parseAll();
