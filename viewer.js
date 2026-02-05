@@ -1,10 +1,3 @@
-console.log(
-  "[CFV] viewer.js loaded",
-  "version: 3.1.28-apply-fix-20260206",
-  "time:", new Date().toISOString()
-);
-
-
 window.CFV = (function () {
   const MOVES = ["U", "D", "L", "R", "F", "B"];
   const SUFF = ["", "'", "2"];
@@ -238,12 +231,15 @@ window.CFV = (function () {
   }
 
   function moveButton(move) {
-    const normalized = normalizeFaceMove(move);
+    const rawMove = move;
+    const normalized = normalizeFaceMove(rawMove);
     if (!normalized) return;
     if (!isValidFaceMove(normalized)) return;
+
     if (faceMoveMode === "apply") {
       applyFaceMoveToAlgInput(normalized);
     }
+
     appendMove(normalized);
   }
 
