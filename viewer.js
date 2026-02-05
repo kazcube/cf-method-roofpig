@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-applyAlg-double-rAF-setMove0-20260205-1752";
+const CFV_VERSION = "v3.1.28-phase1-roofpig-only-commentout-20260205-1803";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -16,13 +16,13 @@ window.CFV = (function () {
   let stepIndex = 0;
   let faceMoveMode = "apply";
 
-  function getMainCube() {
-    return document.getElementById("mainCube");
-  }
+  // function getMainCube() {
+  //   return document.getElementById("mainCube");
+  // }
 
-  function getCornerCube() {
-    return document.getElementById("cornerCubeBack") || document.getElementById("cornerCube");
-  }
+  // function getCornerCube() {
+  //   return document.getElementById("cornerCubeBack") || document.getElementById("cornerCube");
+  // }
 
   function parseMoves(str) {
     if (!str) return [];
@@ -67,19 +67,19 @@ window.CFV = (function () {
     return inv;
   }
 
-  function refreshCubes() {
-    const main = getMainCube();
-    const corner = getCornerCube();
-    if (!main || !corner) return;
-
-    const tokens = parseMoves(fullAlg);
-    const clampedIndex = Math.max(0, Math.min(stepIndex, tokens.length));
-    stepIndex = clampedIndex;
-
-    const prefix = movesToString(tokens.slice(0, clampedIndex));
-    main.alg = prefix;
-    corner.alg = prefix;
-  }
+  // function refreshCubes() {
+  //   const main = getMainCube();
+  //   const corner = getCornerCube();
+  //   if (!main || !corner) return;
+  //
+  //   const tokens = parseMoves(fullAlg);
+  //   const clampedIndex = Math.max(0, Math.min(stepIndex, tokens.length));
+  //   stepIndex = clampedIndex;
+  //
+  //   const prefix = movesToString(tokens.slice(0, clampedIndex));
+  //   main.alg = prefix;
+  //   corner.alg = prefix;
+  // }
 
   function playFromFraction(t) {
     const main = getMainCube();
@@ -117,7 +117,7 @@ window.CFV = (function () {
     if (showPath && showPath.checked) {
       // 完成状態から 1 手ずつスクランブルを適用するアニメーション
       stepIndex = 0;
-      refreshCubes();
+      // refreshCubes();
 
       const main = getMainCube();
       const corner = getCornerCube();
@@ -127,7 +127,7 @@ window.CFV = (function () {
       function step() {
         if (i > tokens.length) return;
         stepIndex = i;
-        refreshCubes();
+        // refreshCubes();
         i += 1;
         if (i <= tokens.length) {
           setTimeout(step, 80);
@@ -136,7 +136,7 @@ window.CFV = (function () {
       step();
     } else {
       stepIndex = tokens.length;
-      refreshCubes();
+      // refreshCubes();
     }
   }
 
@@ -150,7 +150,7 @@ window.CFV = (function () {
     fullAlg = scrambleStr;
     stepIndex = moves.length;
 
-    refreshCubes();
+    // refreshCubes();
   }
 
   function resetAll() {
@@ -185,7 +185,7 @@ window.CFV = (function () {
     if (mode === 'apply') {
       // 一発で適用
       stepIndex = newTokens.length;
-      refreshCubes();
+      // refreshCubes();
     } else {
       // Immediate: 現在位置から 1 手ずつ適用
       const tokens = newTokens;
@@ -197,7 +197,7 @@ window.CFV = (function () {
       function step() {
         if (i > tokens.length) return;
         stepIndex = i;
-        refreshCubes();
+        // refreshCubes();
         i += 1;
         if (i <= tokens.length) {
           setTimeout(step, 80);
@@ -260,20 +260,20 @@ window.CFV = (function () {
     baseTokens.push(move);
     fullAlg = movesToString(baseTokens);
     stepIndex = baseTokens.length;
-    refreshCubes();
+    // refreshCubes();
   }
 
   function stepForward() {
     const tokens = parseMoves(fullAlg);
     if (stepIndex >= tokens.length) return;
     stepIndex += 1;
-    refreshCubes();
+    // refreshCubes();
   }
 
   function stepBackward() {
     if (stepIndex <= 0) return;
     stepIndex -= 1;
-    refreshCubes();
+    // refreshCubes();
   }
 
   function solveFromLastScramble() {
@@ -293,14 +293,14 @@ window.CFV = (function () {
 
     // スクランブル状態にセット
     stepIndex = scrMoves.length;
-    refreshCubes();
+    // refreshCubes();
 
     // スクランブル状態から逆手順だけ 1 手ずつ再生
     let i = scrMoves.length;
     function step() {
       if (i > tokens.length) return;
       stepIndex = i;
-      refreshCubes();
+      // refreshCubes();
       i += 1;
       if (i <= tokens.length) {
         setTimeout(step, 80);
@@ -310,7 +310,7 @@ window.CFV = (function () {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    refreshCubes();
+    // refreshCubes();
   });
 
   return {
