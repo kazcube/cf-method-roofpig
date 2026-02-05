@@ -1,5 +1,4 @@
-// ===== CF Method Cube Viewer =====
-const CFV_VERSION = "v3.1.28-applyAlg-dom-rebuild-rAF-20260207";
+const CFV_VERSION = "v3.1.28-applyAlg-dom-rebuild-rAF-20260205-1635";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -369,11 +368,11 @@ function applyAlg() {
 
   parent.replaceChild(newCube, oldCube);
 
-  if (window.Roofpig && typeof window.Roofpig.parseAll === "function") {
+  if (window.Roofpig && typeof window.Roofpig.parse === "function") {
     if (typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(() => window.Roofpig.parseAll());
+      window.requestAnimationFrame(() => window.Roofpig.parse(newCube));
     } else {
-      setTimeout(() => window.Roofpig.parseAll(), 0);
+      setTimeout(() => window.Roofpig.parse(newCube), 0);
     }
   }
 }
