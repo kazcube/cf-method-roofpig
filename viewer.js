@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-phase1-roofpig-only-commentout-20260205-1803";
+const CFV_VERSION = "v3.1.28-applyAlg-parse-setMove-play-rAF2-20260205-1844";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -355,8 +355,13 @@ function applyAlg() {
       window.Roofpig.parse(cube3);
 
       window.requestAnimationFrame(() => {
-        if (cube3.roofpig && typeof cube3.roofpig.setMove === "function") {
-          cube3.roofpig.setMove(0);
+        if (cube3.roofpig) {
+          if (typeof cube3.roofpig.setMove === "function") {
+            cube3.roofpig.setMove(0);
+          }
+          if (typeof cube3.roofpig.play === "function") {
+            cube3.roofpig.play();
+          }
         }
       });
     });
