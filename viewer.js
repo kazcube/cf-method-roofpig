@@ -220,6 +220,7 @@ window.CFV = (function () {
     if (!move) return;
     const normalized = move.trim();
     if (!normalized) return;
+    if (!/^[URFDLB](?:'|2)?$/.test(normalized)) return;
     if (faceMoveMode === "apply") {
       appendMoveToAlgInput(normalized);
     }
