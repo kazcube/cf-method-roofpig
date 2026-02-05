@@ -1,3 +1,10 @@
+console.log(
+  "[CFV] viewer.js loaded",
+  "version: 3.1.28-apply-fix-20260206",
+  "time:", new Date().toISOString()
+);
+
+
 window.CFV = (function () {
   const MOVES = ["U", "D", "L", "R", "F", "B"];
   const SUFF = ["", "'", "2"];
