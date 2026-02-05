@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-applyAlg-reuse-cube3-rAF-20260205-1745";
+const CFV_VERSION = "v3.1.28-applyAlg-reuse-cube3-rAF-20260205-1750";
 
 console.log(
   "%c[CFV] viewer.js loaded",
