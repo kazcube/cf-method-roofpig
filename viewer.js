@@ -231,6 +231,7 @@ window.CFV = (function () {
   }
 
   function moveButton(move) {
+    console.log("[CFV]", rawMove, "=>", normalized);
     const rawMove = move;
     const normalized = normalizeFaceMove(rawMove);
     if (!normalized) return;
