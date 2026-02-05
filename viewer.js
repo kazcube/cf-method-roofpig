@@ -334,6 +334,8 @@ if (window.CFV) {
 }
 
 function applyAlg() {
+  console.log("[applyAlg] called");
+
   const cube3 = document.getElementById("cube3");
   if (!cube3) return;
 
