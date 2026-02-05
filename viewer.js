@@ -331,15 +331,35 @@ function applyAlg() {
   const alg = (ta.value || "").trim();
   if (!alg) return;
 
-  const cube3 = document.getElementById("cube3");
-  if (!cube3) return;
+  const oldCube = document.getElementById("cube3");
+  if (!oldCube || !oldCube.parentNode) return;
 
-  const config = cube3.getAttribute("data-config") || "";
-  const nextConfig = config.includes("alg=")
-    ? config.replace(/alg=[^|]*/, `alg=${alg}`)
-    : `alg=${alg}${config ? `|${config}` : ""}`;
+  const parent = oldCube.parentNode;
+  const referenceNode = oldCube.nextSibling;
+  const oldConfig = oldCube.getAttribute("data-config") || "";
 
-  cube3.setAttribute("data-config", nextConfig);
+  const preservedConfig = oldConfig
+    .split("|")
+    .map(part => part.trim())
+    .filter(part => part.length > 0 && !part.startsWith("alg="));
+
+  if (!preservedConfig.some(part => part.startsWith("colors="))) {
+    preservedConfig.unshift("colors=F:g B:b U:w D:y R:r L:o");
+  }
+  if (!preservedConfig.some(part => part === "hover=3")) {
+    preservedConfig.push("hover=3");
+  }
+  if (!preservedConfig.some(part => part === "speed=700")) {
+    preservedConfig.push("speed=700");
+  }
+
+  const newCube = document.createElement("div");
+  newCube.id = "cube3";
+  newCube.className = "roofpig";
+  newCube.setAttribute("data-config", `alg=${alg}|${preservedConfig.join("|")}`);
+
+  parent.removeChild(oldCube);
+  parent.insertBefore(newCube, referenceNode);
 
   if (window.Roofpig && typeof window.Roofpig.parseAll === "function") {
     window.Roofpig.parseAll();
