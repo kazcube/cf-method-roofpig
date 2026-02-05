@@ -1,4 +1,4 @@
-const CFV_VERSION = "v3.1.28-applyAlg-dom-rebuild-rAF-20260205-1702";
+const CFV_VERSION = "v3.1.28-applyAlg-reuse-cube3-rAF-20260205-1738";
 
 console.log(
   "%c[CFV] viewer.js loaded",
@@ -334,49 +334,27 @@ if (window.CFV) {
 }
 
 function applyAlg() {
+  const cube3 = document.getElementById("cube3");
+  if (!cube3) return;
+
   const ta = document.getElementById("algInput");
   if (!ta) return;
 
   const alg = (ta.value || "").trim();
   if (!alg) return;
 
-  const oldCube = document.getElementById("cube3");
-  if (!oldCube || !oldCube.parentNode) return;
+  const config = cube3.getAttribute("data-config") || "";
+  const nextConfig = config.includes("alg=")
+    ? config.replace(/alg=[^|]*/g, `alg=${alg}`)
+    : `${config}|alg=${alg}`;
 
-  const parent = oldCube.parentNode;
-  const oldWidth = oldCube.offsetWidth;
-  const oldHeight = oldCube.offsetHeight;
-  const oldConfig = oldCube.getAttribute("data-config") || "";
-
-  const preservedConfig = oldConfig
-    .split("|")
-    .map(part => part.trim())
-    .filter(part => part.length > 0 && !part.startsWith("alg="));
-
-  if (!preservedConfig.some(part => part.startsWith("colors="))) {
-    preservedConfig.unshift("colors=F:g B:b U:w D:y R:r L:o");
-  }
-  if (!preservedConfig.some(part => part === "hover=3")) {
-    preservedConfig.push("hover=3");
-  }
-  if (!preservedConfig.some(part => part === "speed=700")) {
-    preservedConfig.push("speed=700");
-  }
-
-  const newCube = document.createElement("div");
-  newCube.id = "cube3";
-  newCube.className = "roofpig";
-  if (oldWidth > 0) newCube.style.width = `${oldWidth}px`;
-  if (oldHeight > 0) newCube.style.height = `${oldHeight}px`;
-  newCube.setAttribute("data-config", `alg=${alg}|${preservedConfig.join("|")}`);
-
-  parent.replaceChild(newCube, oldCube);
+  cube3.setAttribute("data-config", nextConfig);
 
   if (window.Roofpig && typeof window.Roofpig.parse === "function") {
     if (typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(() => window.Roofpig.parse(newCube));
+      window.requestAnimationFrame(() => window.Roofpig.parse(cube3));
     } else {
-      setTimeout(() => window.Roofpig.parse(newCube), 0);
+      setTimeout(() => window.Roofpig.parse(cube3), 0);
     }
   }
 }
