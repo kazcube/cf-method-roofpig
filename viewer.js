@@ -211,18 +211,31 @@ window.CFV = (function () {
     ta.value = next;
   }
 
+  function normalizeFaceMove(move) {
+    if (!move) return "";
+    return move.trim().replace("’", "'");
+  }
+
+  function isValidFaceMove(move) {
+    return /^[URFDLB](?:'|2)?$/.test(move);
+  }
+
+  function applyFaceMoveToAlgInput(move) {
+    if (!move) return;
+    appendMoveToAlgInput(move);
+  }
+
   function setMode(mode) {
     if (mode !== "apply" && mode !== "immediate") return;
     faceMoveMode = mode;
   }
 
   function moveButton(move) {
-    if (!move) return;
-    const normalized = move.trim();
+    const normalized = normalizeFaceMove(move);
     if (!normalized) return;
-    if (!/^[URFDLB](?:'|2)?$/.test(normalized)) return;
+    if (!isValidFaceMove(normalized)) return;
     if (faceMoveMode === "apply") {
-      appendMoveToAlgInput(normalized);
+      applyFaceMoveToAlgInput(normalized);
     }
     appendMove(normalized);
   }
