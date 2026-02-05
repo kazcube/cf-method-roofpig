@@ -230,19 +230,21 @@ window.CFV = (function () {
     faceMoveMode = mode;
   }
 
-  function moveButton(move) {
-    console.log("[CFV]", rawMove, "=>", normalized);
-    const rawMove = move;
-    const normalized = normalizeFaceMove(rawMove);
-    if (!normalized) return;
-    if (!isValidFaceMove(normalized)) return;
+   function moveButton(move) {
+   const rawMove = move;
+   if (!rawMove) return;
 
-    if (faceMoveMode === "apply") {
-      applyFaceMoveToAlgInput(normalized);
-    }
+   const normalized = normalizeFaceMove(rawMove);
+   if (!normalized) return;
+   if (!isValidFaceMove(normalized)) return;
 
-    appendMove(normalized);
+   if (faceMoveMode === "apply") {
+     applyFaceMoveToAlgInput(normalized);
+   }
+
+   appendMove(normalized);
   }
+
 
   function appendMove(move) {
     if (!move) return;
