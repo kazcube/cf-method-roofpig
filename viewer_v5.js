@@ -14,8 +14,8 @@ function getJstTimestamp() {
   );
 }
 
-const CFV_VERSION = "v5.1.2";
-const CFV_TIMESTAMP = "20260206-1440";
+const CFV_VERSION = "v5.1.3";
+const CFV_TIMESTAMP = "20260206-1502";
 
 console.log(
   "%c[CFV]",
@@ -60,17 +60,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   Roofpig.parseAll();
 
-  const cubeEl = document.getElementById("cube");
-  if (!cubeEl) {
-    console.error("[CFV] Cube element #cube not found.");
+  if (!window.CubeAnimation || !CubeAnimation.by_id) {
+    console.error("[CFV] CubeAnimation.by_id is not available.");
     return;
   }
 
-  const rp = cubeEl.roofpig;
-  if (!rp) {
-    console.error("[CFV] Roofpig cube instance not found on #cube.");
+  const cubeIds = Object.keys(CubeAnimation.by_id);
+  if (cubeIds.length === 0) {
+    console.error("[CFV] No Roofpig cube instances were created.");
     return;
   }
+
+  const rp = CubeAnimation.by_id[cubeIds[0]];
 
   const runSingleAlg = (alg) => {
     rp.alg = alg;
