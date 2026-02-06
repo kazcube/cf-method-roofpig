@@ -14,8 +14,8 @@ function getJstTimestamp() {
   );
 }
 
-const CFV_VERSION = "v5.1.3";
-const CFV_TIMESTAMP = "20260206-1502";
+const CFV_VERSION = "v5.1.4";
+const CFV_TIMESTAMP = "20260206-1530";
 
 console.log(
   "%c[CFV]",
@@ -73,10 +73,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const rp = CubeAnimation.by_id[cubeIds[0]];
 
-  const runSingleAlg = (alg) => {
-    rp.alg = alg;
-    rp.setMove(0);
-    rp.play();
+  if (!rp.world3d) {
+    console.error("[CFV] rp.world3d is not available.");
+    return;
+  }
+
+  if (typeof Alg !== "function") {
+    console.error("[CFV] Alg is not available.");
+    return;
+  }
+
+  const runSingleAlg = (algText) => {
+    const alg = new Alg(algText, rp.world3d, rp.algdisplay, rp.config.speed, rp.dom);
+    rp.add_changer("pieces", alg.play());
+  };
+
+  const runReset = () => {
+    if (rp.alg && typeof rp.alg.to_start === "function" && typeof OneChange === "function") {
+      rp.add_changer(
+        "pieces",
+        new OneChange(() => {
+          return rp.alg.to_start(rp.world3d);
+        })
+      );
+      return;
+    }
+
+    const alg = new Alg("", rp.world3d, rp.algdisplay, rp.config.speed, rp.dom);
+    rp.add_changer("pieces", alg.play());
   };
 
   document.querySelector('[data-action="scramble"]').addEventListener("click", () => {
@@ -84,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelector('[data-action="reset"]').addEventListener("click", () => {
-    runSingleAlg("");
+    runReset();
   });
 
   document.querySelectorAll("#move-buttons [data-move]").forEach((btn) => {
