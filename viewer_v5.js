@@ -14,8 +14,8 @@ function getJstTimestamp() {
   );
 }
 
-const CFV_VERSION = "v5.1.0";
-const CFV_TIMESTAMP = getJstTimestamp();
+const CFV_VERSION = "v5.1.2";
+const CFV_TIMESTAMP = "20260206-1428";
 
 console.log(
   "%c[CFV]",
