@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CF Method Cube Viewer v5.1.0 | JST YYYYMMDD-HHmm</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: Arial, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+        background: #f7f7f7;
+        color: #202124;
+      }
+
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 20px;
+        font-size: 1.4rem;
+      }
+
+      .viewer-wrap {
+        display: grid;
+        gap: 16px;
+        justify-items: center;
+      }
+
+      .roofpig {
+        width: 320px;
+        height: 360px;
+        background: #fff;
+        border: 1px solid #ddd;
+      }
+
+      .controls {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+
+      button {
+        min-width: 58px;
+        padding: 8px 12px;
+        border: 1px solid #bdbdbd;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+
+      button:hover {
+        background: #f0f0f0;
+      }
+    </style>
+    <script src="libs/roofpig_and_three.min.js"></script>
+    <script src="viewer_v5.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <h1 id="app-title">CF Method Cube Viewer v5.1.0 | JST YYYYMMDD-HHmm</h1>
+      <section class="viewer-wrap">
+        <div
+          id="cube"
+          class="roofpig"
+          data-config="alg=|colors=U:w D:y F:g B:b R:r L:o"
+        ></div>
+
+        <div class="controls">
+          <div class="row">
+            <button type="button" data-action="scramble">Scramble</button>
+            <button type="button" data-action="reset">Reset</button>
+          </div>
+          <div class="row" id="move-buttons">
+            <button type="button" data-move="U">U</button>
+            <button type="button" data-move="U'">U'</button>
+            <button type="button" data-move="U2">U2</button>
+            <button type="button" data-move="R">R</button>
+            <button type="button" data-move="R'">R'</button>
+            <button type="button" data-move="R2">R2</button>
+            <button type="button" data-move="L">L</button>
+            <button type="button" data-move="L'">L'</button>
+            <button type="button" data-move="L2">L2</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
