@@ -60,8 +60,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   Roofpig.parseAll();
 
-  const rp = document.getElementById("cube");
+  const cubeEl = document.getElementById("cube");
+  if (!cubeEl) {
+    console.error("[CFV] Cube element #cube not found.");
+    return;
+  }
+
+  const rp = cubeEl.roofpig;
   if (!rp) {
+    console.error("[CFV] Roofpig cube instance not found on #cube.");
     return;
   }
 
