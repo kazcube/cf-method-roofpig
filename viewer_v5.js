@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.6";
-const CFV_TIMESTAMP = "20260206-1625";
+const CFV_VERSION = "v5.1.7";
+const CFV_TIMESTAMP = "20260206-1635";
 
 const cubeState = {
   corners: {
@@ -48,7 +48,16 @@ function updateRoofpig() {
   div.setAttribute("data-config", `alg=${getAlgString()}|hover=none`);
 
   container.appendChild(div);
-  Roofpig.parseAll();
+
+  const oldScript = document.querySelector('script[src="roofpig_and_three.min.js"]');
+  if (oldScript) {
+    oldScript.remove();
+  }
+
+  const script = document.createElement("script");
+  script.id = "roofpig-script";
+  script.src = "roofpig_and_three.min.js";
+  document.body.appendChild(script);
 }
 
 console.log(
