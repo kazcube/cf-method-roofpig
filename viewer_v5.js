@@ -1,6 +1,6 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.5";
+const CFV_VERSION = "v5.1.6";
 const CFV_TIMESTAMP = "20260206-1550";
 
 const cubeState = {
