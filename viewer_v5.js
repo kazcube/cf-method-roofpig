@@ -1,7 +1,7 @@
 "use strict";
 
 const CFV_VERSION = "v5.1.6";
-const CFV_TIMESTAMP = "20260206-1550";
+const CFV_TIMESTAMP = "20260206-1625";
 
 const cubeState = {
   corners: {
@@ -9,6 +9,8 @@ const cubeState = {
     ori: [0, 0, 0, 0, 0, 0, 0, 0],
   },
 };
+
+const moveHistory = [];
 
 function rotateU(corners) {
   const p = corners.perm;
@@ -26,6 +28,27 @@ function rotateU(corners) {
     perm: newPerm,
     ori: newOri,
   };
+}
+
+function getAlgString() {
+  return moveHistory.join(" ");
+}
+
+function updateRoofpig() {
+  const container = document.getElementById("cube-container");
+  if (!container) {
+    console.error("[CFV] cube-container not found.");
+    return;
+  }
+
+  container.innerHTML = "";
+
+  const div = document.createElement("div");
+  div.className = "roofpig";
+  div.setAttribute("data-config", `alg=${getAlgString()}|hover=none`);
+
+  container.appendChild(div);
+  Roofpig.parseAll();
 }
 
 console.log(
@@ -52,6 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   btnU.addEventListener("click", () => {
     cubeState.corners = rotateU(cubeState.corners);
+    moveHistory.push("U");
     console.log("After U:", cubeState.corners);
+    updateRoofpig();
   });
 });
