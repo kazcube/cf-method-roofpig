@@ -14,8 +14,8 @@ function getJstTimestamp() {
   );
 }
 
-const CFV_VERSION = "v5.1.4";
-const CFV_TIMESTAMP = "20260206-1530";
+const CFV_VERSION = "v5.1.5";
+const CFV_TIMESTAMP = "20260206-1550";
 
 console.log(
   "%c[CFV]",
@@ -52,13 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (appTitle) {
     appTitle.textContent = headerText;
   }
-
-  if (!window.Roofpig || typeof Roofpig.parseAll !== "function") {
-    console.error("[CFV] Roofpig not found. Check roofpig script path.");
-    return;
-  }
-
-  Roofpig.parseAll();
 
   if (!window.CubeAnimation || !CubeAnimation.by_id) {
     console.error("[CFV] CubeAnimation.by_id is not available.");
