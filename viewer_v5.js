@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.7";
-const CFV_TIMESTAMP = "20260206-1635";
+const CFV_VERSION = "v5.1.8";
+const CFV_TIMESTAMP = "20260206-1659";
 
 const cubeState = {
   corners: {
@@ -28,6 +28,12 @@ function rotateU(corners) {
     perm: newPerm,
     ori: newOri,
   };
+}
+
+function toRoofpigMove(move) {
+  if (move === "U") return "U'";
+  if (move === "U'") return "U";
+  return move;
 }
 
 function getAlgString() {
@@ -84,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   btnU.addEventListener("click", () => {
     cubeState.corners = rotateU(cubeState.corners);
-    moveHistory.push("U");
+    moveHistory.push(toRoofpigMove("U"));
     console.log("After U:", cubeState.corners);
     updateRoofpig();
   });
