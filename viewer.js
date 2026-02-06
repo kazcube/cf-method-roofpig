@@ -1,11 +1,6 @@
-const CFV_VERSION = "v3.1.30-phase1-jquery-instance-apply-20260205-2035";
+const CFV_VERSION = "v3.1.31-phase1-remove-recreate-parse-20260205-2108";
 
-console.log(
-  "%c[CFV] viewer.js loaded",
-  "color: #4CAF50; font-weight: bold;",
-  CFV_VERSION,
-  new Date().toISOString()
-);
+console.log("[CFV] viewer.js loaded", CFV_VERSION, new Date().toISOString());
 
 window.CFV = (function () {
   const MOVES = ["U", "D", "L", "R", "F", "B"];
@@ -337,22 +332,67 @@ if (window.CFV) {
 }
 
 function applyAlg() {
-  const cube3 = document.getElementById("cube3");
+  const oldCube = document.getElementById("cube3");
   const ta = document.getElementById("algInput");
-  if (!cube3 || !ta) return;
+  if (!oldCube || !ta) return;
 
   const alg = (ta.value || "").trim();
   if (!alg) return;
 
-  const rp = window.jQuery ? window.jQuery(cube3).data("roofpig") : null;
-  if (!rp) {
-    console.warn("Roofpig instance not found (jQuery data)");
+  const parent = oldCube.parentNode;
+  if (!parent) return;
+
+  const oldConfig = oldCube.getAttribute("data-config") || "";
+  const baseConfig = oldConfig
+    .split("|")
+    .filter(part => part && !part.trim().startsWith("alg="))
+    .join("|");
+  const nextConfig = baseConfig ? `${baseConfig}|alg=${alg}` : `alg=${alg}`;
+
+  const jq = window.jQuery;
+  const oldRp = jq ? jq(oldCube).data("roofpig") : null;
+
+  if (oldRp && typeof oldRp.remove === "function") {
+    console.log("[CFV] applyAlg remove old instance");
+    oldRp.remove();
+  }
+
+  const nextSibling = oldCube.nextSibling;
+  const oldWidth = oldCube.style.width;
+  const oldHeight = oldCube.style.height;
+
+  parent.removeChild(oldCube);
+
+  const newCube = document.createElement("div");
+  newCube.id = "cube3";
+  newCube.className = "roofpig";
+  if (oldWidth) newCube.style.width = oldWidth;
+  if (oldHeight) newCube.style.height = oldHeight;
+  newCube.setAttribute("data-config", nextConfig);
+
+  if (nextSibling) {
+    parent.insertBefore(newCube, nextSibling);
+  } else {
+    parent.appendChild(newCube);
+  }
+
+  if (!window.Roofpig || typeof window.Roofpig.parse !== "function") {
+    console.warn("Roofpig.parse not available");
     return;
   }
 
-  rp.alg = alg;
-  rp.setMove(0);
-  rp.play();
+  console.log("[CFV] applyAlg parse new cube");
+  window.Roofpig.parse(newCube);
+
+  const newRp = jq ? jq(newCube).data("roofpig") : null;
+  if (!newRp) {
+    console.warn("Roofpig instance not found after parse");
+    return;
+  }
+
+  console.log("[CFV] applyAlg play");
+  newRp.setMove(0);
+  newRp.play();
 }
 
 window.applyAlg = applyAlg;
