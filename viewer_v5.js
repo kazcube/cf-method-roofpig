@@ -1,20 +1,23 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.11";
-const CFV_TIMESTAMP = "20260216-1551";
+const CFV_VERSION = "v5.1.12";
+const CFV_TIMESTAMP = "20260216-1620";
 
-const cubeState = {
-  corners: {
-    perm: [0, 1, 2, 3, 4, 5, 6, 7],
-    ori: [0, 0, 0, 0, 0, 0, 0, 0],
-  },
-};
+function createInitialCubeState() {
+  return {
+    corners: {
+      perm: [0, 1, 2, 3, 4, 5, 6, 7],
+      ori: [0, 0, 0, 0, 0, 0, 0, 0],
+    },
+  };
+}
 
+let cubeState = createInitialCubeState();
 const moveHistory = [];
 let pendingMoves = [];
 let mode = "immediate";
 let isPlaying = false;
-const APPLY_STEP_DELAY_MS = 350;
+let applyStepDelayMs = 1000;
 
 function rotateU(corners) {
   const p = corners.perm;
@@ -133,6 +136,10 @@ function applyPendingMoves(event) {
 
   let i = 0;
   const step = () => {
+    if (!isPlaying) {
+      return;
+    }
+
     if (i >= movesToApply.length) {
       isPlaying = false;
       return;
@@ -142,7 +149,7 @@ function applyPendingMoves(event) {
     renderStatus();
     updateRoofpig();
     i += 1;
-    setTimeout(step, APPLY_STEP_DELAY_MS);
+    setTimeout(step, applyStepDelayMs);
   };
 
   step();
@@ -155,6 +162,19 @@ function clearPendingMoves(event) {
 
   pendingMoves.length = 0;
   renderStatus();
+}
+
+function resetAll(event) {
+  if (event) {
+    event.preventDefault();
+  }
+
+  isPlaying = false;
+  moveHistory.length = 0;
+  pendingMoves.length = 0;
+  cubeState = createInitialCubeState();
+  renderStatus();
+  updateRoofpig();
 }
 
 console.log(
@@ -171,6 +191,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const appTitle = document.getElementById("app-title");
   if (appTitle) {
     appTitle.textContent = headerText;
+  }
+
+  const speedEl = document.getElementById("speed");
+  const speedValEl = document.getElementById("speed-value");
+  if (speedEl) {
+    applyStepDelayMs = Number(speedEl.value) || 1000;
+    if (speedValEl) {
+      speedValEl.textContent = `${applyStepDelayMs}ms`;
+    }
+
+    speedEl.addEventListener("input", () => {
+      applyStepDelayMs = Number(speedEl.value) || 1000;
+      if (speedValEl) {
+        speedValEl.textContent = `${applyStepDelayMs}ms`;
+      }
+    });
   }
 
   const modeRadios = document.querySelectorAll('input[name="mode"]');
@@ -195,6 +231,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnClear = document.getElementById("btn-clear");
   if (btnClear) {
     btnClear.addEventListener("click", clearPendingMoves);
+  }
+
+  const btnReset = document.getElementById("btn-reset");
+  if (btnReset) {
+    btnReset.addEventListener("click", resetAll);
   }
 
   renderStatus();
