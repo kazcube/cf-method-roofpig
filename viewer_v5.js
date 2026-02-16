@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.8";
-const CFV_TIMESTAMP = "20260206-1659";
+const CFV_VERSION = "v5.1.9";
+const CFV_TIMESTAMP = "20260216-1108";
 
 const cubeState = {
   corners: {
@@ -11,6 +11,8 @@ const cubeState = {
 };
 
 const moveHistory = [];
+let pendingMoves = [];
+let mode = "immediate";
 
 function rotateU(corners) {
   const p = corners.perm;
@@ -30,6 +32,12 @@ function rotateU(corners) {
   };
 }
 
+function applyMoveToState(move) {
+  if (move === "U" || move === "U'" || move === "U2") {
+    cubeState.corners = rotateU(cubeState.corners);
+  }
+}
+
 function toRoofpigMove(move) {
   if (move === "U") return "U'";
   if (move === "U'") return "U";
@@ -40,30 +48,77 @@ function getAlgString() {
   return moveHistory.join(" ");
 }
 
+function updateStatusTexts() {
+  const pendingText = document.getElementById("pending-text");
+  if (pendingText) {
+    pendingText.textContent = `Pending: ${pendingMoves.join(" ")}`;
+  }
+
+  const historyText = document.getElementById("history-text");
+  if (historyText) {
+    historyText.textContent = `History: ${moveHistory.join(" ")}`;
+  }
+}
+
 function updateRoofpig() {
-  const container = document.getElementById("cube-container");
-  if (!container) {
-    console.error("[CFV] cube-container not found.");
+  try {
+    const container = document.getElementById("cube-container");
+    if (!container) {
+      console.error("[CFV] cube-container not found.");
+      return;
+    }
+
+    container.innerHTML = "";
+
+    const div = document.createElement("div");
+    div.className = "roofpig";
+    div.setAttribute("data-config", `alg=${getAlgString()}|hover=none`);
+    container.appendChild(div);
+
+    const oldScript = document.getElementById("roofpig-script");
+    if (oldScript) {
+      oldScript.remove();
+    }
+
+    const script = document.createElement("script");
+    script.id = "roofpig-script";
+    script.src = "roofpig_and_three.min.js";
+    document.body.appendChild(script);
+  } catch (error) {
+    console.error("[CFV] updateRoofpig failed:", error);
+  }
+}
+
+function onMove(move) {
+  applyMoveToState(move);
+
+  const roofpigMove = toRoofpigMove(move);
+  if (mode === "immediate") {
+    moveHistory.push(roofpigMove);
+    updateRoofpig();
+  } else {
+    pendingMoves.push(roofpigMove);
+  }
+
+  console.log("After move:", move, cubeState.corners);
+  updateStatusTexts();
+}
+
+function applyPendingMoves() {
+  if (pendingMoves.length === 0) {
+    updateStatusTexts();
     return;
   }
 
-  container.innerHTML = "";
+  moveHistory.push(...pendingMoves);
+  pendingMoves = [];
+  updateRoofpig();
+  updateStatusTexts();
+}
 
-  const div = document.createElement("div");
-  div.className = "roofpig";
-  div.setAttribute("data-config", `alg=${getAlgString()}|hover=none`);
-
-  container.appendChild(div);
-
-  const oldScript = document.querySelector('script[src="roofpig_and_three.min.js"]');
-  if (oldScript) {
-    oldScript.remove();
-  }
-
-  const script = document.createElement("script");
-  script.id = "roofpig-script";
-  script.src = "roofpig_and_three.min.js";
-  document.body.appendChild(script);
+function clearPendingMoves() {
+  pendingMoves = [];
+  updateStatusTexts();
 }
 
 console.log(
@@ -82,16 +137,29 @@ document.addEventListener("DOMContentLoaded", () => {
     appTitle.textContent = headerText;
   }
 
-  const btnU = document.getElementById("btn-u");
-  if (!btnU) {
-    console.error("[CFV] U button not found.");
-    return;
+  const modeRadios = document.querySelectorAll('input[name="mode"]');
+  modeRadios.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      mode = radio.value;
+      updateStatusTexts();
+    });
+  });
+
+  document.querySelectorAll("#move-buttons [data-move]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      onMove(btn.dataset.move);
+    });
+  });
+
+  const btnApply = document.getElementById("btn-apply");
+  if (btnApply) {
+    btnApply.addEventListener("click", applyPendingMoves);
   }
 
-  btnU.addEventListener("click", () => {
-    cubeState.corners = rotateU(cubeState.corners);
-    moveHistory.push(toRoofpigMove("U"));
-    console.log("After U:", cubeState.corners);
-    updateRoofpig();
-  });
+  const btnClear = document.getElementById("btn-clear");
+  if (btnClear) {
+    btnClear.addEventListener("click", clearPendingMoves);
+  }
+
+  updateStatusTexts();
 });
