@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.10";
-const CFV_TIMESTAMP = "20260216-1146";
+const CFV_VERSION = "v5.1.11";
+const CFV_TIMESTAMP = "20260216-1551";
 
 const cubeState = {
   corners: {
@@ -13,6 +13,8 @@ const cubeState = {
 const moveHistory = [];
 let pendingMoves = [];
 let mode = "immediate";
+let isPlaying = false;
+const APPLY_STEP_DELAY_MS = 350;
 
 function rotateU(corners) {
   const p = corners.perm;
@@ -96,6 +98,10 @@ function updateRoofpig() {
 }
 
 function onMove(move) {
+  if (isPlaying) {
+    return;
+  }
+
   applyMoveToState(move);
 
   const roofpigMove = toRoofpigMove(move);
@@ -110,20 +116,44 @@ function onMove(move) {
   renderStatus();
 }
 
-function applyPendingMoves() {
-  if (pendingMoves.length === 0) {
+function applyPendingMoves(event) {
+  if (event) {
+    event.preventDefault();
+  }
+
+  if (isPlaying || pendingMoves.length === 0) {
     renderStatus();
     return;
   }
 
-  moveHistory.push(...pendingMoves);
-  pendingMoves = [];
-  updateRoofpig();
+  isPlaying = true;
+  const movesToApply = pendingMoves.slice();
+  pendingMoves.length = 0;
   renderStatus();
+
+  let i = 0;
+  const step = () => {
+    if (i >= movesToApply.length) {
+      isPlaying = false;
+      return;
+    }
+
+    moveHistory.push(movesToApply[i]);
+    renderStatus();
+    updateRoofpig();
+    i += 1;
+    setTimeout(step, APPLY_STEP_DELAY_MS);
+  };
+
+  step();
 }
 
-function clearPendingMoves() {
-  pendingMoves = [];
+function clearPendingMoves(event) {
+  if (event) {
+    event.preventDefault();
+  }
+
+  pendingMoves.length = 0;
   renderStatus();
 }
 
