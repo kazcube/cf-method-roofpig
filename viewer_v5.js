@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.9";
-const CFV_TIMESTAMP = "20260216-1108";
+const CFV_VERSION = "v5.1.10";
+const CFV_TIMESTAMP = "20260216-1146";
 
 const cubeState = {
   corners: {
@@ -39,16 +39,22 @@ function applyMoveToState(move) {
 }
 
 function toRoofpigMove(move) {
-  if (move === "U") return "U'";
-  if (move === "U'") return "U";
-  return move;
+  const flip = {
+    U: "U'",
+    "U'": "U",
+    R: "R'",
+    "R'": "R",
+    L: "L'",
+    "L'": "L",
+  };
+  return flip[move] || move;
 }
 
 function getAlgString() {
   return moveHistory.join(" ");
 }
 
-function updateStatusTexts() {
+function renderStatus() {
   const pendingText = document.getElementById("pending-text");
   if (pendingText) {
     pendingText.textContent = `Pending: ${pendingMoves.join(" ")}`;
@@ -101,24 +107,24 @@ function onMove(move) {
   }
 
   console.log("After move:", move, cubeState.corners);
-  updateStatusTexts();
+  renderStatus();
 }
 
 function applyPendingMoves() {
   if (pendingMoves.length === 0) {
-    updateStatusTexts();
+    renderStatus();
     return;
   }
 
   moveHistory.push(...pendingMoves);
   pendingMoves = [];
   updateRoofpig();
-  updateStatusTexts();
+  renderStatus();
 }
 
 function clearPendingMoves() {
   pendingMoves = [];
-  updateStatusTexts();
+  renderStatus();
 }
 
 console.log(
@@ -141,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
   modeRadios.forEach((radio) => {
     radio.addEventListener("change", () => {
       mode = radio.value;
-      updateStatusTexts();
+      renderStatus();
     });
   });
 
@@ -161,5 +167,5 @@ document.addEventListener("DOMContentLoaded", () => {
     btnClear.addEventListener("click", clearPendingMoves);
   }
 
-  updateStatusTexts();
+  renderStatus();
 });
