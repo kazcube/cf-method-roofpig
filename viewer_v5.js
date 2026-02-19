@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.14";
-const CFV_TIMESTAMP = "20260219-1344";
+const CFV_VERSION = "v5.1.15";
+const CFV_TIMESTAMP = "20260219-1414";
 
 function createInitialCubeState() {
   return {
@@ -52,13 +52,21 @@ function toRoofpigMove(move) {
     L: "L'",
     "L'": "L",
   };
-  return flip[move] || move;
+  const mapped = flip[move] || move;
+
+  if (/\s/.test(mapped) || !/^[URL](2|'|)?$/.test(mapped)) {
+    console.error("[CFV] Invalid mapped move:", move, mapped);
+    return move;
+  }
+
+  return mapped;
 }
 
 function getAlgString() {
   const converted = [];
   for (const move of moveHistory) {
-    converted.push(toRoofpigMove(move));
+    const mapped = toRoofpigMove(move);
+    converted.push(mapped);
   }
   const algString = converted.join(" ");
   console.log("algString=", algString);
@@ -117,6 +125,11 @@ function onMove(move) {
   }
 
   applyMoveToState(move);
+
+  const mapped = toRoofpigMove(move);
+  const lastMove = moveHistory[moveHistory.length - 1] || "";
+  console.log("lastMove=", lastMove);
+  console.log("move=", move, "mapped=", mapped);
 
   if (mode === "immediate") {
     appendMoveHistory(move);
