@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.12";
-const CFV_TIMESTAMP = "20260216-1620";
+const CFV_VERSION = "v5.1.13";
+const CFV_TIMESTAMP = "20260219-1328";
 
 function createInitialCubeState() {
   return {
@@ -56,7 +56,7 @@ function toRoofpigMove(move) {
 }
 
 function getAlgString() {
-  return moveHistory.join(" ");
+  return moveHistory.map(toRoofpigMove).join(" ");
 }
 
 function renderStatus() {
@@ -107,12 +107,11 @@ function onMove(move) {
 
   applyMoveToState(move);
 
-  const roofpigMove = toRoofpigMove(move);
   if (mode === "immediate") {
-    moveHistory.push(roofpigMove);
+    moveHistory.push(move);
     updateRoofpig();
   } else {
-    pendingMoves.push(roofpigMove);
+    pendingMoves.push(move);
   }
 
   console.log("After move:", move, cubeState.corners);
