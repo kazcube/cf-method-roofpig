@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.15";
-const CFV_TIMESTAMP = "20260219-1414";
+const CFV_VERSION = "v5.1.16";
+const CFV_TIMESTAMP = "20260219-1442";
 
 function createInitialCubeState() {
   return {
@@ -92,6 +92,10 @@ function renderStatus() {
 
 function updateRoofpig() {
   try {
+    const algString = getAlgString();
+    console.log("[updateRoofpig] moveHistory(raw)=", moveHistory.join(" "));
+    console.log("[updateRoofpig] algString=", algString);
+
     const container = document.getElementById("cube-container");
     if (!container) {
       console.error("[CFV] cube-container not found.");
@@ -102,7 +106,9 @@ function updateRoofpig() {
 
     const div = document.createElement("div");
     div.className = "roofpig";
-    div.setAttribute("data-config", `alg=${getAlgString()}|hover=none`);
+    const dataConfig = `alg=${algString}|hover=none`;
+    div.setAttribute("data-config", dataConfig);
+    console.log("[updateRoofpig] data-config=", dataConfig);
     container.appendChild(div);
 
     const oldScript = document.getElementById("roofpig-script");
@@ -124,6 +130,8 @@ function onMove(move) {
     return;
   }
 
+  console.log("[onMove] input move=", move);
+  console.log("[onMove] before push moveHistory(raw)=", moveHistory.join(" "));
   applyMoveToState(move);
 
   const mapped = toRoofpigMove(move);
@@ -133,6 +141,7 @@ function onMove(move) {
 
   if (mode === "immediate") {
     appendMoveHistory(move);
+    console.log("[onMove] after push moveHistory(raw)=", moveHistory.join(" "));
     updateRoofpig();
   } else {
     pendingMoves.push(move);
