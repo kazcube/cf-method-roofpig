@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.13";
-const CFV_TIMESTAMP = "20260219-1328";
+const CFV_VERSION = "v5.1.14";
+const CFV_TIMESTAMP = "20260219-1344";
 
 function createInitialCubeState() {
   return {
@@ -56,7 +56,18 @@ function toRoofpigMove(move) {
 }
 
 function getAlgString() {
-  return moveHistory.map(toRoofpigMove).join(" ");
+  const converted = [];
+  for (const move of moveHistory) {
+    converted.push(toRoofpigMove(move));
+  }
+  const algString = converted.join(" ");
+  console.log("algString=", algString);
+  return algString;
+}
+
+function appendMoveHistory(move) {
+  moveHistory.push(move);
+  console.log("moveHistory=", moveHistory.join(" "));
 }
 
 function renderStatus() {
@@ -108,10 +119,11 @@ function onMove(move) {
   applyMoveToState(move);
 
   if (mode === "immediate") {
-    moveHistory.push(move);
+    appendMoveHistory(move);
     updateRoofpig();
   } else {
     pendingMoves.push(move);
+    console.log("pendingMoves=", pendingMoves.join(" "));
   }
 
   console.log("After move:", move, cubeState.corners);
@@ -133,21 +145,20 @@ function applyPendingMoves(event) {
   pendingMoves.length = 0;
   renderStatus();
 
-  let i = 0;
   const step = () => {
     if (!isPlaying) {
       return;
     }
 
-    if (i >= movesToApply.length) {
+    if (movesToApply.length === 0) {
       isPlaying = false;
       return;
     }
 
-    moveHistory.push(movesToApply[i]);
+    const move = movesToApply.shift();
+    appendMoveHistory(move);
     renderStatus();
     updateRoofpig();
-    i += 1;
     setTimeout(step, applyStepDelayMs);
   };
 
