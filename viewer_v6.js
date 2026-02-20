@@ -1,13 +1,17 @@
 /* CF Method Cube Viewer v6.0.0
    - Roofpig: DOM再生成 + CubeAnimation.create_in_dom() のみ
    - next_move / Alg内部操作 / script再挿入は禁止
-   - 既知のRoofpig valid propertiesに合わせる（size/view は使わない）
-   - flags=canvas で表示安定化
+   - 初期画面でも▶を出すため、algダミーを常に持つ（showalgは付けない）
 */
 
 (() => {
   const V6_VERSION = "v6.0.0";
   let V6_UPDATED = "Unknown";
+
+  // ★初期画面で▶を出すためのダミーalg（見た目用）
+  // showalgフラグを付けないので、テキスト表示はされません
+  // （ユーザーが▶を押しても結果は元に戻る手順）
+  const DUMMY_ALG_FOR_CONTROLS = "U U'";
 
   const cubeState = {
     history: [],
@@ -18,13 +22,9 @@
     nowMove: ""
   };
 
-  // 世界標準配色：U白 D黄 F緑 B青 R赤 L橙
   const COLORS_STANDARD = "colors=U:w D:y F:g B:b R:r L:o";
-
-  // Roofpig flags（README準拠）：canvas / startsolved
   const FLAGS = "flags=canvas startsolved";
 
-  // 有効なパラメータだけ使う（READMEの valid properties にあるもの）
   const BASE_CFG = [
     "pov=Ufr",
     COLORS_STANDARD,
@@ -58,7 +58,7 @@
     elSpeedRange.disabled = disabled;
   }
 
-  // ---- 更新日時：HTMLの Last-Modified をHEADで取得（GitHub Pages想定） ----
+  // ---- 更新日時：HTMLの Last-Modified ----
   function formatJSTFromDate(d) {
     const j = new Date(d.getTime() + 9 * 60 * 60 * 1000);
     const yyyy = j.getFullYear();
@@ -91,7 +91,6 @@
   }
 
   function renderStatus() {
-    // 要望：知りたいのは「バージョンと更新日時」
     elStatus.textContent =
 `version : ${V6_VERSION}
 updated : ${V6_UPDATED}
@@ -108,42 +107,34 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
 
   function buildRoofpigConfig({ setupMoves, algMoves, speedMs }) {
     const parts = [...BASE_CFG];
-
-    // speed（README準拠）
     parts.push(`speed=${Math.max(0, speedMs | 0)}`);
 
-    // setupmoves / alg（README準拠）
+    // setupmoves / alg はValid propertiesにある :contentReference[oaicite:2]{index=2}
     if (setupMoves && setupMoves.trim()) parts.push(`setupmoves=${setupMoves.trim()}`);
     if (algMoves && algMoves.trim()) parts.push(`alg=${algMoves.trim()}`);
 
     return parts.join(" | ");
   }
 
-  // ---- RoofpigをDOM再生成 ----
   function recreateRoofpig({ setupMoves, algMoves, speedMs }) {
     assertRoofpigAvailable();
     elCubeHost.innerHTML = "";
 
     const cfg = buildRoofpigConfig({ setupMoves, algMoves, speedMs });
-
-    // 生成されるdivに class='roofpig'（必要）
-    // サイズはCSSでcubeHostに与えている
     window.CubeAnimation.create_in_dom(elCubeHost, cfg, "class='roofpig'");
   }
 
-  // ---- 再生の自動化：playボタンをDOMから探してclick ----
+  // ▶自動クリック（Immediateで「押した瞬間に回転」を実現）
   function autoPressPlayIfExists(rootEl) {
-    // Roofpigはalgがあると再生UIが出る。自動再生フラグはREADMEに無いのでDOMクリックで対応。
-    // 生成直後はまだボタンが無いことがある → 数フレーム待つ
     let tries = 0;
-    const maxTries = 30;
+    const maxTries = 40;
 
     const tick = () => {
       tries++;
-      // roofpig div 内の最初の button を “▶” と仮定（実装依存を最小化）
+
+      // roofpig内のbuttonを探す（最初のボタンが▶であることが多い）
       const btns = rootEl.querySelectorAll("button");
       if (btns && btns.length) {
-        // 最初のボタンが再生であることが多い
         btns[0].click();
         return;
       }
@@ -152,7 +143,7 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
     requestAnimationFrame(tick);
   }
 
-  // 1手アニメ：setupmoves=prefix / alg=singleMove
+  // 1手アニメ：prefixはsetupmoves、今回の1手はalg
   function animateSingleMove(singleMove) {
     const prefix = cubeState.history.slice(0, -1);
 
@@ -162,16 +153,15 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
       speedMs: cubeState.speedMs
     });
 
-    // 自動で▶を押す（これで「次の操作で前の手が反映」を解消）
+    // ★Immediateは自動で▶
     autoPressPlayIfExists(elCubeHost);
   }
 
-  // solved表示（最初の見た目を“同じ系統”に揃える）
-  // ※ alg無しだと再生UIが出ないが、見た目（描画方式）は flags=canvas で統一される
-  function showSolved() {
+  // 初期表示：solved + ▶を出す（ダミーalgを入れる）
+  function showSolvedWithControls() {
     recreateRoofpig({
       setupMoves: "",
-      algMoves: "",
+      algMoves: DUMMY_ALG_FOR_CONTROLS, // ★これで▶が出る :contentReference[oaicite:3]{index=3}
       speedMs: 0
     });
   }
@@ -245,7 +235,7 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
     cubeState.pending = [];
     cubeState.nowMove = "";
     renderStatus();
-    showSolved();
+    showSolvedWithControls(); // ★Reset後も▶表示を維持
   }
 
   function initUI() {
@@ -279,7 +269,7 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
 
     initUI();
     renderStatus();
-    showSolved(); // 初期表示（canvasで安定）
+    showSolvedWithControls(); // ★初期から▶を出す
   }
 
   if (document.readyState === "loading") {
