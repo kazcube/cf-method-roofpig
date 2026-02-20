@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CF Method Cube Viewer v6.0.0</title>
+
+  <!-- Roofpig / Three.js bundle（あなたの環境のパスに合わせてください）
+       例: 同階層に roofpig_and_three.min.js を置く -->
+  <script src="roofpig_and_three.min.js"></script>
+
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; margin: 16px; }
+    h1 { margin: 0 0 8px; font-size: 18px; }
+    .row { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    .panel { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
+    .panel h2 { font-size: 14px; margin: 0 0 8px; }
+    #cubeHost { min-width: 320px; min-height: 320px; }
+    .btns { display: grid; grid-template-columns: repeat(6, minmax(56px, 1fr)); gap: 6px; }
+    button { padding: 8px 10px; border-radius: 8px; border: 1px solid #bbb; background: #fff; cursor: pointer; }
+    button:hover { background: #f6f6f6; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .mode { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .mode label { display: inline-flex; gap: 6px; align-items: center; padding: 6px 10px; border: 1px solid #ccc; border-radius: 999px; cursor: pointer; }
+    .status { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; white-space: pre-wrap; }
+    .inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input[type="range"] { width: 220px; }
+  </style>
+</head>
+
+<body>
+  <h1 id="titleH1">CF Method Cube Viewer v6.0.0</h1>
+
+  <div class="row">
+    <div class="panel">
+      <h2>Cube</h2>
+      <div id="cubeHost"></div>
+    </div>
+
+    <div class="panel" style="min-width: 360px;">
+      <h2>Controls</h2>
+
+      <div class="mode" style="margin-bottom: 10px;">
+        <label><input type="radio" name="mode" value="immediate" checked> Immediate</label>
+        <label><input type="radio" name="mode" value="apply"> Apply（キュー）</label>
+
+        <div class="inline" style="margin-left:auto;">
+          <span>Speed</span>
+          <input id="speedRange" type="range" min="200" max="2000" step="50" value="600"/>
+          <span id="speedLabel">600 ms</span>
+        </div>
+      </div>
+
+      <div class="btns" style="margin-bottom: 10px;">
+        <button data-m="U">U</button><button data-m="U'">U'</button><button data-m="U2">U2</button>
+        <button data-m="R">R</button><button data-m="R'">R'</button><button data-m="R2">R2</button>
+
+        <button data-m="L">L</button><button data-m="L'">L'</button><button data-m="L2">L2</button>
+        <button data-m="F">F</button><button data-m="F'">F'</button><button data-m="F2">F2</button>
+
+        <button data-m="B">B</button><button data-m="B'">B'</button><button data-m="B2">B2</button>
+        <button data-m="D">D</button><button data-m="D'">D'</button><button data-m="D2">D2</button>
+      </div>
+
+      <div class="inline" style="margin-bottom: 10px;">
+        <button id="btnApply">Apply ▶</button>
+        <button id="btnClear">Clear（pending）</button>
+        <button id="btnReset">Reset（solved）</button>
+      </div>
+
+      <h2>Status</h2>
+      <div class="status" id="statusBox"></div>
+    </div>
+  </div>
+
+  <!-- あなた側JS（HTMLに混入しない） -->
+  <script src="viewer_v6.js"></script>
+</body>
+</html>
