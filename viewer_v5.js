@@ -1,122 +1,292 @@
-<!DOCTYPE html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CF Method Cube Viewer v5.1.18 | JST 20260220-1159</title>
-    <style>
-      :root {
-        color-scheme: light;
-      }
+"use strict";
 
-      body {
-        margin: 0;
-        padding: 24px;
-        font-family: Arial, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-        background: #f7f7f7;
-        color: #202124;
-      }
+const CFV_VERSION = "v5.1.17";
+const CFV_TIMESTAMP = "20260219-1744";
 
-      main {
-        max-width: 900px;
-        margin: 0 auto;
-      }
+function createInitialCubeState() {
+  return {
+    corners: {
+      perm: [0, 1, 2, 3, 4, 5, 6, 7],
+      ori: [0, 0, 0, 0, 0, 0, 0, 0],
+    },
+  };
+}
 
-      h1 {
-        margin: 0 0 20px;
-        font-size: 1.4rem;
-      }
+let cubeState = createInitialCubeState();
+const moveHistory = [];
+const pendingMoves = [];
+let mode = "immediate";
+let isPlaying = false;
+let applyStepDelayMs = 1000;
+let roofpigInstance = null;
 
-      .viewer-wrap {
-        display: grid;
-        gap: 16px;
-        justify-items: center;
-      }
+function rotateU(corners) {
+  const p = corners.perm;
+  const o = corners.ori;
 
-      .roofpig {
-        width: 320px;
-        height: 360px;
-        background: #fff;
-        border: 1px solid #ddd;
-      }
+  const newPerm = [...p];
+  const newOri = [...o];
 
-      .controls {
-        display: grid;
-        gap: 8px;
-        justify-items: center;
-      }
+  newPerm[0] = p[3];
+  newPerm[1] = p[0];
+  newPerm[2] = p[1];
+  newPerm[3] = p[2];
 
-      .row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: center;
-      }
+  return {
+    perm: newPerm,
+    ori: newOri,
+  };
+}
 
-      button {
-        min-width: 58px;
-        padding: 8px 12px;
-        border: 1px solid #bdbdbd;
-        border-radius: 8px;
-        background: #fff;
-        cursor: pointer;
-        font-size: 0.95rem;
-      }
+function applyMoveToState(move) {
+  if (move === "U" || move === "U'" || move === "U2") {
+    cubeState.corners = rotateU(cubeState.corners);
+  }
+}
 
-      button:hover {
-        background: #f0f0f0;
-      }
+function toRoofpigMove(move) {
+  const flip = {
+    U: "U'",
+    "U'": "U",
+    R: "R'",
+    "R'": "R",
+    L: "L'",
+    "L'": "L",
+  };
+  return flip[move] || move;
+}
 
-      .status {
-        font-size: 0.9rem;
-      }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="roofpig_and_three.min.js"></script>
-    <script src="viewer_v5.js" defer></script>
-  </head>
-  <body>
-    <main>
-      <h1 id="app-title">CF Method Cube Viewer v5.1.18 | JST 20260220-1159</h1>
-      <section class="viewer-wrap">
-        <div id="cube-container">
-          <div
-            id="cube"
-            class="roofpig"
-            data-config="alg=|colors=U:w D:y F:g B:b R:r L:o"
-          ></div>
-        </div>
+function renderStatus() {
+  const pendingText = document.getElementById("pending-text");
+  if (pendingText) {
+    pendingText.textContent = `Pending: ${pendingMoves.join(" ")}`;
+  }
 
-        <div class="controls">
-          <div class="row">
-            <label><input type="radio" name="mode" value="immediate" checked /> Immediate</label>
-            <label><input type="radio" name="mode" value="apply" /> Apply</label>
-          </div>
-          <div class="row" id="move-buttons">
-            <button type="button" data-move="U">U</button>
-            <button type="button" data-move="U'">U'</button>
-            <button type="button" data-move="U2">U2</button>
-            <button type="button" data-move="R">R</button>
-            <button type="button" data-move="R'">R'</button>
-            <button type="button" data-move="R2">R2</button>
-            <button type="button" data-move="L">L</button>
-            <button type="button" data-move="L'">L'</button>
-            <button type="button" data-move="L2">L2</button>
-          </div>
-          <div class="row">
-            <button type="button" id="btn-apply">Apply</button>
-            <button type="button" id="btn-clear">Clear</button>
-            <button type="button" id="btn-reset">Reset</button>
-          </div>
-          <div class="row">
-            <label for="speed">Speed</label>
-            <input id="speed" type="range" min="200" max="2000" step="100" value="1000" />
-            <span id="speed-value">1000ms</span>
-          </div>
-          <div class="status" id="pending-text">Pending:</div>
-          <div class="status" id="history-text">History:</div>
-        </div>
-      </section>
-    </main>
-  </body>
-</html>
+  const historyText = document.getElementById("history-text");
+  if (historyText) {
+    historyText.textContent = `History: ${moveHistory.join(" ")}`;
+  }
+}
+
+function getFirstCubeInstance() {
+  if (!window.CubeAnimation || !CubeAnimation.by_id) {
+    return null;
+  }
+  const ids = Object.keys(CubeAnimation.by_id);
+  if (ids.length === 0) {
+    return null;
+  }
+  return CubeAnimation.by_id[ids[0]];
+}
+
+function initRoofpigOnce() {
+  if (roofpigInstance) {
+    return true;
+  }
+
+  roofpigInstance = getFirstCubeInstance();
+  if (!roofpigInstance) {
+    return false;
+  }
+
+  console.log("[CFV] roofpig initialized once");
+  return true;
+}
+
+function playSingleMoveIncremental(move) {
+  if (!initRoofpigOnce()) {
+    console.error("[CFV] Roofpig instance is not ready.");
+    return;
+  }
+
+  if (typeof Alg !== "function") {
+    console.error("[CFV] Alg is not available.");
+    return;
+  }
+
+  const mapped = toRoofpigMove(move);
+  if (!/^[URL](2|'|)?$/.test(mapped)) {
+    console.error("[CFV] Invalid mapped move:", move, mapped);
+    return;
+  }
+
+  const alg = new Alg(
+    mapped,
+    roofpigInstance.world3d,
+    roofpigInstance.algdisplay,
+    roofpigInstance.config.speed,
+    roofpigInstance.dom
+  );
+  roofpigInstance.add_changer("pieces", alg.play());
+}
+
+function resetRoofpigView() {
+  if (!initRoofpigOnce()) {
+    console.error("[CFV] Roofpig instance is not ready.");
+    return;
+  }
+
+  if (typeof roofpigInstance.button_click === "function") {
+    roofpigInstance.button_click("reset");
+    return;
+  }
+
+  if (roofpigInstance.alg && typeof roofpigInstance.alg.to_start === "function" && typeof OneChange === "function") {
+    roofpigInstance.add_changer(
+      "pieces",
+      new OneChange(() => roofpigInstance.alg.to_start(roofpigInstance.world3d))
+    );
+    return;
+  }
+
+  console.error("[CFV] Reset API is not available.");
+}
+
+function appendMoveHistory(move) {
+  moveHistory.push(move);
+}
+
+function onMove(move) {
+  if (isPlaying) {
+    return;
+  }
+
+  applyMoveToState(move);
+
+  if (mode === "immediate") {
+    appendMoveHistory(move);
+    playSingleMoveIncremental(move);
+  } else {
+    pendingMoves.push(move);
+  }
+
+  renderStatus();
+}
+
+function applyPendingMoves(event) {
+  if (event) {
+    event.preventDefault();
+  }
+
+  if (isPlaying || pendingMoves.length === 0) {
+    renderStatus();
+    return;
+  }
+
+  isPlaying = true;
+  const movesToApply = pendingMoves.slice();
+  pendingMoves.length = 0;
+  renderStatus();
+
+  const step = () => {
+    if (!isPlaying) {
+      return;
+    }
+
+    if (movesToApply.length === 0) {
+      isPlaying = false;
+      return;
+    }
+
+    const move = movesToApply.shift();
+    appendMoveHistory(move);
+    playSingleMoveIncremental(move);
+    renderStatus();
+    setTimeout(step, applyStepDelayMs);
+  };
+
+  step();
+}
+
+function clearPendingMoves(event) {
+  if (event) {
+    event.preventDefault();
+  }
+
+  pendingMoves.length = 0;
+  renderStatus();
+}
+
+function resetAll(event) {
+  if (event) {
+    event.preventDefault();
+  }
+
+  isPlaying = false;
+  moveHistory.length = 0;
+  pendingMoves.length = 0;
+  cubeState = createInitialCubeState();
+  resetRoofpigView();
+  renderStatus();
+}
+
+console.log(
+  "%c[CFV]",
+  "color:#4CAF50;font-weight:bold;",
+  `CF Method Cube Viewer ${CFV_VERSION}`,
+  `(JST ${CFV_TIMESTAMP})`
+);
+
+document.addEventListener("DOMContentLoaded", () => {
+  const headerText = `CF Method Cube Viewer ${CFV_VERSION} | JST ${CFV_TIMESTAMP}`;
+  document.title = headerText;
+
+  const appTitle = document.getElementById("app-title");
+  if (appTitle) {
+    appTitle.textContent = headerText;
+  }
+
+  const waitForRoofpig = () => {
+    if (!initRoofpigOnce()) {
+      setTimeout(waitForRoofpig, 50);
+    }
+  };
+  waitForRoofpig();
+
+  const speedEl = document.getElementById("speed");
+  const speedValEl = document.getElementById("speed-value");
+  if (speedEl) {
+    applyStepDelayMs = Number(speedEl.value) || 1000;
+    if (speedValEl) {
+      speedValEl.textContent = `${applyStepDelayMs}ms`;
+    }
+
+    speedEl.addEventListener("input", () => {
+      applyStepDelayMs = Number(speedEl.value) || 1000;
+      if (speedValEl) {
+        speedValEl.textContent = `${applyStepDelayMs}ms`;
+      }
+    });
+  }
+
+  const modeRadios = document.querySelectorAll('input[name="mode"]');
+  modeRadios.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      mode = radio.value;
+      renderStatus();
+    });
+  });
+
+  document.querySelectorAll("#move-buttons [data-move]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      onMove(btn.dataset.move);
+    });
+  });
+
+  const btnApply = document.getElementById("btn-apply");
+  if (btnApply) {
+    btnApply.addEventListener("click", applyPendingMoves);
+  }
+
+  const btnClear = document.getElementById("btn-clear");
+  if (btnClear) {
+    btnClear.addEventListener("click", clearPendingMoves);
+  }
+
+  const btnReset = document.getElementById("btn-reset");
+  if (btnReset) {
+    btnReset.addEventListener("click", resetAll);
+  }
+
+  renderStatus();
+});
