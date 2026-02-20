@@ -1,7 +1,7 @@
 "use strict";
 
-const CFV_VERSION = "v5.1.17";
-const CFV_TIMESTAMP = "20260219-1744";
+const CFV_VERSION = "v5.1.18";
+const CFV_TIMESTAMP = "20260220-1159";
 
 function createInitialCubeState() {
   return {
@@ -18,7 +18,6 @@ const pendingMoves = [];
 let mode = "immediate";
 let isPlaying = false;
 let applyStepDelayMs = 1000;
-let roofpigInstance = null;
 
 function rotateU(corners) {
   const p = corners.perm;
@@ -56,6 +55,10 @@ function toRoofpigMove(move) {
   return flip[move] || move;
 }
 
+function getAlgString() {
+  return moveHistory.map(toRoofpigMove).join(" ");
+}
+
 function renderStatus() {
   const pendingText = document.getElementById("pending-text");
   if (pendingText) {
@@ -68,78 +71,22 @@ function renderStatus() {
   }
 }
 
-function getFirstCubeInstance() {
-  if (!window.CubeAnimation || !CubeAnimation.by_id) {
-    return null;
-  }
-  const ids = Object.keys(CubeAnimation.by_id);
-  if (ids.length === 0) {
-    return null;
-  }
-  return CubeAnimation.by_id[ids[0]];
-}
-
-function initRoofpigOnce() {
-  if (roofpigInstance) {
-    return true;
-  }
-
-  roofpigInstance = getFirstCubeInstance();
-  if (!roofpigInstance) {
-    return false;
-  }
-
-  console.log("[CFV] roofpig initialized once");
-  return true;
-}
-
-function playSingleMoveIncremental(move) {
-  if (!initRoofpigOnce()) {
-    console.error("[CFV] Roofpig instance is not ready.");
+function updateRoofpig() {
+  const cubeEl = document.querySelector("#cube-container .roofpig");
+  if (!cubeEl) {
+    console.error("[CFV] .roofpig element not found.");
     return;
   }
 
-  if (typeof Alg !== "function") {
-    console.error("[CFV] Alg is not available.");
+  const algString = getAlgString();
+  cubeEl.setAttribute("data-config", `alg=${algString}|hover=none`);
+
+  if (!window.Roofpig || typeof Roofpig.parseAll !== "function") {
+    console.error("[CFV] Roofpig.parseAll is not available.");
     return;
   }
 
-  const mapped = toRoofpigMove(move);
-  if (!/^[URL](2|'|)?$/.test(mapped)) {
-    console.error("[CFV] Invalid mapped move:", move, mapped);
-    return;
-  }
-
-  const alg = new Alg(
-    mapped,
-    roofpigInstance.world3d,
-    roofpigInstance.algdisplay,
-    roofpigInstance.config.speed,
-    roofpigInstance.dom
-  );
-  roofpigInstance.add_changer("pieces", alg.play());
-}
-
-function resetRoofpigView() {
-  if (!initRoofpigOnce()) {
-    console.error("[CFV] Roofpig instance is not ready.");
-    return;
-  }
-
-  if (typeof roofpigInstance.button_click === "function") {
-    roofpigInstance.button_click("reset");
-    return;
-  }
-
-  if (roofpigInstance.alg && typeof roofpigInstance.alg.to_start === "function" && typeof OneChange === "function") {
-    roofpigInstance.add_changer(
-      "pieces",
-      new OneChange(() => roofpigInstance.alg.to_start(roofpigInstance.world3d))
-    );
-    return;
-  }
-
-  console.error("[CFV] Reset API is not available.");
+  Roofpig.parseAll();
 }
 
 function appendMoveHistory(move) {
@@ -155,7 +102,7 @@ function onMove(move) {
 
   if (mode === "immediate") {
     appendMoveHistory(move);
-    playSingleMoveIncremental(move);
+    updateRoofpig();
   } else {
     pendingMoves.push(move);
   }
@@ -190,7 +137,7 @@ function applyPendingMoves(event) {
 
     const move = movesToApply.shift();
     appendMoveHistory(move);
-    playSingleMoveIncremental(move);
+    updateRoofpig();
     renderStatus();
     setTimeout(step, applyStepDelayMs);
   };
@@ -216,7 +163,7 @@ function resetAll(event) {
   moveHistory.length = 0;
   pendingMoves.length = 0;
   cubeState = createInitialCubeState();
-  resetRoofpigView();
+  updateRoofpig();
   renderStatus();
 }
 
@@ -235,13 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (appTitle) {
     appTitle.textContent = headerText;
   }
-
-  const waitForRoofpig = () => {
-    if (!initRoofpigOnce()) {
-      setTimeout(waitForRoofpig, 50);
-    }
-  };
-  waitForRoofpig();
 
   const speedEl = document.getElementById("speed");
   const speedValEl = document.getElementById("speed-value");
