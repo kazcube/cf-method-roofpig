@@ -103,20 +103,17 @@ pending : ${pendingStr || "(empty)"}
     return parts.join(" | ");
   }
 
-  function recreateRoofpig({ setupMoves, algMoves, speedMs }) {
-    assertRoofpigAvailable();
+function recreateRoofpig({ setupMoves, algMoves, speedMs }) {
+  assertRoofpigAvailable();
 
-    // DOM再生成（scriptは触らない）
-    elCubeHost.innerHTML = "";
-    const div = document.createElement("div");
-    div.className = "roofpig";
-    elCubeHost.appendChild(div);
+  // ここを「host直下に作らせる」
+  elCubeHost.innerHTML = "";
 
-    const cfg = buildRoofpigConfig({ setupMoves, algMoves, speedMs });
+  const cfg = buildRoofpigConfig({ setupMoves, algMoves, speedMs });
 
-    // Roofpig公式のDynamic生成入口
-    window.CubeAnimation.create_in_dom(div, cfg, "");
-  }
+  // 生成されるdivに class='roofpig' を確実に付与
+  window.CubeAnimation.create_in_dom(elCubeHost, cfg, "class='roofpig'");
+}
 
   // ====== Render policies ======
   // 1手アニメ：setupmoves=prefix / alg=singleMove
