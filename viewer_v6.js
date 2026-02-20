@@ -1,16 +1,19 @@
 /* CF Method Cube Viewer v6.0.0
    - Roofpig: DOM再生成 + CubeAnimation.create_in_dom() のみ
    - next_move / Alg内部操作 / script再挿入は禁止
-   - 初期画面でも▶を出すため、algダミーを常に持つ（showalgは付けない）
+   - Roofpig 1.4.2 に合わせ、有効パラメータのみ使用（size/view なし）
+   - 初期から▶を表示（algダミー）
+   - Immediate：ボタン押下で即回転（▶を自動クリック）
+   - 更新日時：HTMLのLast-ModifiedをHEADで取得し、Asia/Tokyoで確実にJST表示
+   - 初期の 0/2（ダミー手数カウンタ）は表示だけ非表示（動作には触れない）
 */
 
 (() => {
   const V6_VERSION = "v6.0.0";
   let V6_UPDATED = "Unknown";
 
-  // ★初期画面で▶を出すためのダミーalg（見た目用）
-  // showalgフラグを付けないので、テキスト表示はされません
-  // （ユーザーが▶を押しても結果は元に戻る手順）
+  // 初期から▶を出すためのダミー（showalgは付けないので文字は出ない）
+  // ※ユーザーが▶を押すと一瞬動く可能性はありますが、表示目的です
   const DUMMY_ALG_FOR_CONTROLS = "U U'";
 
   const cubeState = {
@@ -47,7 +50,9 @@
     }
   }
 
-  function joinAlg(moves) { return moves.join(" ").trim(); }
+  function joinAlg(moves) {
+    return moves.join(" ").trim();
+  }
 
   function setButtonsDisabled(disabled) {
     document.querySelectorAll("button[data-m]").forEach(b => (b.disabled = disabled));
@@ -58,16 +63,20 @@
     elSpeedRange.disabled = disabled;
   }
 
-  // ---- 更新日時：HTMLの Last-Modified ----
+  // ---- 更新日時：Last-Modified を Asia/Tokyo で確実にJST化 ----
   function formatJSTFromDate(d) {
-    const j = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-    const yyyy = j.getFullYear();
-    const mm = String(j.getMonth() + 1).padStart(2, "0");
-    const dd = String(j.getDate()).padStart(2, "0");
-    const hh = String(j.getHours()).padStart(2, "0");
-    const mi = String(j.getMinutes()).padStart(2, "0");
-    const ss = String(j.getSeconds()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss} JST`;
+    const fmt = new Intl.DateTimeFormat("ja-JP", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    });
+    // 例: 2026/02/20 15:18:06 → 2026-02-20 15:18:06 JST
+    return `${fmt.format(d).replaceAll("/", "-")} JST`;
   }
 
   async function fetchLastModifiedOfThisPage() {
@@ -91,6 +100,7 @@
   }
 
   function renderStatus() {
+    // “知りたいのはバージョンと更新日時”なので先頭に固定表示
     elStatus.textContent =
 `version : ${V6_VERSION}
 updated : ${V6_UPDATED}
@@ -108,42 +118,71 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
   function buildRoofpigConfig({ setupMoves, algMoves, speedMs }) {
     const parts = [...BASE_CFG];
     parts.push(`speed=${Math.max(0, speedMs | 0)}`);
-
-    // setupmoves / alg はValid propertiesにある :contentReference[oaicite:2]{index=2}
     if (setupMoves && setupMoves.trim()) parts.push(`setupmoves=${setupMoves.trim()}`);
     if (algMoves && algMoves.trim()) parts.push(`alg=${algMoves.trim()}`);
-
     return parts.join(" | ");
   }
 
   function recreateRoofpig({ setupMoves, algMoves, speedMs }) {
     assertRoofpigAvailable();
     elCubeHost.innerHTML = "";
-
     const cfg = buildRoofpigConfig({ setupMoves, algMoves, speedMs });
+    // 生成されるdivに roofpig class を付与
     window.CubeAnimation.create_in_dom(elCubeHost, cfg, "class='roofpig'");
   }
 
-  // ▶自動クリック（Immediateで「押した瞬間に回転」を実現）
+  // ---- ダミーの「0/2」カウンタ表示だけ消す（DOM構造依存を最小化） ----
+  function hideMoveCounterIfShown() {
+    const walker = document.createTreeWalker(elCubeHost, NodeFilter.SHOW_ELEMENT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const t = (node.textContent || "").trim();
+      if (/^\d+\s*\/\s*\d+$/.test(t)) {
+        node.style.display = "none";
+        break;
+      }
+    }
+  }
+
+  // ---- ▶自動クリック（Immediate即回転のため） ----
   function autoPressPlayIfExists(rootEl) {
     let tries = 0;
-    const maxTries = 40;
+    const maxTries = 80;
+
+    const isPlayButton = (el) => {
+      const tag = (el.tagName || "").toLowerCase();
+      if (tag !== "button" && tag !== "a" && tag !== "div" && tag !== "span") return false;
+
+      const t = (el.textContent || "").trim();
+      const title = (el.getAttribute("title") || "").toLowerCase();
+      const aria = (el.getAttribute("aria-label") || "").toLowerCase();
+
+      // 典型パターン
+      if (t === "▶" || t === "►" || t.toLowerCase() === "play") return true;
+      if (title.includes("play") || aria.includes("play")) return true;
+
+      return false;
+    };
 
     const tick = () => {
       tries++;
 
-      // roofpig内のbuttonを探す（最初のボタンが▶であることが多い）
-      const btns = rootEl.querySelectorAll("button");
-      if (btns && btns.length) {
-        btns[0].click();
+      // button優先で探し、なければaなども探す
+      const candidates = Array.from(rootEl.querySelectorAll("button, a, div, span"));
+      const playEl = candidates.find(isPlayButton);
+
+      if (playEl) {
+        playEl.click();
         return;
       }
+
       if (tries < maxTries) requestAnimationFrame(tick);
     };
+
     requestAnimationFrame(tick);
   }
 
-  // 1手アニメ：prefixはsetupmoves、今回の1手はalg
+  // 1手アニメ：setupmoves=prefix / alg=singleMove
   function animateSingleMove(singleMove) {
     const prefix = cubeState.history.slice(0, -1);
 
@@ -153,16 +192,21 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
       speedMs: cubeState.speedMs
     });
 
-    // ★Immediateは自動で▶
+    // ★Immediateで即回転させる（▶自動クリック）
     autoPressPlayIfExists(elCubeHost);
   }
 
-  // 初期表示：solved + ▶を出す（ダミーalgを入れる）
+  // 初期表示：solved + ▶を出す（ダミーalg）
   function showSolvedWithControls() {
     recreateRoofpig({
       setupMoves: "",
-      algMoves: DUMMY_ALG_FOR_CONTROLS, // ★これで▶が出る :contentReference[oaicite:3]{index=3}
+      algMoves: DUMMY_ALG_FOR_CONTROLS,
       speedMs: 0
+    });
+
+    // ダミー由来の 0/2 表示だけ消す（影響最小）
+    requestAnimationFrame(() => {
+      hideMoveCounterIfShown();
     });
   }
 
@@ -173,17 +217,21 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
       cubeState.history.push(move);
       cubeState.nowMove = move;
       cubeState.isPlaying = true;
+
       setButtonsDisabled(true);
       renderStatus();
 
       animateSingleMove(move);
 
-      const lockMs = Math.min(Math.max(cubeState.speedMs, 0) + 120, 2600);
+      const lockMs = Math.min(Math.max(cubeState.speedMs, 0) + 150, 3000);
       setTimeout(() => {
         cubeState.isPlaying = false;
         cubeState.nowMove = "";
         setButtonsDisabled(false);
         renderStatus();
+
+        // 次の入力前にUIだけ整える（必要なら）
+        // showSolvedWithControls();  // ← これは「状態が戻る」ので入れない
       }, lockMs);
 
     } else {
@@ -216,7 +264,7 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
 
       animateSingleMove(mv);
 
-      const waitMs = Math.min(Math.max(cubeState.speedMs, 0) + 160, 2800);
+      const waitMs = Math.min(Math.max(cubeState.speedMs, 0) + 200, 3200);
       setTimeout(step, waitMs);
     };
 
@@ -235,7 +283,7 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
     cubeState.pending = [];
     cubeState.nowMove = "";
     renderStatus();
-    showSolvedWithControls(); // ★Reset後も▶表示を維持
+    showSolvedWithControls(); // Reset後も▶を表示
   }
 
   function initUI() {
@@ -269,7 +317,7 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
 
     initUI();
     renderStatus();
-    showSolvedWithControls(); // ★初期から▶を出す
+    showSolvedWithControls();
   }
 
   if (document.readyState === "loading") {
