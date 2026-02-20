@@ -1,14 +1,14 @@
 /* CF Method Cube Viewer v6.0.0
-   - Roofpigは「DOM再生成 + CubeAnimation.create_in_dom()」のみ使用
-   - next_move / Alg内部直接操作 / script再挿入は禁止
-   - 更新日時は「HTMLの Last-Modified」をHEADで取得（GitHub Pages想定）
+   - Roofpig: DOM再生成 + CubeAnimation.create_in_dom() のみ
+   - next_move / Alg内部操作 / script再挿入は禁止
+   - 既知のRoofpig valid propertiesに合わせる（size/view は使わない）
+   - flags=canvas で表示安定化
 */
 
 (() => {
   const V6_VERSION = "v6.0.0";
   let V6_UPDATED = "Unknown";
 
-  // ====== Single Source of Truth ======
   const cubeState = {
     history: [],
     pending: [],
@@ -18,19 +18,20 @@
     nowMove: ""
   };
 
-  // 世界標準配色（一般的）：U白 D黄 F緑 B青 R赤 L橙
+  // 世界標準配色：U白 D黄 F緑 B青 R赤 L橙
   const COLORS_STANDARD = "colors=U:w D:y F:g B:b R:r L:o";
-  const FLAGS = "flags=startsolved";
 
+  // Roofpig flags（README準拠）：canvas / startsolved
+  const FLAGS = "flags=canvas startsolved";
+
+  // 有効なパラメータだけ使う（READMEの valid properties にあるもの）
   const BASE_CFG = [
     "pov=Ufr",
-    "size=260",
-    "view=3d",
     COLORS_STANDARD,
-    FLAGS
+    FLAGS,
+    "hover=near"
   ];
 
-  // ====== DOM refs ======
   const elTitle = document.getElementById("titleH1");
   const elCubeHost = document.getElementById("cubeHost");
   const elStatus = document.getElementById("statusBox");
@@ -42,13 +43,11 @@
 
   function assertRoofpigAvailable() {
     if (typeof window.CubeAnimation?.create_in_dom !== "function") {
-      throw new Error("Roofpig (CubeAnimation.create_in_dom) が見つかりません。roofpig_and_three.min.js と jQuery の読み込み順・パスを確認してください。");
+      throw new Error("Roofpig (CubeAnimation.create_in_dom) が見つかりません。jQuery→roofpig の順とパスを確認してください。");
     }
   }
 
-  function joinAlg(moves) {
-    return moves.join(" ").trim();
-  }
+  function joinAlg(moves) { return moves.join(" ").trim(); }
 
   function setButtonsDisabled(disabled) {
     document.querySelectorAll("button[data-m]").forEach(b => (b.disabled = disabled));
@@ -59,9 +58,8 @@
     elSpeedRange.disabled = disabled;
   }
 
-  // ====== 更新日時：Last-Modified(HTTP) をJSTで表示 ======
+  // ---- 更新日時：HTMLの Last-Modified をHEADで取得（GitHub Pages想定） ----
   function formatJSTFromDate(d) {
-    // dはUTC基準のDateとして扱い、JST(+9)に変換して文字列化
     const j = new Date(d.getTime() + 9 * 60 * 60 * 1000);
     const yyyy = j.getFullYear();
     const mm = String(j.getMonth() + 1).padStart(2, "0");
@@ -74,7 +72,6 @@
 
   async function fetchLastModifiedOfThisPage() {
     try {
-      // GitHub Pages想定：HTML自身のLast-Modifiedが「更新日時」に相当
       const res = await fetch(window.location.href, { method: "HEAD", cache: "no-store" });
       const lm = res.headers.get("Last-Modified");
       if (!lm) return "Unknown";
@@ -94,8 +91,7 @@
   }
 
   function renderStatus() {
-    // ユーザー要望：知りたいのは「バージョンと更新日時」
-    // 下はデバッグ用に残しているが、必要なら削ってOK
+    // 要望：知りたいのは「バージョンと更新日時」
     elStatus.textContent =
 `version : ${V6_VERSION}
 updated : ${V6_UPDATED}
@@ -112,34 +108,69 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
 
   function buildRoofpigConfig({ setupMoves, algMoves, speedMs }) {
     const parts = [...BASE_CFG];
+
+    // speed（README準拠）
     parts.push(`speed=${Math.max(0, speedMs | 0)}`);
+
+    // setupmoves / alg（README準拠）
     if (setupMoves && setupMoves.trim()) parts.push(`setupmoves=${setupMoves.trim()}`);
     if (algMoves && algMoves.trim()) parts.push(`alg=${algMoves.trim()}`);
+
     return parts.join(" | ");
   }
 
-  // ★核心：DOM再生成 + create_in_dom（生成divに roofpig class を確実に付ける）
+  // ---- RoofpigをDOM再生成 ----
   function recreateRoofpig({ setupMoves, algMoves, speedMs }) {
     assertRoofpigAvailable();
     elCubeHost.innerHTML = "";
+
     const cfg = buildRoofpigConfig({ setupMoves, algMoves, speedMs });
+
+    // 生成されるdivに class='roofpig'（必要）
+    // サイズはCSSでcubeHostに与えている
     window.CubeAnimation.create_in_dom(elCubeHost, cfg, "class='roofpig'");
+  }
+
+  // ---- 再生の自動化：playボタンをDOMから探してclick ----
+  function autoPressPlayIfExists(rootEl) {
+    // Roofpigはalgがあると再生UIが出る。自動再生フラグはREADMEに無いのでDOMクリックで対応。
+    // 生成直後はまだボタンが無いことがある → 数フレーム待つ
+    let tries = 0;
+    const maxTries = 30;
+
+    const tick = () => {
+      tries++;
+      // roofpig div 内の最初の button を “▶” と仮定（実装依存を最小化）
+      const btns = rootEl.querySelectorAll("button");
+      if (btns && btns.length) {
+        // 最初のボタンが再生であることが多い
+        btns[0].click();
+        return;
+      }
+      if (tries < maxTries) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   }
 
   // 1手アニメ：setupmoves=prefix / alg=singleMove
   function animateSingleMove(singleMove) {
     const prefix = cubeState.history.slice(0, -1);
+
     recreateRoofpig({
       setupMoves: joinAlg(prefix),
       algMoves: singleMove,
       speedMs: cubeState.speedMs
     });
+
+    // 自動で▶を押す（これで「次の操作で前の手が反映」を解消）
+    autoPressPlayIfExists(elCubeHost);
   }
 
-  // 状態だけ表示：setupmoves=history / algなし
-  function showStateInstant() {
+  // solved表示（最初の見た目を“同じ系統”に揃える）
+  // ※ alg無しだと再生UIが出ないが、見た目（描画方式）は flags=canvas で統一される
+  function showSolved() {
     recreateRoofpig({
-      setupMoves: joinAlg(cubeState.history),
+      setupMoves: "",
       algMoves: "",
       speedMs: 0
     });
@@ -157,7 +188,7 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
 
       animateSingleMove(move);
 
-      const lockMs = Math.min(Math.max(cubeState.speedMs, 0) + 70, 2300);
+      const lockMs = Math.min(Math.max(cubeState.speedMs, 0) + 120, 2600);
       setTimeout(() => {
         cubeState.isPlaying = false;
         cubeState.nowMove = "";
@@ -195,7 +226,7 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
 
       animateSingleMove(mv);
 
-      const waitMs = Math.min(Math.max(cubeState.speedMs, 0) + 90, 2400);
+      const waitMs = Math.min(Math.max(cubeState.speedMs, 0) + 160, 2800);
       setTimeout(step, waitMs);
     };
 
@@ -214,19 +245,14 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
     cubeState.pending = [];
     cubeState.nowMove = "";
     renderStatus();
-    showStateInstant();
+    showSolved();
   }
 
   function initUI() {
-    // move buttons
     document.querySelectorAll("button[data-m]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const move = btn.getAttribute("data-m");
-        enqueueOrExecute(move);
-      });
+      btn.addEventListener("click", () => enqueueOrExecute(btn.getAttribute("data-m")));
     });
 
-    // mode radios
     document.querySelectorAll("input[name='mode']").forEach(radio => {
       radio.addEventListener("change", () => {
         if (!radio.checked) return;
@@ -235,7 +261,6 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
       });
     });
 
-    // speed slider
     elSpeedRange.addEventListener("input", () => {
       cubeState.speedMs = parseInt(elSpeedRange.value, 10);
       elSpeedLabel.textContent = `${cubeState.speedMs} ms`;
@@ -243,20 +268,18 @@ pending : ${joinAlg(cubeState.pending) || "(empty)"}
     });
     elSpeedLabel.textContent = `${cubeState.speedMs} ms`;
 
-    // apply / clear / reset
     elBtnApply.addEventListener("click", startApply);
     elBtnClear.addEventListener("click", clearPending);
     elBtnReset.addEventListener("click", resetSolved);
   }
 
   async function boot() {
-    // 更新日時を取得してからヘッダ表示
     V6_UPDATED = await fetchLastModifiedOfThisPage();
     renderHeader();
 
     initUI();
     renderStatus();
-    showStateInstant(); // solved表示
+    showSolved(); // 初期表示（canvasで安定）
   }
 
   if (document.readyState === "loading") {

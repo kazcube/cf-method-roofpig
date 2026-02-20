@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CF Method Cube Viewer v6.0.0</title>
 
-  <!-- ★必須：RoofpigはjQuery前提のため、必ず先に読み込む -->
+  <!-- RoofpigはjQuery前提（先に読む） -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-  <!-- Roofpig bundle（配置パスはあなたの環境に合わせる） -->
   <script src="roofpig_and_three.min.js"></script>
 
   <style>
@@ -19,7 +17,8 @@
     .panel { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
     .panel h2 { font-size: 14px; margin: 0 0 8px; }
 
-    #cubeHost { min-width: 320px; min-height: 320px; }
+    /* RoofpigはCSSでサイズを決める（configに size/view は無い） */
+    #cubeHost { width: 320px; height: 320px; }
 
     .mode { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
     .mode label { display: inline-flex; gap: 6px; align-items: center; padding: 5px 9px; border: 1px solid #ccc; border-radius: 999px; cursor: pointer; }
@@ -67,23 +66,18 @@
       </div>
 
       <div class="btns" style="margin-bottom: 10px;">
-        <!-- U / R -->
         <button data-m="U">U</button><button data-m="U'">U'</button><button data-m="U2">U2</button>
         <button data-m="R">R</button><button data-m="R'">R'</button><button data-m="R2">R2</button>
 
-        <!-- L / F -->
         <button data-m="L">L</button><button data-m="L'">L'</button><button data-m="L2">L2</button>
         <button data-m="F">F</button><button data-m="F'">F'</button><button data-m="F2">F2</button>
 
-        <!-- B / D -->
         <button data-m="B">B</button><button data-m="B'">B'</button><button data-m="B2">B2</button>
         <button data-m="D">D</button><button data-m="D'">D'</button><button data-m="D2">D2</button>
 
-        <!-- M / E -->
         <button data-m="M">M</button><button data-m="M'">M'</button><button data-m="M2">M2</button>
         <button data-m="E">E</button><button data-m="E'">E'</button><button data-m="E2">E2</button>
 
-        <!-- S -->
         <button data-m="S">S</button><button data-m="S'">S'</button><button data-m="S2">S2</button>
       </div>
 
