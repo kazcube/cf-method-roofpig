@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubik's Cube CF - Unified Stable v2</title>
+    <title>Rubik's Cube CF - Unified Stable v2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        /* スマホ操作時に画面が揺れるのを防ぐ */
         twisty-player {
             touch-action: none;
         }
@@ -16,8 +15,11 @@
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
     <div class="max-w-5xl mx-auto bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-2xl">
         <header class="mb-4 flex justify-between items-center border-b border-slate-700 pb-2">
-            <h2 class="text-xl font-bold text-emerald-400">CF Simulator <span class="text-xs font-normal text-slate-400 ml-2">v2.0 Stable</span></h2>
-            <div id="status" class="text-[10px] font-mono bg-black px-2 py-1 rounded text-emerald-400 border border-emerald-900/50">READY</div>
+            <div class="flex items-baseline gap-2">
+                <h2 class="text-xl font-bold text-emerald-400">CF Simulator</h2>
+                <span class="text-[10px] font-mono text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">v2.1 SCRAMBLE PATCH</span>
+            </div>
+            <div id="status" class="text-[10px] font-mono bg-black px-2 py-1 rounded text-emerald-400 border border-emerald-900/50 uppercase tracking-tighter">READY</div>
         </header>
 
         <div class="grid md:grid-cols-2 gap-6">
@@ -35,7 +37,7 @@
                 <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner space-y-3">
                     <div class="flex justify-between items-center text-xs font-mono text-emerald-500">
                         <span class="bg-emerald-950/50 px-2 py-1 rounded">STEP: <span id="step-counter">0</span></span>
-                        <span id="move-indicator" class="text-lg font-bold">---</span>
+                        <span id="move-indicator" class="text-lg font-bold bg-slate-800 px-3 py-1 rounded border border-slate-700">---</span>
                     </div>
                     <input type="range" id="move-slider" min="0" max="0" value="0" step="1" 
                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500 shadow-sm disabled:opacity-30">
@@ -52,14 +54,14 @@
                 <div class="grid grid-cols-3 gap-1.5" id="button-grid">
                     </div>
                 <div class="pt-4 border-t border-slate-700 grid grid-cols-2 gap-3">
-                    <button id="btn-scramble" class="py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-xl transition-all active:scale-95 border border-indigo-400/20">
+                    <button id="btn-scramble" class="py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-xl transition-all active:scale-95 border border-indigo-400/20 text-sm">
                         ランダム<br>スクランブル
                     </button>
-                    <button id="btn-setup" class="py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl font-black text-base shadow-xl active:scale-95 transition-all border border-amber-300/30">
+                    <button id="btn-setup" class="py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl font-black text-base shadow-xl active:scale-95 transition-all border border-amber-300/30 text-sm">
                         手順を<br>セットアップ
                     </button>
                 </div>
-                <p class="text-[10px] text-slate-500 text-center uppercase tracking-widest">Manual Setup: Enter moves then click 'Setup'</p>
+                <p class="text-[10px] text-slate-500 text-center uppercase tracking-widest">© 2026 KAZCUBE - Testing Environment</p>
             </div>
         </div>
     </div>
@@ -80,42 +82,27 @@
         let isSetupMode = false;
         let playInterval = null;
 
-        // --- コア関数: 描画 ---
         const render = (step) => {
             const currentPlayMoves = recordedMoves.slice(0, step);
             const totalAlg = (baseAlg + " " + currentPlayMoves.join(" ")).trim();
-            
             p1.alg = totalAlg;
             p2.alg = totalAlg;
-            
             slider.value = step;
             stepCounter.textContent = step;
             moveIndicator.textContent = step > 0 ? recordedMoves[step - 1] : "---";
-            
-            if (!isSetupMode) {
-                algDisplay.textContent = recordedMoves.join(" ");
-            }
+            if (!isSetupMode) algDisplay.textContent = recordedMoves.join(" ");
         };
 
-        // --- 入力処理 ---
         const handleInput = (move) => {
-            if (isSetupMode) {
-                const currentStep = parseInt(slider.value);
-                recordedMoves = recordedMoves.slice(0, currentStep);
-                recordedMoves.push(move);
-                slider.max = recordedMoves.length;
-                render(recordedMoves.length);
-            } else {
-                recordedMoves.push(move);
-                slider.max = recordedMoves.length;
-                render(recordedMoves.length);
-            }
+            const currentStep = isSetupMode ? parseInt(slider.value) : recordedMoves.length;
+            if (isSetupMode) recordedMoves = recordedMoves.slice(0, currentStep);
+            recordedMoves.push(move);
+            slider.max = recordedMoves.length;
+            render(recordedMoves.length);
         };
 
-        // --- スライダー操作 ---
         slider.oninput = () => render(parseInt(slider.value));
 
-        // --- 再生ロジック ---
         playBtn.onclick = () => {
             if (playInterval) {
                 clearInterval(playInterval);
@@ -143,7 +130,6 @@
             }
         };
 
-        // --- ボタン生成 (U, D, L, R, F, B, M, E, S) ---
         ['U','D','L','R','F','B','M','E','S'].forEach(f => {
             [f, f+"'", f+"2"].forEach(move => {
                 const btn = document.createElement('button');
@@ -154,56 +140,44 @@
             });
         });
 
-        // --- セットアップ機能 ---
         document.getElementById('btn-setup').onclick = () => {
             if (recordedMoves.length === 0) return;
             const inverse = [...recordedMoves].reverse().map(m => 
                 m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'")
             );
-
             baseAlg = inverse.join(" ");
             isSetupMode = true;
             slider.max = recordedMoves.length;
             playBtn.disabled = false;
             render(0); 
             status.textContent = "SETUP COMPLETE";
-            algDisplay.textContent = "Setup (Inverse): " + baseAlg;
+            algDisplay.textContent = "Setup: " + baseAlg;
         };
 
-        // --- ランダムスクランブル機能 ---
         document.getElementById('btn-scramble').onclick = () => {
             const faces = ['U', 'D', 'L', 'R', 'F', 'B'];
             const modifiers = ['', "'", '2'];
             let scramble = [];
             let lastFace = '';
-
             for (let i = 0; i < 20; i++) {
                 let face;
-                do {
-                    face = faces[Math.floor(Math.random() * faces.length)];
-                } while (face === lastFace);
-                const mod = modifiers[Math.floor(Math.random() * modifiers.length)];
-                scramble.push(face + mod);
+                do { face = faces[Math.floor(Math.random() * faces.length)]; } while (face === lastFace);
+                scramble.push(face + modifiers[Math.floor(Math.random() * modifiers.length)]);
                 lastFace = face;
             }
-
-            resetAllInternal(); // 内部リセット
+            resetAllInternal();
             baseAlg = scramble.join(" ");
             isSetupMode = true;
-            slider.max = 0; 
             render(0);
             status.textContent = "SCRAMBLED";
             algDisplay.textContent = "Scramble: " + baseAlg;
-            playBtn.disabled = true; // 解答がないので再生は不可
         };
 
-        // --- リセット機能 ---
         const resetAllInternal = () => {
             if (playInterval) clearInterval(playInterval);
             playInterval = null;
             baseAlg = ""; recordedMoves = []; isSetupMode = false;
             p1.alg = ""; p2.alg = "";
-            p1.experimentalSetupAlg = ""; p2.experimentalSetupAlg = "";
             slider.value = 0; slider.max = 0;
             playBtn.disabled = true;
             playBtn.textContent = "再生";
