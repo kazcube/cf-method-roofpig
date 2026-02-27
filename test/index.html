@@ -3,63 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - Ver 5.4 Responsive & Full Moves</title>
+    <title>KAZCUBE Lab - Ver 5.5 Fluid Responsive</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         twisty-player { touch-action: none; width: 100%; height: 100%; }
-        .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-2 rounded text-[10px] font-mono font-bold border border-slate-600 shadow-sm transition-colors; }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .accordion-content.open { max-height: 1000px; transition: max-height 0.5s ease-in; }
-        .color-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #334155; cursor: pointer; }
-        .color-dot.active { border-color: white; box-shadow: 0 0 8px #fff; }
+        /* スムーズな遷移のためのアニメーション */
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out; }
+        .accordion-content.open { max-height: 1000px; }
+        .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-2 rounded text-[10px] font-mono font-bold border border-slate-600 shadow-sm transition-all hover:border-emerald-500; }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #334155; cursor: pointer; }
+        .color-dot.active { border-color: white; box-shadow: 0 0 10px #fff; transform: scale(1.1); }
+        
+        /* ブラウザサイズに合わせてキューブの最大高さを制限 */
+        .cube-wrapper { max-height: 70vh; }
     </style>
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100 font-sans p-2 sm:p-6">
-    <div class="max-w-6xl mx-auto bg-slate-800 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+<body class="min-h-screen bg-slate-900 text-slate-100 font-sans p-2 md:p-4 lg:p-8">
+    <div class="max-w-7xl mx-auto bg-slate-800 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
         
-        <header class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+        <header class="p-4 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2 bg-slate-800/80 backdrop-blur-md sticky top-0 z-30">
             <div class="flex items-baseline gap-2">
                 <h2 class="text-xl font-black text-emerald-400 italic tracking-tighter">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 uppercase">v5.4 Responsive</span>
+                <span class="text-[9px] font-mono text-slate-500 uppercase px-2 py-0.5 border border-slate-700 rounded">v5.5 Fluid</span>
             </div>
             <div id="mode-badge" class="text-[9px] font-mono bg-blue-900 text-blue-200 px-3 py-1 rounded-full border border-blue-500/30 uppercase tracking-widest">Rotate Mode</div>
         </header>
 
-        <div class="grid lg:grid-cols-2 gap-0 lg:gap-6 p-4 lg:p-8">
+        <div class="grid lg:grid-cols-2 gap-4 lg:gap-10 p-4 lg:p-8">
             
-            <div class="lg:sticky lg:top-8 self-start space-y-4">
-                <div class="bg-black rounded-3xl aspect-square border-4 border-slate-700 overflow-hidden shadow-2xl relative">
+            <div class="lg:sticky lg:top-24 self-start space-y-4">
+                <div class="bg-black rounded-3xl aspect-square border-4 border-slate-700 overflow-hidden shadow-2xl cube-wrapper">
                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
 
-                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-inner">
+                <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-700 shadow-inner space-y-4">
                     <div class="flex justify-between items-center">
-                        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Progress Control</div>
-                        <div id="move-indicator" class="text-sm font-bold bg-slate-800 px-4 py-1 rounded text-emerald-400 border border-slate-700">---</div>
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sequence Control</span>
+                        <div id="move-indicator" class="text-base font-mono font-bold bg-slate-800 px-4 py-1 rounded-lg text-emerald-400 border border-slate-700 shadow-lg italic">---</div>
                     </div>
                     <input type="range" id="move-slider" min="0" max="0" value="0" step="1" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                    <div class="flex justify-between text-[10px] font-mono text-slate-500">
-                        <span>START</span>
-                        <span>STEP: <b id="step-counter" class="text-emerald-500">0</b></span>
-                        <span>END</span>
+                    <div class="flex justify-between text-[10px] font-mono font-bold text-slate-400">
+                        <div class="flex flex-col"><span>STEP</span><span id="step-counter" class="text-emerald-500 text-lg">0</span></div>
+                        <div class="flex flex-col items-end"><span>TOTAL</span><span id="total-counter" class="text-slate-500 text-lg">0</span></div>
                     </div>
                 </div>
             </div>
 
-            <div class="space-y-6 mt-6 lg:mt-0">
+            <div class="space-y-6">
                 
-                <div class="flex bg-slate-950 p-1 rounded-2xl border border-slate-700">
-                    <button id="mode-rotate" class="flex-1 py-3 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-lg">ROTATE</button>
+                <div class="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-700 shadow-xl">
+                    <button id="mode-rotate" class="flex-1 py-3 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white">ROTATE</button>
                     <button id="mode-paint" class="flex-1 py-3 rounded-xl text-xs font-black transition-all text-slate-500">PAINT (ANALYSIS)</button>
                 </div>
 
-                <div id="paint-panel" class="hidden space-y-4 p-4 bg-slate-900 rounded-2xl border border-orange-500/20 animate-in fade-in duration-300">
+                <div id="paint-panel" class="hidden space-y-4 p-5 bg-slate-900 rounded-2xl border-2 border-orange-500/20 animate-in slide-in-from-top-2 duration-300">
                     <div class="flex gap-2">
-                        <button class="template-btn flex-1 py-2 text-[10px] font-bold bg-slate-800 border border-slate-700 rounded-lg" data-type="clear">ALL CLEAR</button>
-                        <button class="template-btn flex-1 py-2 text-[10px] font-bold bg-slate-800 border border-slate-700 rounded-lg" data-type="corners">CORNERS</button>
+                        <button class="template-btn flex-1 py-2 text-[10px] font-bold bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors" data-type="clear">ALL CLEAR</button>
+                        <button class="template-btn flex-1 py-2 text-[10px] font-bold bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors" data-type="corners">CORNERS ONLY</button>
                     </div>
-                    <div class="flex justify-center gap-3 py-2 bg-black/30 rounded-xl">
+                    <div class="flex flex-wrap justify-center gap-3 p-3 bg-black/40 rounded-xl">
                         <div class="color-dot active bg-white" data-color="white"></div>
                         <div class="color-dot bg-yellow-400" data-color="yellow"></div>
                         <div class="color-dot bg-red-500" data-color="red"></div>
@@ -70,48 +73,53 @@
                     </div>
                 </div>
 
-                <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black/40 text-emerald-400 p-4 rounded-xl font-mono text-xs border border-slate-700 outline-none focus:border-indigo-500 resize-none transition-all" placeholder="粘贴或输入公式..."></textarea>
+                <div class="space-y-3">
+                    <textarea id="command-box" class="w-full h-24 bg-black/50 text-emerald-400 p-4 rounded-xl font-mono text-xs border border-slate-700 outline-none focus:border-indigo-500 shadow-inner resize-none transition-all" placeholder="Paste moves or edit here..."></textarea>
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">Scramble</button>
-                        <button id="btn-reset" class="py-3 bg-slate-700 hover:bg-red-900/40 text-slate-300 hover:text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest border border-slate-600 transition-all">Reset All</button>
+                        <button id="btn-scramble" class="py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all">Scramble</button>
+                        <button id="btn-reset" class="py-3 bg-slate-700 hover:bg-red-900/60 text-slate-300 rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] border border-slate-600 transition-all">Reset All</button>
                     </div>
                 </div>
 
-                <div class="space-y-3">
-                    <div class="border border-slate-700 rounded-2xl overflow-hidden">
-                        <button class="accordion-toggle w-full flex justify-between items-center p-4 bg-slate-900/50 hover:bg-slate-900 text-[10px] font-black uppercase tracking-widest" data-target="basic-moves">
-                            <span>Basic Layer (U R L D F B)</span>
-                            <span class="icon">▼</span>
+                <div class="space-y-3 border-t border-slate-700 pt-6">
+                    <div class="flex items-center gap-2 mb-2 px-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Move Controller</label>
+                    </div>
+                    
+                    <div class="border border-slate-700 rounded-2xl overflow-hidden bg-slate-900/30 shadow-sm">
+                        <button class="accordion-toggle w-full flex justify-between items-center p-4 text-[10px] font-black uppercase tracking-widest hover:bg-slate-700/50 transition-colors" data-target="basic-moves">
+                            <span>Basic (U R L D F B)</span>
+                            <span class="icon transition-transform duration-300">▼</span>
                         </button>
                         <div id="basic-moves" class="accordion-content open">
-                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 p-4 bg-slate-900/20" id="grid-basic"></div>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 p-4 bg-black/20" id="grid-basic"></div>
                         </div>
                     </div>
 
-                    <div class="border border-slate-700 rounded-2xl overflow-hidden">
-                        <button class="accordion-toggle w-full flex justify-between items-center p-4 bg-slate-900/50 hover:bg-slate-900 text-[10px] font-black uppercase tracking-widest" data-target="wide-moves">
+                    <div class="border border-slate-700 rounded-2xl overflow-hidden bg-slate-900/30">
+                        <button class="accordion-toggle w-full flex justify-between items-center p-4 text-[10px] font-black uppercase tracking-widest hover:bg-slate-700/50 transition-colors" data-target="wide-moves">
                             <span>Wide & Middle (u r M E S)</span>
-                            <span class="icon">▼</span>
+                            <span class="icon transition-transform duration-300">▼</span>
                         </button>
                         <div id="wide-moves" class="accordion-content">
-                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 p-4 bg-slate-900/20" id="grid-wide"></div>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 p-4 bg-black/20" id="grid-wide"></div>
                         </div>
                     </div>
 
-                    <div class="border border-slate-700 rounded-2xl overflow-hidden">
-                        <button class="accordion-toggle w-full flex justify-between items-center p-4 bg-slate-900/50 hover:bg-slate-900 text-[10px] font-black uppercase tracking-widest" data-target="rot-moves">
-                            <span>Cube Rotation (x y z)</span>
-                            <span class="icon">▼</span>
+                    <div class="border border-slate-700 rounded-2xl overflow-hidden bg-slate-900/30">
+                        <button class="accordion-toggle w-full flex justify-between items-center p-4 text-[10px] font-black uppercase tracking-widest hover:bg-slate-700/50 transition-colors" data-target="rot-moves">
+                            <span>Orientation (x y z)</span>
+                            <span class="icon transition-transform duration-300">▼</span>
                         </button>
                         <div id="rot-moves" class="accordion-content">
-                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 p-4 bg-slate-900/20" id="grid-rot"></div>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 p-4 bg-black/20" id="grid-rot"></div>
                         </div>
                     </div>
                 </div>
 
-                <footer class="text-center py-6 border-t border-slate-700">
-                    <p class="text-[9px] text-slate-600 uppercase tracking-[0.4em] font-bold">© 2026 KAZCUBE ANALYSIS LAB</p>
+                <footer class="text-center py-8 opacity-50">
+                    <p class="text-[9px] uppercase tracking-[0.5em] font-bold">KAZCUBE Lab System</p>
                 </footer>
             </div>
         </div>
@@ -122,12 +130,12 @@
         const cmdBox = document.getElementById('command-box');
         const slider = document.getElementById('move-slider');
         const stepCounter = document.getElementById('step-counter');
+        const totalCounter = document.getElementById('total-counter');
         const moveIndicator = document.getElementById('move-indicator');
         
         let moves = [];
         let currentMode = 'rotate';
 
-        // --- Setup Move Buttons (Including '2' moves) ---
         const createBtns = (targetId, faces) => {
             const grid = document.getElementById(targetId);
             faces.forEach(f => {
@@ -145,21 +153,20 @@
         createBtns('grid-wide', ['u','d','l','r','f','b','M','E','S']);
         createBtns('grid-rot', ['x','y','z']);
 
-        // --- Accordion Logic ---
         document.querySelectorAll('.accordion-toggle').forEach(btn => {
             btn.onclick = () => {
                 const target = document.getElementById(btn.dataset.target);
                 const isOpen = target.classList.contains('open');
                 target.classList.toggle('open', !isOpen);
-                btn.querySelector('.icon').textContent = isOpen ? '▼' : '▲';
+                btn.querySelector('.icon').style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             };
         });
 
-        // --- Cube Engine ---
         const render = (step) => {
             player.alg = moves.slice(0, step).join(" ");
             slider.value = step;
             stepCounter.textContent = step;
+            totalCounter.textContent = moves.length;
             moveIndicator.textContent = step > 0 ? moves[step-1] : "---";
             if (currentMode === 'rotate') cmdBox.value = moves.join(" ");
         };
@@ -174,7 +181,6 @@
 
         slider.oninput = () => render(parseInt(slider.value));
 
-        // --- Mode & Reset ---
         const setMode = (mode) => {
             currentMode = mode;
             const isPaint = mode === 'paint';
@@ -202,6 +208,11 @@
             slider.max = moves.length;
             render(moves.length);
         };
+
+        // ウィンドウリサイズ時などにTwistyPlayerの再描画を促す（ライブラリ側の挙動に合わせる）
+        window.addEventListener('resize', () => {
+            // 必要に応じて特定の調整を入れるスペース
+        });
     </script>
 </body>
 </html>
