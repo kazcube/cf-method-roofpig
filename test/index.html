@@ -3,95 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubik's Cube CF - Ver 3.1 Bug Fix</title>
+    <title>Rubik's Cube CF - Ver 4.0 Single Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         twisty-player { touch-action: none; }
-        /* テキストエリアのCSSを直接記述して確実に適用させます */
-        .text-area-custom {
-            background-color: rgba(0, 0, 0, 0.5) !important; /* 暗い背景 */
-            color: #d1d5db !important; /* 薄いグレーの文字 */
-            padding: 0.5rem !important; /* p-2 */
-            border-radius: 0.75rem !important; /* rounded-xl */
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important; /* font-mono */
-            font-size: 10px !important; /* text-[10px] */
-            border-width: 1px !important; /* border */
-            border-color: #1e293b !important; /* border-slate-800 */
-            width: 100% !important; /* w-full */
-            outline: 2px solid transparent !important; /* outline-none */
-            outline-offset: 2px !important; /* outline-none */
-            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke !important; /* transition-colors */
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important; /* transition-colors */
-            transition-duration: 150ms !important; /* transition-colors */
+        .command-box {
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            color: #10b981 !important; /* Emerald-500 */
+            padding: 0.75rem !important;
+            border-radius: 0.75rem !important;
+            font-family: ui-monospace, monospace !important;
+            font-size: 12px !important;
+            border: 1px solid #334155 !important;
+            width: 100% !important;
+            outline: none !important;
+            transition: all 0.2s;
         }
-        .text-area-custom:focus {
-            border-color: #10b981 !important; /* focus:border-emerald-500 */
-        }
-        /* Area A 専用のフォーカス色 */
-        #area-a:focus {
-            border-color: #6366f1 !important; /* focus:border-indigo-500 */
-        }
+        .command-box:focus { border-color: #10b981 !important; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
     </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
     <div class="max-w-5xl mx-auto bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-2xl">
-        <header class="mb-4 flex justify-between items-center border-b border-slate-700 pb-2">
-            <div class="flex items-baseline gap-2">
-                <h2 class="text-xl font-bold text-emerald-400">CF Simulator</h2>
-                <span id="ver-tag" class="text-[10px] font-mono text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">v3.1 Bug_Fix</span>
+        <header class="mb-6 flex justify-between items-center border-b border-slate-700 pb-3">
+            <div class="flex items-baseline gap-3">
+                <h2 class="text-2xl font-black text-emerald-400 tracking-tighter">CF SIMULATOR</h2>
+                <span class="text-[10px] font-mono text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-700 uppercase">v4.0 Single_Hub</span>
             </div>
-            <div id="status" class="text-[10px] font-mono bg-black px-2 py-1 rounded text-emerald-400 border border-emerald-900/50 uppercase tracking-tighter">READY</div>
+            <div id="status" class="text-xs font-mono bg-emerald-950 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/30 uppercase tracking-widest">Ready</div>
         </header>
 
-        <div class="grid md:grid-cols-2 gap-6">
+        <div class="grid md:grid-cols-2 gap-8">
             <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-black rounded-lg aspect-square border border-slate-700 overflow-hidden shadow-inner">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black rounded-2xl aspect-square border border-slate-700 overflow-hidden shadow-2xl relative">
+                        <div class="absolute top-2 left-2 text-[8px] text-slate-500 z-10 font-bold uppercase">Main View</div>
                         <twisty-player id="p1" puzzle="3x3x3" background="checkered" control-panel="none" class="w-full h-full"></twisty-player>
                     </div>
-                    <div class="bg-black rounded-lg aspect-square border border-slate-700 overflow-hidden shadow-inner">
+                    <div class="bg-black rounded-2xl aspect-square border border-slate-700 overflow-hidden shadow-2xl relative">
+                        <div class="absolute top-2 left-2 text-[8px] text-slate-500 z-10 font-bold uppercase">Target (Edges Only)</div>
                         <twisty-player id="p2" puzzle="3x3x3" background="none" control-panel="none" 
                             experimental-stickering-mask-orbits="EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:IIIIII" class="w-full h-full"></twisty-player>
                     </div>
                 </div>
 
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-3">
-                    <div class="flex justify-between items-center text-xs font-mono text-emerald-500">
-                        <span class="bg-emerald-950/50 px-2 py-1 rounded">STEP: <span id="step-counter">0</span></span>
-                        <span id="move-indicator" class="text-lg font-bold bg-slate-800 px-3 py-1 rounded border border-slate-700">---</span>
+                <div class="bg-slate-900 p-5 rounded-2xl border border-slate-700 shadow-inner space-y-4">
+                    <div class="flex justify-between items-end">
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Progress Control</span>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-emerald-500" id="step-counter">0</span>
+                                <span class="text-xs text-slate-500 font-mono">STEPS</span>
+                            </div>
+                        </div>
+                        <div id="move-indicator" class="text-2xl font-mono font-bold text-slate-300 bg-slate-800 px-4 py-1 rounded-lg border border-slate-700">---</div>
                     </div>
-                    <input type="range" id="move-slider" min="0" max="0" value="0" step="1" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500 disabled:opacity-30">
-                    
-                    <label class="block text-[9px] uppercase tracking-widest text-slate-500 font-bold">Area B: Solution / History (Inverts for Setup)</label>
-                    <textarea id="area-b" class="text-area-custom h-16 resize-none" placeholder="Your solve history..."></textarea>
-                </div>
-                
-                <div class="flex gap-2">
-                    <button id="btn-play" class="flex-[3] bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:bg-slate-700" disabled>PLAY SOLUTION</button>
-                    <button id="btn-reset" class="flex-1 bg-red-900/30 text-red-400 rounded-xl text-xs border border-red-900/50 hover:bg-red-900/50 transition-colors">RESET ALL</button>
+                    <input type="range" id="move-slider" min="0" max="0" value="0" step="1" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500 transition-all disabled:opacity-20">
+                    <div class="flex gap-2">
+                        <button id="btn-play" class="flex-[3] bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl font-black text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale" disabled>PLAY SOLUTION</button>
+                        <button id="btn-reset" class="flex-1 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-400 rounded-xl text-xs font-bold transition-all border border-slate-700">RESET</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="space-y-4">
-                <div class="grid grid-cols-3 gap-1.5" id="button-grid"></div>
-                
-                <div class="pt-4 border-t border-slate-700 space-y-4">
-                    <div>
-                        <label class="block text-[9px] uppercase tracking-widest text-indigo-400 font-bold mb-1">Area A: Scramble / Problem (As Is)</label>
-                        <textarea id="area-a" class="text-area-custom h-16 resize-none" placeholder="Paste scramble here or leave empty for random..."></textarea>
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Command Box (Input/Output)</label>
+                        <span class="text-[9px] text-emerald-600 font-mono animate-pulse">● Live Tracking</span>
                     </div>
-
+                    <textarea id="command-box" class="command-box h-32 resize-none" placeholder="Enter moves or leave empty for random..."></textarea>
+                    
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble-logic" class="py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-xl transition-all active:scale-95 border border-indigo-400/20 text-xs">
-                            RANDOM SCRAMBLE
+                        <button id="btn-scramble" class="py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-xl transition-all active:scale-95 border border-indigo-400/20 text-xs uppercase tracking-widest">
+                            Scramble
                         </button>
-                        <button id="btn-setup-to-solve" class="py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl font-black text-[11px] leading-tight shadow-xl active:scale-95 transition-all border border-amber-300/30">
-                            SETUP TO SOLVE<br>6-SIDES
+                        <button id="btn-setup-solve" class="py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl font-black text-xs shadow-xl active:scale-95 transition-all border border-amber-300/30 uppercase tracking-tight">
+                            Set to Solve
                         </button>
                     </div>
                 </div>
-                <p class="text-[10px] text-slate-500 text-center uppercase tracking-widest">© 2026 KAZCUBE - Dev Environment</p>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Manual Input</label>
+                    <div class="grid grid-cols-3 gap-1.5" id="button-grid"></div>
+                </div>
+                
+                <footer class="text-center pt-4 border-t border-slate-700">
+                    <p class="text-[10px] text-slate-600 uppercase tracking-[0.3em] font-bold">© 2026 KAZCUBE Labs</p>
+                </footer>
             </div>
         </div>
     </div>
@@ -99,12 +99,11 @@
     <script type="module">
         const p1 = document.getElementById('p1');
         const p2 = document.getElementById('p2');
-        const areaA = document.getElementById('area-a');
-        const areaB = document.getElementById('area-b');
+        const cmdBox = document.getElementById('command-box');
         const status = document.getElementById('status');
         const playBtn = document.getElementById('btn-play');
-        const scrambleBtn = document.getElementById('btn-scramble-logic');
-        const setupBtn = document.getElementById('btn-setup-to-solve');
+        const scrambleBtn = document.getElementById('btn-scramble');
+        const setupBtn = document.getElementById('btn-setup-solve');
         const slider = document.getElementById('move-slider');
         const stepCounter = document.getElementById('step-counter');
         const moveIndicator = document.getElementById('move-indicator');
@@ -115,16 +114,7 @@
         let isSetupMode = false;
         let playInterval = null;
 
-        areaA.addEventListener('input', () => {
-            if (areaA.value.trim() === "") {
-                scrambleBtn.textContent = "RANDOM SCRAMBLE";
-                scrambleBtn.classList.replace('bg-blue-600', 'bg-indigo-600');
-            } else {
-                scrambleBtn.textContent = "APPLY SCRAMBLE";
-                scrambleBtn.classList.replace('bg-indigo-600', 'bg-blue-600');
-            }
-        });
-
+        // --- Core: Rendering ---
         const render = (step) => {
             const currentPlayMoves = recordedMoves.slice(0, step);
             const totalAlg = (baseAlg + " " + currentPlayMoves.join(" ")).trim();
@@ -133,12 +123,20 @@
             slider.value = step;
             stepCounter.textContent = step;
             moveIndicator.textContent = step > 0 ? recordedMoves[step - 1] : "---";
-            if (!isSetupMode) areaB.value = recordedMoves.join(" ");
+            
+            // Only update box if we're not in solver mode (recording live moves)
+            if (!isSetupMode) {
+                cmdBox.value = recordedMoves.join(" ");
+            }
         };
 
+        // --- Inputs ---
         const handleInput = (move) => {
-            const currentStep = isSetupMode ? parseInt(slider.value) : recordedMoves.length;
-            if (isSetupMode) recordedMoves = recordedMoves.slice(0, currentStep);
+            const currentStep = parseInt(slider.value);
+            // If user moves mid-history, truncate
+            if (currentStep < recordedMoves.length) {
+                recordedMoves = recordedMoves.slice(0, currentStep);
+            }
             recordedMoves.push(move);
             slider.max = recordedMoves.length;
             render(recordedMoves.length);
@@ -146,11 +144,12 @@
 
         slider.oninput = () => render(parseInt(slider.value));
 
+        // --- Action: Scramble (As Is) ---
         scrambleBtn.onclick = () => {
-            resetAllInternal();
-            let scrambleText = areaA.value.trim();
-
-            if (scrambleText === "") {
+            resetState();
+            let input = cmdBox.value.trim();
+            
+            if (input === "") {
                 const faces = ['U', 'D', 'L', 'R', 'F', 'B'];
                 const mods = ['', "'", '2'];
                 let scramble = []; let last = '';
@@ -160,19 +159,19 @@
                     last = f;
                 }
                 baseAlg = scramble.join(" ");
-                areaA.value = baseAlg; 
+                cmdBox.value = baseAlg;
             } else {
-                baseAlg = scrambleText;
+                baseAlg = input;
             }
-
-            isSetupMode = true;
+            
+            isSetupMode = true; // Protect the scramble moves
             render(0);
-            status.textContent = "SCRAMBLED";
-            playBtn.disabled = true;
+            status.textContent = "Scrambled";
         };
 
+        // --- Action: Set to Solve (Inverts) ---
         setupBtn.onclick = () => {
-            let solveMoves = areaB.value.trim().split(/\s+/).filter(x => x.length > 0);
+            let solveMoves = cmdBox.value.trim().split(/\s+/).filter(x => x.length > 0);
             if (solveMoves.length === 0) return;
 
             recordedMoves = solveMoves;
@@ -184,46 +183,62 @@
             slider.max = recordedMoves.length;
             playBtn.disabled = false;
             render(0); 
-            status.textContent = "SETUP READY";
+            status.textContent = "Solver Ready";
         };
 
+        // --- Action: Playback ---
         playBtn.onclick = () => {
             if (playInterval) {
                 clearInterval(playInterval); playInterval = null;
-                playBtn.textContent = "RESUME";
+                playBtn.textContent = "Resume";
+                playBtn.classList.replace('bg-orange-600', 'bg-emerald-600');
             } else {
-                playBtn.textContent = "STOP";
+                playBtn.textContent = "Stop";
+                playBtn.classList.replace('bg-emerald-600', 'bg-orange-600');
                 playInterval = setInterval(() => {
                     let current = parseInt(slider.value);
                     if (current < recordedMoves.length) { render(current + 1); }
-                    else { clearInterval(playInterval); playInterval = null; playBtn.textContent = "PLAY SOLUTION"; }
+                    else { 
+                        clearInterval(playInterval); playInterval = null; 
+                        playBtn.textContent = "Finished";
+                        setTimeout(() => { 
+                            playBtn.textContent = "Play Solution";
+                            playBtn.classList.replace('bg-orange-600', 'bg-emerald-600');
+                        }, 1500);
+                    }
                 }, 800);
             }
         };
 
+        // --- Utility: Reset ---
+        const resetState = () => {
+            if (playInterval) clearInterval(playInterval);
+            playInterval = null;
+            baseAlg = ""; recordedMoves = []; isSetupMode = false;
+            p1.alg = ""; p2.alg = "";
+            slider.value = 0; slider.max = 0;
+            playBtn.disabled = true;
+            playBtn.textContent = "Play Solution";
+            playBtn.className = "flex-[3] bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl font-black text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale";
+            status.textContent = "Ready";
+            stepCounter.textContent = "0";
+            moveIndicator.textContent = "---";
+        };
+        document.getElementById('btn-reset').onclick = () => {
+            cmdBox.value = "";
+            resetState();
+        };
+
+        // Create Buttons
         ['U','D','L','R','F','B','M','E','S'].forEach(f => {
             [f, f+"'", f+"2"].forEach(move => {
                 const btn = document.createElement('button');
-                btn.className = "p-2 bg-slate-700 hover:bg-emerald-700 rounded text-sm transition-all active:scale-95 shadow font-mono";
+                btn.className = "p-2 bg-slate-700 hover:bg-emerald-700 rounded text-sm transition-all active:scale-95 shadow font-mono font-bold";
                 btn.textContent = move;
                 btn.onclick = () => handleInput(move);
                 buttonGrid.appendChild(btn);
             });
         });
-
-        const resetAllInternal = () => {
-            if (playInterval) clearInterval(playInterval);
-            playInterval = null; baseAlg = ""; recordedMoves = []; isSetupMode = false;
-            p1.alg = ""; p2.alg = ""; areaB.value = "";
-            slider.value = 0; slider.max = 0; playBtn.disabled = true;
-            playBtn.textContent = "PLAY SOLUTION";
-            status.textContent = "READY"; stepCounter.textContent = "0"; moveIndicator.textContent = "---";
-        };
-        document.getElementById('btn-reset').onclick = () => {
-            areaA.value = "";
-            scrambleBtn.textContent = "RANDOM SCRAMBLE";
-            resetAllInternal();
-        };
     </script>
 </body>
 </html>
