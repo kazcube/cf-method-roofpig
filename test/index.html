@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.28 Scramble & Clean Reset</title>
+    <title>KAZCUBE Lab - v5.29 Final Stability</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
-        #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; }
+        #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
 
+        /* モード切替 */
         .mode-btn { flex: 1; padding: 10px 0; border-radius: 8px; font-weight: 900; font-size: 12px; transition: 0.2s; border: 2px solid transparent; }
         .btn-rotate-active { background-color: #10b981 !important; color: white !important; border-color: #34d399 !important; }
         .btn-paint-active { background-color: #f97316 !important; color: white !important; border-color: #fb923c !important; }
         .btn-inactive { background-color: #1e293b !important; color: #475569 !important; }
 
+        /* 操作系 */
         .move-btn { background-color: #334155; color: white; padding: 8px 0; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 6px 0; font-size: 10px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
@@ -30,34 +32,36 @@
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
 
     <div class="max-w-[1200px] mx-auto">
-        <header class="mb-4 flex justify-between items-baseline border-b border-slate-700 pb-4">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic">v5.28 Sync</span></h2>
+        <header class="mb-4 border-b border-slate-700 pb-4">
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic uppercase tracking-widest ml-2">v5.29</span></h2>
         </header>
 
         <div class="main-grid">
             <div class="left-col space-y-4">
-                <div id="cube-wrapper" class="shadow-2xl"></div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
+                <div id="cube-wrapper" class="shadow-2xl">
+                    <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-xl">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                     <div class="flex justify-between items-center font-mono">
-                        <div class="flex flex-col"><span class="text-slate-500 text-[9px] uppercase">Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
+                        <div class="flex flex-col"><span class="text-slate-500 text-[9px] uppercase font-bold">Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
                         <div id="move-indicator" class="text-lg font-black bg-slate-900 px-4 py-1 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
                     </div>
                 </div>
             </div>
 
             <div class="right-col">
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1">
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1 shadow-inner">
                     <button id="btn-mode-rotate" class="mode-btn btn-rotate-active" onclick="switchMode('rotate')">ROTATE</button>
                     <button id="btn-mode-paint" class="mode-btn btn-inactive" onclick="switchMode('paint')">PAINT</button>
                 </div>
 
-                <div id="panel-paint" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20">
+                <div id="panel-paint" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20 shadow-lg">
                     <div class="flex gap-2">
-                        <button onclick="updateMask('all')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700">⬜ ALL GRAY</button>
-                        <button onclick="updateMask('corners')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700">🧩 CORNERS</button>
+                        <button onclick="updateMask('all')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700 hover:bg-slate-700 transition-colors">⬜ ALL GRAY</button>
+                        <button onclick="updateMask('corners')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700 hover:bg-slate-700 transition-colors">🧩 CORNERS</button>
                     </div>
-                    <div class="flex justify-center gap-2 p-2 bg-black/40 rounded-lg">
+                    <div class="flex justify-center gap-2 p-3 bg-black/40 rounded-lg">
                         <div class="color-dot active" style="background:#fff" onclick="pick(this)"></div>
                         <div class="color-dot" style="background:#facc15" onclick="pick(this)"></div>
                         <div class="color-dot" style="background:#ef4444" onclick="pick(this)"></div>
@@ -68,10 +72,10 @@
                 </div>
 
                 <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Paste or Scramble..."></textarea>
+                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none focus:border-indigo-500 transition-all" placeholder="Enter Algorithm or Scramble..."></textarea>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="applyRandomScramble()" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95 shadow-lg">RANDOM SCRAMBLE</button>
-                        <button onclick="fullReset()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300 uppercase active:scale-95">RESET ALL</button>
+                        <button id="btn-scramble" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95 shadow-lg">RANDOM SCRAMBLE</button>
+                        <button onclick="fullReset()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300 uppercase active:scale-95 border border-slate-600">RESET ALL</button>
                     </div>
                 </div>
 
@@ -88,45 +92,57 @@
     </div>
 
     <script type="module">
-        import { randomScrambleForPuzzle } from "https://cdn.cubing.net/v0/js/cubing/scramble";
-
         let moves = [];
         let currentMask = "";
 
-        const initCube = () => {
+        // キューブの初期化・再描画
+        const refreshCube = () => {
             const wrapper = document.getElementById('cube-wrapper');
-            wrapper.innerHTML = '';
+            const step = parseInt(document.getElementById('move-slider').value) || 0;
+            const currentAlg = moves.slice(0, step).join(" ");
+
+            wrapper.innerHTML = ''; 
             const player = document.createElement('twisty-player');
             player.setAttribute('puzzle', '3x3x3');
             player.setAttribute('background', 'none');
             player.setAttribute('control-panel', 'none');
             if (currentMask) player.setAttribute('experimental-stickering-mask-orbits', currentMask);
+            player.alg = currentAlg;
             
-            const step = parseInt(document.getElementById('move-slider').value) || 0;
-            player.alg = moves.slice(0, step).join(" ");
             wrapper.appendChild(player);
         };
 
+        // モード切替
         window.switchMode = (mode) => {
             currentMask = (mode === 'paint') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "";
             document.getElementById('btn-mode-rotate').className = `mode-btn ${mode === 'rotate' ? 'btn-rotate-active' : 'btn-inactive'}`;
             document.getElementById('btn-mode-paint').className = `mode-btn ${mode === 'paint' ? 'btn-paint-active' : 'btn-inactive'}`;
             document.getElementById('panel-paint').style.display = (mode === 'paint') ? 'block' : 'none';
-            initCube();
+            refreshCube();
         };
 
         window.updateMask = (type) => {
             currentMask = (type === 'all') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------";
-            initCube();
+            refreshCube();
         };
 
-        // ランダムスクランブル
-        window.applyRandomScramble = async () => {
-            const scramble = await randomScrambleForPuzzle("3x3x3");
-            const scrambleStr = scramble.toString();
-            document.getElementById('command-box').value = scrambleStr;
-            moves = scrambleStr.split(/\s+/);
+        // ランダムスクランブル（ライブラリを使用せずPlayerから取得する安全策）
+        document.getElementById('btn-scramble').onclick = async () => {
+            // twisty-playerの機能を借用
+            const tempPlayer = document.querySelector('twisty-player');
+            // ランダムな動きを生成
+            const faces = ['U','D','L','R','F','B'];
+            const mods = ['', "'", '2'];
+            let scram = [];
+            for(let i=0; i<20; i++) {
+                let m = faces[Math.floor(Math.random()*faces.length)] + mods[Math.floor(Math.random()*mods.length)];
+                if(i > 0 && m[0] === scram[i-1][0]) { i--; continue; } // 同じ面の連続を避ける
+                scram.push(m);
+            }
+            const scramStr = scram.join(" ");
             
+            document.getElementById('command-box').value = scramStr;
+            moves = scram;
             const slider = document.getElementById('move-slider');
             slider.max = moves.length;
             slider.value = moves.length;
@@ -138,12 +154,11 @@
             const step = parseInt(document.getElementById('move-slider').value);
             if (player) player.alg = moves.slice(0, step).join(" ");
             document.getElementById('step-counter').textContent = step;
-            document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
+            document.getElementById('move-indicator').textContent = (step > 0 && moves[step-1]) ? moves[step-1] : "---";
         };
 
         window.fullReset = () => {
             moves = [];
-            // ボックスも空にする
             document.getElementById('command-box').value = "";
             const slider = document.getElementById('move-slider');
             slider.max = 0;
@@ -187,7 +202,7 @@
             el.classList.add('active');
         };
 
-        initCube();
+        // 初期実行
         renderMoves('basic');
     </script>
 </body>
