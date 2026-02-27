@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.22 Core Sync Fix</title>
+    <title>KAZCUBE Lab - v5.23 Fixed Tabs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -13,19 +13,20 @@
         .cube-container { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100% !important; height: 100% !important; }
         
-        /* ボタン基本スタイル */
-        .mode-btn-base { @apply flex-1 py-2.5 rounded-lg text-xs font-black transition-all border; }
-        .mode-active-rotate { @apply bg-emerald-600 text-white border-emerald-400 shadow-lg; }
-        .mode-active-paint { @apply bg-orange-600 text-white border-orange-400 shadow-lg; }
-        .mode-inactive { @apply bg-slate-900 text-slate-500 border-slate-800 hover:text-white; }
+        /* ボタン基本構造：ここを固定する */
+        .mode-btn { flex: 1; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 900; transition: all 0.2s; border: 1px solid transparent; }
+        
+        /* 状態別スタイル */
+        .mode-rotate-active { background-color: #059669; color: white; border-color: #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .mode-paint-active { background-color: #ea580c; color: white; border-color: #fb923c; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .mode-inactive { background-color: transparent; color: #64748b; border-color: transparent; }
+        .mode-inactive:hover { color: white; }
 
         .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-2 rounded text-[10px] font-mono font-bold border border-slate-600 transition-all hover:bg-slate-600; }
         .tab-btn { @apply flex-1 py-1.5 text-[9px] font-black rounded-md transition-all border border-transparent text-slate-400; }
         .tab-btn.active { @apply bg-slate-600 text-white border-slate-500 shadow-inner; }
-        
-        .color-dot { width: 32px !important; height: 32px !important; display: inline-block !important; border-radius: 50%; border: 2px solid #475569; cursor: pointer; transition: all 0.2s; position: relative; }
-        .color-dot.active { border-color: white !important; box-shadow: 0 0 10px rgba(255,255,255,0.5); transform: scale(1.1); }
-        
+        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; transition: 0.2s; }
+        .color-dot.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.4); }
         .template-btn { @apply flex-1 py-2 text-[10px] font-black rounded-lg border-2 transition-all flex items-center justify-center gap-1 uppercase bg-slate-800 border-slate-700 text-slate-400; }
         .template-btn.active { @apply bg-orange-600 border-orange-400 text-white shadow-lg; }
         
@@ -38,7 +39,7 @@
         <header class="mb-4 flex justify-between items-center border-b border-slate-700 pb-4">
             <div class="flex items-baseline gap-3">
                 <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50">v5.22 Stability</span>
+                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50 uppercase">v5.23</span>
             </div>
             <div class="flex gap-2">
                 <button onclick="setLang('ja')" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700">JP</button>
@@ -54,16 +55,16 @@
                 <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 shadow-xl space-y-3">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                     <div class="flex justify-between items-center font-mono">
-                        <div class="flex flex-col"><span id="lbl-step" class="text-slate-500 text-[9px] font-bold uppercase tracking-widest text-[8px]">Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
+                        <div class="flex flex-col"><span id="lbl-step" class="text-slate-500 text-[9px] font-bold uppercase">Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
                         <div id="move-indicator" class="text-lg font-black bg-slate-900 px-4 py-1 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
                     </div>
                 </div>
             </div>
 
             <div class="right-col">
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700">
-                    <button id="mode-rotate" class="mode-btn-base mode-active-rotate">ROTATE</button>
-                    <button id="mode-paint" class="mode-btn-base mode-inactive">PAINT</button>
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1">
+                    <button id="mode-rotate" class="mode-btn mode-rotate-active">ROTATE</button>
+                    <button id="mode-paint" class="mode-btn mode-inactive">PAINT</button>
                 </div>
 
                 <div id="paint-panel" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20">
@@ -76,7 +77,7 @@
                     </div>
                     <div class="space-y-2">
                         <label id="lbl-target" class="text-[9px] font-black text-slate-500 uppercase">Target Color</label>
-                        <div id="palette" class="flex flex-wrap justify-center gap-2 p-2 bg-black/40 rounded-xl border border-slate-800">
+                        <div class="flex flex-wrap justify-center gap-2 p-2 bg-black/40 rounded-xl border border-slate-800">
                             <div class="color-dot" data-color="white" style="background-color: #fff;"></div>
                             <div class="color-dot" data-color="yellow" style="background-color: #facc15;"></div>
                             <div class="color-dot" data-color="red" style="background-color: #ef4444;"></div>
@@ -90,8 +91,8 @@
                 <div class="space-y-2">
                     <textarea id="command-box" class="w-full h-20 bg-black/60 text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none resize-none" placeholder="Algorithm..."></textarea>
                     <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-scramble" class="py-2.5 rounded-lg bg-indigo-600 font-bold text-[10px] text-white uppercase active:scale-95 transition-all">SCRAMBLE</button>
-                        <button id="btn-reset" class="py-2.5 rounded-lg bg-slate-700 text-slate-300 border border-slate-600 font-bold text-[10px] uppercase">RESET</button>
+                        <button id="btn-scramble" class="py-2.5 rounded-lg bg-indigo-600 font-bold text-[10px] text-white uppercase shadow-lg active:scale-95 transition-all">SCRAMBLE</button>
+                        <button id="btn-reset" class="py-2.5 rounded-lg bg-slate-700 text-slate-300 border border-slate-600 font-bold text-[10px] uppercase active:scale-95 transition-all">RESET</button>
                     </div>
                 </div>
 
@@ -115,11 +116,13 @@
         const paintBtn = document.getElementById('mode-paint');
         let moves = [];
 
-        // 描画更新を保証する関数
+        // 描画更新の徹底
         const syncCube = () => {
+            const currentMask = player.experimentalStickeringMaskOrbits;
+            player.experimentalStickeringMaskOrbits = currentMask; // 代入し直すことで発火
             const temp = player.alg;
             player.alg = ""; 
-            player.alg = temp;
+            setTimeout(() => { player.alg = temp; }, 1);
         };
 
         const render = (step) => {
@@ -129,28 +132,22 @@
             document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
         };
 
-        // モード切替ロジック
         rotateBtn.onclick = () => {
             paintPanel.style.display = 'none';
-            player.experimentalStickeringMaskOrbits = ""; // マスク全解除
+            player.experimentalStickeringMaskOrbits = ""; 
             syncCube();
-            
-            // ボタンの見た目更新
-            rotateBtn.className = "mode-btn-base mode-active-rotate";
-            paintBtn.className = "mode-btn-base mode-inactive";
+            rotateBtn.className = "mode-btn mode-rotate-active";
+            paintBtn.className = "mode-btn mode-inactive";
         };
 
         paintBtn.onclick = () => {
             paintPanel.style.display = 'block';
             player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
             syncCube();
-
-            // ボタンの見た目更新
-            rotateBtn.className = "mode-btn-base mode-inactive";
-            paintBtn.className = "mode-btn-base mode-active-paint";
+            rotateBtn.className = "mode-btn mode-inactive";
+            paintBtn.className = "mode-btn mode-paint-active";
         };
 
-        // タブ切り替え
         const moveSets = {
             basic: ['U','D','L','R','F','B'],
             wide: ['u','d','l','r','f','b'],
@@ -162,7 +159,6 @@
             grid.innerHTML = '';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-' + type).classList.add('active');
-
             moveSets[type].forEach(f => {
                 [f, f+"'", f+"2"].forEach(m => {
                     const b = document.createElement('button');
@@ -184,7 +180,6 @@
         document.getElementById('tab-slice').onclick = () => updateMoveGrid('slice');
         updateMoveGrid('basic');
 
-        // テンプレート設定
         document.querySelectorAll('.template-btn').forEach(btn => {
             btn.onclick = (e) => {
                 player.experimentalStickeringMaskOrbits = (e.currentTarget.dataset.type === 'clear') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------";
@@ -194,7 +189,6 @@
             };
         });
 
-        // パレット選択
         document.querySelectorAll('.color-dot').forEach(dot => {
             dot.onclick = (e) => {
                 document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
