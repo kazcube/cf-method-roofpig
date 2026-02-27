@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.25 Optimized</title>
+    <title>KAZCUBE Lab - v5.26 Hard Reset</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -13,22 +13,22 @@
         .cube-container { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
 
-        /* モード切替ボタンの完全定義 */
-        .mode-btn { flex: 1; py: 10px; border-radius: 8px; font-weight: 900; font-size: 12px; transition: 0.2s; border: 2px solid transparent; }
-        .btn-rotate-active { background-color: #059669; color: white; border-color: #10b981; }
-        .btn-paint-active { background-color: #ea580c; color: white; border-color: #fb923c; }
-        .btn-inactive { background-color: #1e293b; color: #64748b; }
+        /* モード切替ボタン */
+        .mode-btn { flex: 1; padding: 10px 0; border-radius: 8px; font-weight: 900; font-size: 12px; transition: 0.2s; border: 2px solid transparent; }
+        .btn-rotate-active { background-color: #10b981 !important; color: white !important; border-color: #34d399 !important; box-shadow: 0 0 15px rgba(16,185,129,0.4); }
+        .btn-paint-active { background-color: #f97316 !important; color: white !important; border-color: #fb923c !important; box-shadow: 0 0 15px rgba(249,115,22,0.4); }
+        .btn-inactive { background-color: #1e293b !important; color: #475569 !important; border-color: transparent !important; }
 
         /* 回転ボタン */
         .move-btn { background-color: #334155; color: white; padding: 8px 0; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: bold; border: 1px solid #475569; }
-        .move-btn:active { background-color: #4f46e5; }
+        .move-btn:active { background-color: #6366f1; }
         
         /* タブ */
         .tab-btn { flex: 1; padding: 6px 0; font-size: 10px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
 
-        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; }
-        .color-dot.active { border-color: white; transform: scale(1.1); }
+        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; transition: 0.2s; }
+        .color-dot.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 8px white; }
 
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
@@ -39,11 +39,7 @@
         <header class="mb-4 flex justify-between items-baseline border-b border-slate-700 pb-4">
             <div class="flex items-baseline gap-3">
                 <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 border border-slate-700 px-2 py-0.5 rounded bg-slate-800">v5.25</span>
-            </div>
-            <div class="flex gap-2 text-[10px]">
-                <button onclick="setLang('ja')" class="hover:text-emerald-400">JP</button>
-                <button onclick="setLang('en')" class="hover:text-emerald-400">EN</button>
+                <span class="text-[10px] font-mono text-slate-500 border border-slate-700 px-2 py-0.5 rounded bg-slate-800">v5.26 HardReset</span>
             </div>
         </header>
 
@@ -63,38 +59,38 @@
 
             <div class="right-col">
                 <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1">
-                    <button id="btn-mode-rotate" class="mode-btn btn-rotate-active" onclick="changeMode('rotate')">ROTATE</button>
-                    <button id="btn-mode-paint" class="mode-btn btn-inactive" onclick="changeMode('paint')">PAINT</button>
+                    <button id="btn-mode-rotate" class="mode-btn btn-rotate-active" onclick="handleModeSwitch('rotate')">ROTATE</button>
+                    <button id="btn-mode-paint" class="mode-btn btn-inactive" onclick="handleModeSwitch('paint')">PAINT</button>
                 </div>
 
                 <div id="panel-paint" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20">
                     <div class="flex gap-2">
-                        <button onclick="setMask('clear')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700">⬜ ALL GRAY</button>
-                        <button onclick="setMask('corners')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700">🧩 CORNERS</button>
+                        <button onclick="applyMask('all-gray')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700 hover:bg-slate-700">⬜ ALL GRAY</button>
+                        <button onclick="applyMask('corners')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700 hover:bg-slate-700">🧩 CORNERS</button>
                     </div>
                     <div class="flex justify-center gap-2 p-2 bg-black/40 rounded-lg">
-                        <div class="color-dot" style="background:#fff" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background:#facc15" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background:#ef4444" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background:#f97316" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background:#3b82f6" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background:#22c55e" onclick="selectColor(this)"></div>
+                        <div class="color-dot active" style="background:#fff" onclick="pickColor(this)"></div>
+                        <div class="color-dot" style="background:#facc15" onclick="pickColor(this)"></div>
+                        <div class="color-dot" style="background:#ef4444" onclick="pickColor(this)"></div>
+                        <div class="color-dot" style="background:#f97316" onclick="pickColor(this)"></div>
+                        <div class="color-dot" style="background:#3b82f6" onclick="pickColor(this)"></div>
+                        <div class="color-dot" style="background:#22c55e" onclick="pickColor(this)"></div>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Algorithm..."></textarea>
+                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Paste Algorithm here..."></textarea>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="applyScramble()" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white">SCRAMBLE</button>
-                        <button onclick="resetAll()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300">RESET</button>
+                        <button onclick="loadAlg()" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase shadow-md active:scale-95">SCRAMBLE</button>
+                        <button onclick="resetCube()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300 uppercase active:scale-95">RESET</button>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-3">
                     <div class="flex gap-1 mb-3 bg-black/30 p-1 rounded-lg">
-                        <button id="tab-basic" onclick="drawMoveGrid('basic')" class="tab-btn active">BASIC</button>
-                        <button id="tab-wide" onclick="drawMoveGrid('wide')" class="tab-btn">WIDE</button>
-                        <button id="tab-slice" onclick="drawMoveGrid('slice')" class="tab-btn">SLICE</button>
+                        <button id="tab-basic" onclick="setMoveTab('basic')" class="tab-btn active">BASIC</button>
+                        <button id="tab-wide" onclick="setMoveTab('wide')" class="tab-btn">WIDE</button>
+                        <button id="tab-slice" onclick="setMoveTab('slice')" class="tab-btn">SLICE</button>
                     </div>
                     <div id="move-grid" class="grid grid-cols-6 gap-1"></div>
                 </div>
@@ -104,105 +100,108 @@
 
     <script type="module">
         const player = document.getElementById('main-cube');
-        let currentMoves = [];
+        let movesArray = [];
 
-        // --- コア機能 ---
-        window.changeMode = (mode) => {
+        // 【最重要】強制リセット関数：マスクを消し、キューブをカラーに戻す
+        window.handleModeSwitch = (mode) => {
             const rBtn = document.getElementById('btn-mode-rotate');
             const pBtn = document.getElementById('btn-mode-paint');
-            const panel = document.getElementById('panel-paint');
+            const paintPanel = document.getElementById('panel-paint');
 
             if (mode === 'rotate') {
-                player.experimentalStickeringMaskOrbits = "";
+                // 強制カラー復帰
+                player.experimentalStickeringMaskOrbits = ""; 
                 rBtn.className = "mode-btn btn-rotate-active";
                 pBtn.className = "mode-btn btn-inactive";
-                panel.style.display = 'none';
+                paintPanel.style.display = 'none';
             } else {
+                // マスクモード
                 player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
                 rBtn.className = "mode-btn btn-inactive";
                 pBtn.className = "mode-btn btn-paint-active";
-                panel.style.display = 'block';
+                paintPanel.style.display = 'block';
             }
-            // 強制再描画
-            const t = player.alg; player.alg = ""; setTimeout(() => player.alg = t, 50);
+            
+            // 描画エンジンのリセット
+            const currentAlg = player.alg;
+            player.alg = ""; // 一旦クリア
+            setTimeout(() => { player.alg = currentAlg; }, 50); // 微小な遅延で再描画を強制
         };
 
-        window.setMask = (type) => {
-            player.experimentalStickeringMaskOrbits = (type === 'clear') 
+        window.applyMask = (type) => {
+            player.experimentalStickeringMaskOrbits = (type === 'all-gray') 
                 ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" 
                 : "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------";
-            const t = player.alg; player.alg = ""; setTimeout(() => player.alg = t, 10);
+            const currentAlg = player.alg;
+            player.alg = ""; 
+            setTimeout(() => { player.alg = currentAlg; }, 30);
         };
 
-        window.selectColor = (el) => {
+        window.pickColor = (el) => {
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
             el.classList.add('active');
         };
 
-        // --- 回転ボタン生成 ---
-        const moveData = {
+        // --- 回転ボタン管理 ---
+        const moveLib = {
             basic: ['U','D','L','R','F','B'],
             wide: ['u','d','l','r','f','b'],
             slice: ['M','E','S','x','y','z']
         };
 
-        window.drawMoveGrid = (type) => {
+        window.setMoveTab = (type) => {
             const grid = document.getElementById('move-grid');
             grid.innerHTML = '';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-'+type).classList.add('active');
+            document.getElementById('tab-' + type).classList.add('active');
 
-            moveData[type].forEach(f => {
-                [f, f+"'", f+"2"].forEach(m => {
+            moveLib[type].forEach(face => {
+                [face, face+"'", face+"2"].forEach(m => {
                     const b = document.createElement('button');
                     b.className = "move-btn";
                     b.textContent = m;
-                    b.onclick = () => addMove(m);
+                    b.onclick = () => {
+                        const currentStep = parseInt(document.getElementById('move-slider').value);
+                        if (currentStep < movesArray.length) movesArray = movesArray.slice(0, currentStep);
+                        movesArray.push(m);
+                        syncUI();
+                    };
                     grid.appendChild(b);
                 });
             });
         };
 
-        const addMove = (m) => {
-            const step = parseInt(document.getElementById('move-slider').value);
-            if (step < currentMoves.length) currentMoves = currentMoves.slice(0, step);
-            currentMoves.push(m);
-            updateUI();
-        };
-
-        const updateUI = () => {
-            const step = currentMoves.length;
+        const syncUI = () => {
             const slider = document.getElementById('move-slider');
-            player.alg = currentMoves.join(" ");
-            slider.max = step;
-            slider.value = step;
-            document.getElementById('step-counter').textContent = step;
-            document.getElementById('move-indicator').textContent = step > 0 ? currentMoves[step-1] : "---";
+            player.alg = movesArray.join(" ");
+            slider.max = movesArray.length;
+            slider.value = movesArray.length;
+            document.getElementById('step-counter').textContent = movesArray.length;
+            document.getElementById('move-indicator').textContent = movesArray.length > 0 ? movesArray[movesArray.length-1] : "---";
         };
 
-        window.applyScramble = () => {
-            const val = document.getElementById('command-box').value.trim();
-            if (val) {
-                currentMoves = val.split(/\s+/);
-                updateUI();
+        window.loadAlg = () => {
+            const input = document.getElementById('command-box').value.trim();
+            if (input) {
+                movesArray = input.split(/\s+/);
+                syncUI();
             }
         };
 
-        window.resetAll = () => {
-            currentMoves = [];
-            updateUI();
+        window.resetCube = () => {
+            movesArray = [];
+            syncUI();
         };
 
         document.getElementById('move-slider').oninput = (e) => {
             const step = parseInt(e.target.value);
-            player.alg = currentMoves.slice(0, step).join(" ");
+            player.alg = movesArray.slice(0, step).join(" ");
             document.getElementById('step-counter').textContent = step;
-            document.getElementById('move-indicator').textContent = step > 0 ? currentMoves[step-1] : "---";
+            document.getElementById('move-indicator').textContent = step > 0 ? movesArray[step-1] : "---";
         };
 
-        // 初期化
-        drawMoveGrid('basic');
-        window.setLang = (lang) => { /* 言語切替ロジック */ };
+        // 初期ロード
+        setMoveTab('basic');
     </script>
 </body>
 </html>
