@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.31 Setup Logic</title>
+    <title>KAZCUBE Lab - v5.32 Final Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -21,8 +21,7 @@
         .move-btn { background-color: #334155; color: white; padding: 8px 0; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 6px 0; font-size: 10px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
-        
-        .setup-tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #4f46e5; color: white; font-weight: bold; }
+        .setup-indicator { font-size: 10px; font-weight: 900; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 2px 8px; border: 1px solid #fbbf24; border-radius: 4px; }
         
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
@@ -31,8 +30,8 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-4 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic uppercase ml-2">v5.31 Setup</span></h2>
-            <div id="setup-indicator" class="hidden"><span class="setup-tag uppercase">Setup Applied</span></div>
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.32</span></h2>
+            <div id="setup-status" class="hidden setup-indicator uppercase">Setup Applied</div>
         </header>
 
         <div class="main-grid">
@@ -40,28 +39,28 @@
                 <div id="cube-wrapper" class="shadow-2xl">
                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-xl">
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                     <div class="flex justify-between items-center font-mono">
-                        <div class="flex flex-col"><span class="text-slate-500 text-[9px] uppercase font-bold">Solution Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
+                        <div class="flex flex-col"><span class="text-slate-500 text-[9px] uppercase font-bold">Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
                         <div id="move-indicator" class="text-lg font-black bg-slate-900 px-4 py-1 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
                     </div>
                 </div>
             </div>
 
             <div class="right-col">
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1 shadow-inner">
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1 mb-2">
                     <button id="btn-mode-rotate" class="mode-btn btn-rotate-active" onclick="switchMode('rotate')">ROTATE</button>
                     <button id="btn-mode-paint" class="mode-btn btn-inactive" onclick="switchMode('paint')">PAINT</button>
                 </div>
 
                 <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Enter moves..." oninput="onBoxInput()"></textarea>
+                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Enter moves here..." oninput="updateBtnLabel()"></textarea>
                     <div class="grid grid-cols-3 gap-2">
-                        <button id="btn-action" onclick="handleMainAction()" class="col-span-2 py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95">RANDOM SCRAMBLE</button>
-                        <button id="btn-setup" onclick="applySetup()" class="py-2.5 bg-slate-700 text-amber-400 border border-amber-900/50 rounded-lg font-bold text-[10px] uppercase active:scale-95">SET SETUP</button>
+                        <button id="btn-main-action" onclick="handleMainAction()" class="col-span-2 py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95">RANDOM SCRAMBLE</button>
+                        <button onclick="applySetup()" class="py-2.5 bg-slate-700 text-amber-400 border border-amber-500/30 rounded-lg font-bold text-[10px] uppercase active:scale-95">SET SETUP</button>
                     </div>
-                    <button onclick="fullReset()" class="w-full py-2 bg-slate-800 text-slate-500 rounded-lg font-bold text-[9px] uppercase border border-slate-700 hover:bg-slate-700 transition-all">RESET EVERYTHING</button>
+                    <button onclick="fullReset()" class="w-full py-1.5 bg-slate-800 text-slate-500 text-[9px] font-bold rounded uppercase border border-slate-700">Clear All</button>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-3">
@@ -77,13 +76,131 @@
     </div>
 
     <script type="module">
-        let setupMoves = [];  // 基点となる手順
-        let solutionMoves = []; // ユーザーが動かす手順
+        let setupMoves = [];
+        let activeMoves = [];
         let currentMask = "";
 
+        // 描画エンジン
         const refreshCube = () => {
             const wrapper = document.getElementById('cube-wrapper');
             const step = parseInt(document.getElementById('move-slider').value) || 0;
-            
-            // 重要：セットアップ手順 + 解法手順(ステップ分) を合体させる
-            const fullAlg = [...setupMoves, ...solutionMoves.slice(
+            const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+
+            wrapper.innerHTML = ''; 
+            const player = document.createElement('twisty-player');
+            player.setAttribute('puzzle', '3x3x3');
+            player.setAttribute('background', 'none');
+            player.setAttribute('control-panel', 'none');
+            if (currentMask) player.setAttribute('experimental-stickering-mask-orbits', currentMask);
+            player.alg = fullAlg;
+            wrapper.appendChild(player);
+        };
+
+        // SETUP適用
+        window.applySetup = () => {
+            const val = document.getElementById('command-box').value.trim();
+            if (val) {
+                setupMoves = val.split(/\s+/);
+                activeMoves = [];
+                document.getElementById('command-box').value = "";
+                document.getElementById('setup-status').classList.remove('hidden');
+                syncUI();
+            }
+        };
+
+        // メインボタン（スクランブル or 適用）
+        window.handleMainAction = () => {
+            const box = document.getElementById('command-box');
+            const val = box.value.trim();
+
+            if (val) {
+                activeMoves = val.split(/\s+/);
+            } else {
+                const faces = ['U','D','L','R','F','B'];
+                const mods = ['', "'", '2'];
+                let scram = [];
+                for(let i=0; i<20; i++) {
+                    let m = faces[Math.floor(Math.random()*faces.length)] + mods[Math.floor(Math.random()*mods.length)];
+                    if(i > 0 && m[0] === scram[i-1][0]) { i--; continue; }
+                    scram.push(m);
+                }
+                activeMoves = scram;
+                box.value = scram.join(" ");
+            }
+            syncUI();
+            updateBtnLabel();
+        };
+
+        const syncUI = () => {
+            const slider = document.getElementById('move-slider');
+            slider.max = activeMoves.length;
+            slider.value = activeMoves.length;
+            updateView();
+        };
+
+        const updateView = () => {
+            const player = document.querySelector('twisty-player');
+            const step = parseInt(document.getElementById('move-slider').value);
+            const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+            if (player) player.alg = fullAlg;
+            document.getElementById('step-counter').textContent = step;
+            document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+        };
+
+        window.updateBtnLabel = () => {
+            const box = document.getElementById('command-box');
+            const btn = document.getElementById('btn-main-action');
+            btn.textContent = box.value.trim().length > 0 ? "APPLY ALGORITHM" : "RANDOM SCRAMBLE";
+        };
+
+        window.switchMode = (mode) => {
+            currentMask = (mode === 'paint') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "";
+            document.getElementById('btn-mode-rotate').className = `mode-btn ${mode === 'rotate' ? 'btn-rotate-active' : 'btn-inactive'}`;
+            document.getElementById('btn-mode-paint').className = `mode-btn ${mode === 'paint' ? 'btn-paint-active' : 'btn-inactive'}`;
+            refreshCube();
+        };
+
+        window.fullReset = () => {
+            setupMoves = []; activeMoves = [];
+            document.getElementById('command-box').value = "";
+            document.getElementById('setup-status').classList.add('hidden');
+            syncUI();
+            updateBtnLabel();
+        };
+
+        // 回転ボタン生成（不具合修正済み）
+        const moveLib = {
+            basic: ['U','D','L','R','F','B'],
+            wide: ['u','d','l','r','f','b'],
+            slice: ['M','E','S','x','y','z']
+        };
+
+        window.renderMoves = (type) => {
+            const grid = document.getElementById('move-grid');
+            grid.innerHTML = '';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + type).classList.add('active');
+
+            moveLib[type].forEach(f => {
+                [f, f+"'", f+"2"].forEach(m => {
+                    const b = document.createElement('button');
+                    b.className = "move-btn"; b.textContent = m;
+                    b.onclick = () => {
+                        const slider = document.getElementById('move-slider');
+                        const step = parseInt(slider.value);
+                        if (step < activeMoves.length) activeMoves = activeMoves.slice(0, step);
+                        activeMoves.push(m);
+                        syncUI();
+                    };
+                    grid.appendChild(b);
+                });
+            });
+        };
+
+        document.getElementById('move-slider').oninput = updateView;
+        // 初期化
+        renderMoves('basic');
+        refreshCube();
+    </script>
+</body>
+</html>
