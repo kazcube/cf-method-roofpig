@@ -3,60 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.18.1 Final Layout</title>
+    <title>KAZCUBE Lab - v5.20 Advanced Moves</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        /* メイングリッド：右側を380pxで完全ロック */
-        .main-grid { 
-            display: flex; 
-            gap: 24px; 
-            align-items: start;
-            justify-content: center;
-        }
-        
+        .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
-
-        .right-col {
-            width: 380px; min-width: 380px; max-width: 380px;
-            display: flex; flex-direction: column; gap: 20px;
-        }
-
-        .cube-container {
-            width: 100%; height: 420px;
-            background: #000; border-radius: 1.5rem;
-            border: 4px solid #334155; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-        }
-        
+        .right-col { width: 380px; min-width: 380px; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
+        .cube-container { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100% !important; height: 100% !important; }
 
-        @media (max-width: 850px) {
-            .main-grid { flex-direction: column; align-items: stretch; }
-            .right-col { width: 100%; min-width: 100%; max-width: 100%; }
-        }
-
-        /* 共通ボタン・パレットスタイル */
         .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-2 rounded text-[10px] font-mono font-bold border border-slate-600 transition-all hover:bg-slate-600; }
+        .tab-btn { @apply flex-1 py-1.5 text-[9px] font-black rounded-md transition-all border border-transparent; }
+        .tab-btn.active { @apply bg-slate-600 text-white border-slate-500 shadow-inner; }
+        
         .color-dot { width: 32px !important; height: 32px !important; display: inline-block !important; border-radius: 50%; border: 2px solid #475569; cursor: pointer; transition: all 0.2s; position: relative; }
         .color-dot.active { border-color: white !important; box-shadow: 0 0 10px rgba(255,255,255,0.5); transform: scale(1.1); }
-        .color-dot.active::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 900; color: rgba(0,0,0,0.5); }
         .template-btn { @apply flex-1 py-2 text-[10px] font-black rounded-lg border-2 transition-all flex items-center justify-center gap-1 uppercase bg-slate-800 border-slate-700 text-slate-400; }
-        .template-btn.active[data-type="clear"] { @apply bg-slate-100 border-slate-400 text-slate-900; }
         .template-btn.active[data-type="corners"] { @apply bg-orange-600 border-orange-400 text-white shadow-lg; }
+
+        @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; min-width: 100%; } }
     </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4 font-sans overflow-x-hidden">
 
     <div class="max-w-[1200px] mx-auto">
-        <header class="mb-6 flex justify-between items-center border-b border-slate-700 pb-4">
+        <header class="mb-4 flex justify-between items-center border-b border-slate-700 pb-4">
             <div class="flex items-baseline gap-3">
-                <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50 uppercase tracking-tighter">v5.18.1 Stable</span>
+                <h2 class="text-2xl font-black text-emerald-400 italic italic">KAZCUBE Lab</h2>
+                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50">v5.20</span>
             </div>
             <div class="flex gap-2">
-                <button id="btn-lang-ja" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors">JP</button>
-                <button id="btn-lang-en" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors">EN</button>
+                <button onclick="setLang('ja')" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700">JP</button>
+                <button onclick="setLang('en')" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700">EN</button>
             </div>
         </header>
 
@@ -75,22 +54,22 @@
             </div>
 
             <div class="right-col">
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 shadow-xl">
-                    <button id="mode-rotate" class="flex-1 py-3 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-lg">ROTATE</button>
-                    <button id="mode-paint" class="flex-1 py-3 rounded-xl text-xs font-black text-slate-500 hover:text-white">PAINT</button>
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700">
+                    <button id="mode-rotate" class="flex-1 py-2 rounded-lg text-xs font-black transition-all bg-emerald-600 text-white">ROTATE</button>
+                    <button id="mode-paint" class="flex-1 py-2 rounded-lg text-xs font-black text-slate-500 hover:text-white">PAINT</button>
                 </div>
 
-                <div id="paint-panel" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20 shadow-inner">
+                <div id="paint-panel" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20">
                     <div class="space-y-2">
-                        <label id="lbl-display" class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Display Settings</label>
+                        <label id="lbl-display" class="text-[9px] font-black text-slate-500 uppercase">Display Settings</label>
                         <div class="flex gap-2">
                             <button class="template-btn" data-type="clear" id="btn-all-gray">⬜ ALL GRAY</button>
                             <button class="template-btn" data-type="corners" id="btn-corners">🧩 CORNERS</button>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <label id="lbl-target" class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Target Color</label>
-                        <div class="flex flex-wrap justify-center gap-3 p-3 bg-black/40 rounded-xl border border-slate-800">
+                        <label id="lbl-target" class="text-[9px] font-black text-slate-500 uppercase">Target Color</label>
+                        <div class="flex flex-wrap justify-center gap-2 p-2 bg-black/40 rounded-xl border border-slate-800">
                             <div class="color-dot" data-color="white" style="background-color: #fff;"></div>
                             <div class="color-dot" data-color="yellow" style="background-color: #facc15;"></div>
                             <div class="color-dot" data-color="red" style="background-color: #ef4444;"></div>
@@ -101,17 +80,21 @@
                     </div>
                 </div>
 
-                <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black/60 text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none resize-none focus:border-indigo-500" placeholder="Algorithm..."></textarea>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold text-[10px] uppercase shadow-lg transition-all active:scale-95">SCRAMBLE</button>
-                        <button id="btn-reset" class="py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg font-bold text-[10px] uppercase border border-slate-600 transition-all">RESET</button>
+                <div class="space-y-2">
+                    <textarea id="command-box" class="w-full h-20 bg-black/60 text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none resize-none" placeholder="Paste algorithm..."></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-scramble" class="py-2 rounded-lg bg-indigo-600 font-bold text-[10px] text-white uppercase">SCRAMBLE</button>
+                        <button id="btn-reset" class="py-2 rounded-lg bg-slate-700 text-slate-300 border border-slate-600 font-bold text-[10px] uppercase">RESET</button>
                     </div>
                 </div>
 
-                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-3 shadow-inner">
-                    <label class="text-[9px] font-black text-slate-500 uppercase mb-2 block tracking-widest px-1">Basic Moves</label>
-                    <div id="grid-basic" class="grid grid-cols-4 gap-1.5"></div>
+                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-3">
+                    <div class="flex gap-1 mb-3 bg-black/30 p-1 rounded-lg">
+                        <button onclick="switchMoveTab('basic')" id="tab-basic" class="tab-btn active">BASIC</button>
+                        <button onclick="switchMoveTab('wide')" id="tab-wide" class="tab-btn">WIDE</button>
+                        <button onclick="switchMoveTab('slice')" id="tab-slice" class="tab-btn">SLICE/ROT</button>
+                    </div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-1"></div>
                 </div>
             </div>
         </div>
@@ -135,35 +118,52 @@
             document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
         };
 
+        // 回転ボタン生成ロジック
+        const moveSets = {
+            basic: ['U','D','L','R','F','B'],
+            wide: ['u','d','l','r','f','b'],
+            slice: ['M','E','S','x','y','z']
+        };
+
+        window.switchMoveTab = (type) => {
+            const grid = document.getElementById('move-grid');
+            grid.innerHTML = '';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + type).classList.add('active');
+
+            moveSets[type].forEach(f => {
+                [f, f+"'", f+"2"].forEach(m => {
+                    const b = document.createElement('button');
+                    b.className = "move-btn"; b.textContent = m;
+                    b.onclick = () => {
+                        const step = parseInt(slider.value);
+                        if (step < moves.length) moves = moves.slice(0, step);
+                        moves.push(m);
+                        slider.max = moves.length;
+                        render(moves.length);
+                    };
+                    grid.appendChild(b);
+                });
+            });
+        };
+
+        // 初期表示
+        switchMoveTab('basic');
+
+        // モード切替
         document.getElementById('mode-rotate').onclick = () => {
             paintPanel.style.display = 'none';
             player.experimentalStickeringMaskOrbits = "";
-            document.getElementById('mode-rotate').className = "flex-1 py-3 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-lg";
-            document.getElementById('mode-paint').className = "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
+            document.getElementById('mode-rotate').className = "flex-1 py-2 rounded-lg text-xs font-black bg-emerald-600 text-white";
+            document.getElementById('mode-paint').className = "flex-1 py-2 rounded-lg text-xs font-black text-slate-500";
         };
 
         document.getElementById('mode-paint').onclick = () => {
             paintPanel.style.display = 'block';
             player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
-            document.getElementById('mode-paint').className = "flex-1 py-3 rounded-xl text-xs font-black bg-orange-600 text-white shadow-lg";
-            document.getElementById('mode-rotate').className = "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
+            document.getElementById('mode-paint').className = "flex-1 py-2 rounded-lg text-xs font-black bg-orange-600 text-white shadow-lg";
+            document.getElementById('mode-rotate').className = "flex-1 py-2 rounded-lg text-xs font-black text-slate-500";
         };
-
-        const grid = document.getElementById('grid-basic');
-        ['U','D','L','R','F','B'].forEach(f => {
-            [f, f+"'"].forEach(m => {
-                const b = document.createElement('button');
-                b.className = "move-btn"; b.textContent = m;
-                b.onclick = () => {
-                    const step = parseInt(slider.value);
-                    if (step < moves.length) moves = moves.slice(0, step);
-                    moves.push(m);
-                    slider.max = moves.length;
-                    render(moves.length);
-                };
-                grid.appendChild(b);
-            });
-        });
 
         document.querySelectorAll('.template-btn').forEach(btn => {
             btn.onclick = (e) => {
@@ -197,8 +197,6 @@
             document.getElementById('btn-reset').textContent = t.reset;
             document.getElementById('command-box').placeholder = t.placeholder;
         };
-        document.getElementById('btn-lang-ja').onclick = () => setLang('ja');
-        document.getElementById('btn-lang-en').onclick = () => setLang('en');
     </script>
 </body>
 </html>
