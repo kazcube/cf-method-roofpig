@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - Ver 5.11 Mask Fix</title>
+    <title>KAZCUBE Lab - Ver 5.12 Logic Reversal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -12,10 +12,15 @@
         @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr 300px; gap: 12px; } }
         .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-1.5 rounded text-[10px] font-mono font-bold border border-slate-600 transition-all; }
         .template-btn { @apply flex-1 py-3 text-xs font-black rounded-xl border-2 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2; }
+        
+        /* ALL GRAY ボタン: グレー/白のデザイン */
         .template-btn[data-type="clear"] { @apply bg-slate-800 border-slate-700 text-slate-400; }
-        .template-btn[data-type="clear"].active { @apply bg-slate-500 border-white text-white; }
+        .template-btn[data-type="clear"].active { @apply bg-slate-100 border-slate-400 text-slate-900; }
+        
+        /* CORNERS ボタン: オレンジのデザイン */
         .template-btn[data-type="corners"] { @apply bg-slate-800 border-slate-700 text-slate-400; }
-        .template-btn[data-type="corners"].active { @apply bg-orange-600 border-orange-400 text-white; }
+        .template-btn[data-type="corners"].active { @apply bg-orange-600 border-orange-400 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]; }
+
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s; }
         .accordion-content.open { max-height: 800px; }
     </style>
@@ -26,7 +31,7 @@
         <header class="mb-6 flex justify-between items-center border-b border-slate-700 pb-4">
             <div class="flex items-baseline gap-3">
                 <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded uppercase">v5.11 Mask Fix</span>
+                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded uppercase">v5.12 Fixed Logic</span>
             </div>
             <div id="mode-badge" class="text-[10px] font-mono bg-blue-900 text-blue-200 px-4 py-1 rounded-full border border-blue-500/30">Rotate Mode</div>
         </header>
@@ -38,9 +43,9 @@
                 </div>
                 <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700 space-y-4">
                     <input type="range" id="move-slider" min="0" max="0" value="0" step="1" class="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                    <div class="flex justify-between items-center font-mono">
-                        <div class="flex flex-col"><span class="text-slate-500 text-[10px]">STEP</span><span id="step-counter" class="text-emerald-500 text-2xl font-bold">0</span></div>
-                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-1 rounded-xl text-emerald-400 border border-slate-700">---</div>
+                    <div class="flex justify-between items-center font-mono text-[11px]">
+                        <div class="flex flex-col"><span class="text-slate-500">STEP</span><span id="step-counter" class="text-emerald-500 text-2xl font-bold">0</span></div>
+                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-1 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
                     </div>
                 </div>
             </div>
@@ -53,7 +58,7 @@
 
                 <div id="paint-panel" class="hidden space-y-5 p-5 bg-slate-900 rounded-2xl border-2 border-orange-500/20">
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-500 uppercase px-1">1. Display Settings</label>
+                        <label class="text-[10px] font-black text-slate-500 uppercase px-1">Display Mode</label>
                         <div class="flex gap-3">
                             <button class="template-btn" data-type="clear">⬜ ALL GRAY</button>
                             <button class="template-btn" data-type="corners">🧩 CORNERS</button>
@@ -62,20 +67,18 @@
                 </div>
 
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-28 bg-black/60 text-emerald-400 p-4 rounded-2xl font-mono text-xs border border-slate-700 outline-none resize-none" placeholder="Algorithm..."></textarea>
+                    <textarea id="command-box" class="w-full h-28 bg-black/60 text-emerald-400 p-4 rounded-2xl font-mono text-xs border border-slate-700 outline-none resize-none" placeholder="Enter moves..."></textarea>
                     <div class="grid grid-cols-2 gap-3">
                         <button id="btn-scramble" class="py-3 bg-indigo-600 rounded-xl font-bold text-xs uppercase shadow-lg">Scramble</button>
                         <button id="btn-reset" class="py-3 bg-slate-700 text-slate-300 rounded-xl font-bold text-xs uppercase border border-slate-600">Reset All</button>
                     </div>
                 </div>
 
-                <div class="space-y-4">
-                    <div class="border border-slate-700 rounded-2xl overflow-hidden bg-slate-900/40">
-                        <button class="accordion-toggle w-full flex justify-between items-center p-4 text-[10px] font-black uppercase" data-target="basic-moves">
-                            <span>Basic Layer</span><span class="icon">▼</span>
-                        </button>
-                        <div id="basic-moves" class="accordion-content open"><div class="grid grid-cols-4 gap-1.5 p-4" id="grid-basic"></div></div>
-                    </div>
+                <div class="border border-slate-700 rounded-2xl overflow-hidden bg-slate-900/40">
+                    <button class="accordion-toggle w-full flex justify-between items-center p-4 text-[10px] font-black uppercase" data-target="basic-moves">
+                        <span>Basic Layer</span><span class="icon">▼</span>
+                    </button>
+                    <div id="basic-moves" class="accordion-content open"><div class="grid grid-cols-4 gap-1.5 p-4" id="grid-basic"></div></div>
                 </div>
             </div>
         </div>
@@ -86,39 +89,47 @@
             const player = document.getElementById('main-cube');
             const badge = document.getElementById('mode-badge');
             const paintPanel = document.getElementById('paint-panel');
-            const cmdBox = document.getElementById('command-box');
             const slider = document.getElementById('move-slider');
             
             let moves = [];
             let currentMode = 'rotate';
 
-            // マスク文字列の修正
+            // --- 重要: ロジックを完全に反転 ---
+            // ハイフン(-) = カラー表示
+            // I (大文字アイ) = 非表示/グレー
             const masks = {
-                // 全てを隠す（ハイフン12個, 8個, 6個がそれぞれのパーツの非表示/グレーを意味する場合が多い）
-                clear: "EDGES:------------,CORNERS:--------,CENTERS:------",
-                // センター(6個)とコーナー(8個)をI(表示)に、エッジをハイフン(非表示)に
-                corners: "EDGES:------------,CORNERS:IIIIIIII,CENTERS:IIIIII"
+                // ALL GRAY: 全てをI(隠す)
+                clear: "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII",
+                // CORNERS: エッジだけをI(隠す)、コーナーとセンターはハイフン(表示)
+                corners: "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------"
             };
 
             const switchMode = (mode) => {
                 currentMode = mode;
                 const isPaint = mode === 'paint';
-                badge.textContent = isPaint ? "Paint Mode" : "Rotate Mode";
+                badge.textContent = isPaint ? "Paint Mode (Analysis)" : "Rotate Mode";
                 paintPanel.style.display = isPaint ? "block" : "none";
-                document.getElementById('mode-rotate').className = isPaint ? "flex-1 py-3 rounded-xl text-xs font-black text-slate-500" : "flex-1 py-3 rounded-xl text-xs font-black bg-emerald-600 text-white";
-                document.getElementById('mode-paint').className = isPaint ? "flex-1 py-3 rounded-xl text-xs font-black bg-orange-600 text-white" : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
+                
+                document.getElementById('mode-rotate').className = isPaint ? "flex-1 py-3 rounded-xl text-xs font-black text-slate-500" : "flex-1 py-3 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-lg";
+                document.getElementById('mode-paint').className = isPaint ? "flex-1 py-3 rounded-xl text-xs font-black bg-orange-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
 
                 if (isPaint) applyTemplate('clear');
                 else player.experimentalStickeringMaskOrbits = "";
             };
 
             const applyTemplate = (type) => {
+                // マスク適用
                 player.experimentalStickeringMaskOrbits = masks[type];
+                
+                // UI状態更新
                 document.querySelectorAll('.template-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.type === type);
                 });
-                // 再描画ハック
-                const tmp = player.alg; player.alg = tmp;
+
+                // 表示の強制更新
+                const tmpAlg = player.alg;
+                player.alg = ""; // 一旦クリア
+                setTimeout(() => { player.alg = tmpAlg; }, 10); // 微小な遅延で再描画を確実に
             };
 
             document.getElementById('mode-rotate').onclick = () => switchMode('rotate');
@@ -127,7 +138,7 @@
                 btn.onclick = (e) => applyTemplate(e.currentTarget.dataset.type);
             });
 
-            // 以降、基本的なボタン生成ロジックなどは Ver 5.10 と同様
+            // 基本エンジン
             const handleMove = (m) => {
                 const step = parseInt(slider.value);
                 if (step < moves.length) moves = moves.slice(0, step);
@@ -157,6 +168,7 @@
             createBtns('grid-basic', ['U','D','L','R','F','B']);
             slider.oninput = () => render(parseInt(slider.value));
             document.getElementById('btn-reset').onclick = () => { moves = []; slider.max = 0; switchMode('rotate'); render(0); };
+            
             document.querySelectorAll('.accordion-toggle').forEach(btn => {
                 btn.onclick = () => {
                     const target = document.getElementById(btn.dataset.target);
