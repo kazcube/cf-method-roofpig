@@ -3,73 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - Ver 5.14 Palette Hotfix</title>
+    <title>KAZCUBE Lab - v5.14.1 Palette Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        twisty-player { touch-action: none; width: 100%; height: 100%; }
-        .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
-        @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr 300px; gap: 12px; } }
-        .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-1.5 rounded text-[10px] font-mono font-bold border border-slate-600 transition-all; }
+        twisty-player { width: 100%; height: 100%; }
+        .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+        @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr; } }
         
-        .template-btn { @apply flex-1 py-3 text-xs font-black rounded-xl border-2 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2; }
-        .template-btn[data-type="clear"] { @apply bg-slate-800 border-slate-700 text-slate-400; }
-        .template-btn[data-type="clear"].active { @apply bg-slate-100 border-slate-400 text-slate-900; }
-        .template-btn[data-type="corners"] { @apply bg-slate-800 border-slate-700 text-slate-400; }
-        .template-btn[data-type="corners"].active { @apply bg-orange-600 border-orange-400 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]; }
-
-        /* カラーパレットのベーススタイル */
-        .color-dot { @apply w-9 h-9 rounded-full border-2 border-slate-600 cursor-pointer transition-all hover:scale-110 relative flex items-center justify-center shadow-md; }
-        .color-dot.active { @apply border-white scale-110 shadow-[0_0_20px_rgba(255,255,255,0.4)]; }
-        .color-dot.active::after { content: '✓'; @apply font-black text-lg; text-shadow: 0 0 2px rgba(0,0,0,0.5); }
-
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s; }
-        .accordion-content.open { max-height: 800px; }
+        /* パレットの基本スタイル（サイズを固定） */
+        .color-dot {
+            width: 36px !important;
+            height: 36px !important;
+            display: inline-block !important;
+            border-radius: 9999px;
+            border: 2px solid #475569; /* slate-600 */
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .color-dot:hover { transform: scale(1.1); }
+        .color-dot.active {
+            border-color: white !important;
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+            transform: scale(1.1);
+        }
+        .color-dot.active::after {
+            content: '✓';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+            color: rgba(0,0,0,0.6);
+        }
     </style>
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100 p-4 lg:p-6 overflow-x-auto font-sans">
-    <div class="min-w-[750px] max-w-[1400px] mx-auto">
-        
+<body class="min-h-screen bg-slate-900 text-slate-100 p-4 font-sans">
+
+    <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 flex justify-between items-center border-b border-slate-700 pb-4">
-            <div class="flex items-baseline gap-3">
-                <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded uppercase tracking-tighter">v5.14 Hotfix</span>
-            </div>
-            <div id="mode-badge" class="text-[10px] font-mono bg-blue-900 text-blue-200 px-4 py-1 rounded-full border border-blue-500/30 uppercase tracking-widest">Rotate Mode</div>
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
+            <div class="text-[10px] bg-slate-800 px-3 py-1 rounded">v5.14.1 FIX</div>
         </header>
 
         <div class="main-grid">
-            <div class="space-y-4">
-                <div class="bg-black rounded-3xl aspect-square border-4 border-slate-700 overflow-hidden shadow-2xl">
-                    <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
-                </div>
-                <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700 shadow-xl space-y-4">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" step="1" class="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                    <div class="flex justify-between items-center font-mono">
-                        <div class="flex flex-col"><span class="text-slate-500 text-[10px]">STEP</span><span id="step-counter" class="text-emerald-500 text-2xl font-bold">0</span></div>
-                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-1 rounded-xl text-emerald-400 border border-slate-700">---</div>
-                    </div>
-                </div>
+            <div class="bg-black rounded-3xl aspect-square border-4 border-slate-700 overflow-hidden shadow-2xl">
+                <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
             </div>
 
             <div class="space-y-6">
-                <div class="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-700 shadow-xl">
-                    <button id="mode-rotate" class="flex-1 py-3 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-lg">ROTATE</button>
-                    <button id="mode-paint" class="flex-1 py-3 rounded-xl text-xs font-black text-slate-500 hover:text-white">PAINT</button>
+                <div class="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-700">
+                    <button id="mode-rotate" class="flex-1 py-3 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-lg">ROTATE</button>
+                    <button id="mode-paint" class="flex-1 py-3 rounded-xl text-xs font-black text-slate-500">PAINT</button>
                 </div>
 
-                <div id="paint-panel" class="hidden space-y-6 p-5 bg-slate-900 rounded-2xl border-2 border-orange-500/20 shadow-inner">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-500 uppercase px-1 tracking-widest">1. Display Settings</label>
-                        <div class="flex gap-3">
-                            <button class="template-btn" data-type="clear">⬜ ALL GRAY</button>
-                            <button class="template-btn" data-type="corners">🧩 CORNERS</button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-500 uppercase px-1 tracking-widest">2. Target Color</label>
-                        <div class="flex flex-wrap justify-center gap-4 p-5 bg-black/40 rounded-xl border border-slate-800 shadow-inner">
+                <div id="paint-panel" class="hidden space-y-6 p-5 bg-slate-800/50 rounded-2xl border border-slate-700">
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Color</label>
+                        <div class="flex flex-wrap justify-center gap-4 p-4 bg-black/40 rounded-xl border border-slate-900">
                             <div class="color-dot" data-color="white" style="background-color: #ffffff;"></div>
                             <div class="color-dot" data-color="yellow" style="background-color: #facc15;"></div>
                             <div class="color-dot" data-color="red" style="background-color: #ef4444;"></div>
@@ -79,124 +73,35 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-28 bg-black/60 text-emerald-400 p-4 rounded-2xl font-mono text-xs border border-slate-700 outline-none resize-none focus:border-indigo-500" placeholder="Paste algorithm..."></textarea>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-xs uppercase shadow-lg transition-all active:scale-95">Scramble</button>
-                        <button id="btn-reset" class="py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-bold text-xs uppercase border border-slate-600 transition-all">Reset All</button>
-                    </div>
-                </div>
-
-                <div class="border border-slate-700 rounded-2xl overflow-hidden bg-slate-900/40">
-                    <button class="accordion-toggle w-full flex justify-between items-center p-4 text-[10px] font-black uppercase hover:bg-slate-800 transition-colors" data-target="basic-moves">
-                        <span>Basic Moves</span><span class="icon">▼</span>
-                    </button>
-                    <div id="basic-moves" class="accordion-content open"><div class="grid grid-cols-4 gap-1.5 p-4" id="grid-basic"></div></div>
-                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        document.addEventListener('DOMContentLoaded', () => {
-            const player = document.getElementById('main-cube');
-            const badge = document.getElementById('mode-badge');
-            const paintPanel = document.getElementById('paint-panel');
-            const slider = document.getElementById('move-slider');
-            
-            let moves = [];
-            let currentMode = 'rotate';
-            let selectedColor = null;
+        const player = document.getElementById('main-cube');
+        const paintPanel = document.getElementById('paint-panel');
+        const modeRotate = document.getElementById('mode-rotate');
+        const modePaint = document.getElementById('mode-paint');
 
-            const masks = {
-                clear: "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII",
-                corners: "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------"
+        modeRotate.onclick = () => {
+            paintPanel.style.display = 'none';
+            player.experimentalStickeringMaskOrbits = "";
+            modeRotate.className = "flex-1 py-3 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-lg";
+            modePaint.className = "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
+        };
+
+        modePaint.onclick = () => {
+            paintPanel.style.display = 'block';
+            player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
+            modePaint.className = "flex-1 py-3 rounded-xl text-xs font-black bg-orange-600 text-white shadow-lg";
+            modeRotate.className = "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
+        };
+
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.onclick = (e) => {
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                e.currentTarget.classList.add('active');
             };
-
-            const switchMode = (mode) => {
-                currentMode = mode;
-                const isPaint = mode === 'paint';
-                badge.textContent = isPaint ? "Paint Mode" : "Rotate Mode";
-                paintPanel.style.display = isPaint ? "block" : "none";
-                
-                document.getElementById('mode-rotate').className = isPaint ? "flex-1 py-3 rounded-xl text-xs font-black text-slate-500" : "flex-1 py-3 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-lg";
-                document.getElementById('mode-paint').className = isPaint ? "flex-1 py-3 rounded-xl text-xs font-black bg-orange-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
-
-                if (isPaint) applyTemplate('clear');
-                else player.experimentalStickeringMaskOrbits = "";
-            };
-
-            const applyTemplate = (type) => {
-                player.experimentalStickeringMaskOrbits = masks[type];
-                document.querySelectorAll('.template-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.type === type);
-                });
-                forceUpdate();
-            };
-
-            const forceUpdate = () => {
-                const tmp = player.alg;
-                player.alg = "";
-                setTimeout(() => { player.alg = tmp; }, 1);
-            };
-
-            document.querySelectorAll('.color-dot').forEach(dot => {
-                dot.onclick = (e) => {
-                    const color = e.currentTarget.dataset.color;
-                    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-                    
-                    if (selectedColor === color) {
-                        selectedColor = null;
-                    } else {
-                        selectedColor = color;
-                        e.currentTarget.classList.add('active');
-                    }
-                };
-            });
-
-            document.getElementById('mode-rotate').onclick = () => switchMode('rotate');
-            document.getElementById('mode-paint').onclick = () => switchMode('paint');
-            document.querySelectorAll('.template-btn').forEach(btn => {
-                btn.onclick = (e) => applyTemplate(e.currentTarget.dataset.type);
-            });
-
-            const render = (step) => {
-                player.alg = moves.slice(0, step).join(" ");
-                slider.value = step;
-                document.getElementById('step-counter').textContent = step;
-                document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
-            };
-
-            const handleMove = (m) => {
-                const step = parseInt(slider.value);
-                if (step < moves.length) moves = moves.slice(0, step);
-                moves.push(m);
-                slider.max = moves.length;
-                render(moves.length);
-            };
-
-            const createBtns = (id, faces) => {
-                const grid = document.getElementById(id);
-                faces.forEach(f => {
-                    [f, f+"'", f+"2"].forEach(m => {
-                        const b = document.createElement('button');
-                        b.className = "move-btn"; b.textContent = m;
-                        b.onclick = () => handleMove(m);
-                        grid.appendChild(b);
-                    });
-                });
-            };
-            createBtns('grid-basic', ['U','D','L','R','F','B']);
-            slider.oninput = () => render(parseInt(slider.value));
-            document.getElementById('btn-reset').onclick = () => { moves = []; slider.max = 0; switchMode('rotate'); render(0); };
-            
-            document.querySelectorAll('.accordion-toggle').forEach(btn => {
-                btn.onclick = () => {
-                    const target = document.getElementById(btn.dataset.target);
-                    target.classList.toggle('open');
-                };
-            });
         });
     </script>
 </body>
