@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.20 Advanced Moves</title>
+    <title>KAZCUBE Lab - v5.21 Refresh Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -12,16 +12,14 @@
         .right-col { width: 380px; min-width: 380px; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
         .cube-container { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100% !important; height: 100% !important; }
-
         .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-2 rounded text-[10px] font-mono font-bold border border-slate-600 transition-all hover:bg-slate-600; }
-        .tab-btn { @apply flex-1 py-1.5 text-[9px] font-black rounded-md transition-all border border-transparent; }
+        .tab-btn { @apply flex-1 py-1.5 text-[9px] font-black rounded-md transition-all border border-transparent text-slate-400; }
         .tab-btn.active { @apply bg-slate-600 text-white border-slate-500 shadow-inner; }
-        
         .color-dot { width: 32px !important; height: 32px !important; display: inline-block !important; border-radius: 50%; border: 2px solid #475569; cursor: pointer; transition: all 0.2s; position: relative; }
         .color-dot.active { border-color: white !important; box-shadow: 0 0 10px rgba(255,255,255,0.5); transform: scale(1.1); }
+        .color-dot.active::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 900; color: rgba(0,0,0,0.5); }
         .template-btn { @apply flex-1 py-2 text-[10px] font-black rounded-lg border-2 transition-all flex items-center justify-center gap-1 uppercase bg-slate-800 border-slate-700 text-slate-400; }
-        .template-btn.active[data-type="corners"] { @apply bg-orange-600 border-orange-400 text-white shadow-lg; }
-
+        .template-btn.active { @apply bg-orange-600 border-orange-400 text-white shadow-lg; }
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; min-width: 100%; } }
     </style>
 </head>
@@ -30,8 +28,8 @@
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-4 flex justify-between items-center border-b border-slate-700 pb-4">
             <div class="flex items-baseline gap-3">
-                <h2 class="text-2xl font-black text-emerald-400 italic italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50">v5.20</span>
+                <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
+                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50 uppercase">v5.21 Fix</span>
             </div>
             <div class="flex gap-2">
                 <button onclick="setLang('ja')" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700">JP</button>
@@ -55,20 +53,20 @@
 
             <div class="right-col">
                 <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700">
-                    <button id="mode-rotate" class="flex-1 py-2 rounded-lg text-xs font-black transition-all bg-emerald-600 text-white">ROTATE</button>
-                    <button id="mode-paint" class="flex-1 py-2 rounded-lg text-xs font-black text-slate-500 hover:text-white">PAINT</button>
+                    <button id="mode-rotate" class="flex-1 py-2.5 rounded-lg text-xs font-black transition-all bg-emerald-600 text-white">ROTATE</button>
+                    <button id="mode-paint" class="flex-1 py-2.5 rounded-lg text-xs font-black text-slate-500 hover:text-white">PAINT</button>
                 </div>
 
                 <div id="paint-panel" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20">
                     <div class="space-y-2">
-                        <label id="lbl-display" class="text-[9px] font-black text-slate-500 uppercase">Display Settings</label>
+                        <label id="lbl-display" class="text-[9px] font-black text-slate-500 uppercase px-1">Display Settings</label>
                         <div class="flex gap-2">
                             <button class="template-btn" data-type="clear" id="btn-all-gray">⬜ ALL GRAY</button>
                             <button class="template-btn" data-type="corners" id="btn-corners">🧩 CORNERS</button>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <label id="lbl-target" class="text-[9px] font-black text-slate-500 uppercase">Target Color</label>
+                        <label id="lbl-target" class="text-[9px] font-black text-slate-500 uppercase px-1">Target Color</label>
                         <div class="flex flex-wrap justify-center gap-2 p-2 bg-black/40 rounded-xl border border-slate-800">
                             <div class="color-dot" data-color="white" style="background-color: #fff;"></div>
                             <div class="color-dot" data-color="yellow" style="background-color: #facc15;"></div>
@@ -83,16 +81,16 @@
                 <div class="space-y-2">
                     <textarea id="command-box" class="w-full h-20 bg-black/60 text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none resize-none" placeholder="Paste algorithm..."></textarea>
                     <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-scramble" class="py-2 rounded-lg bg-indigo-600 font-bold text-[10px] text-white uppercase">SCRAMBLE</button>
-                        <button id="btn-reset" class="py-2 rounded-lg bg-slate-700 text-slate-300 border border-slate-600 font-bold text-[10px] uppercase">RESET</button>
+                        <button id="btn-scramble" class="py-2.5 rounded-lg bg-indigo-600 font-bold text-[10px] text-white uppercase active:scale-95 transition-all">SCRAMBLE</button>
+                        <button id="btn-reset" class="py-2.5 rounded-lg bg-slate-700 text-slate-300 border border-slate-600 font-bold text-[10px] uppercase active:scale-95 transition-all">RESET</button>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-3">
                     <div class="flex gap-1 mb-3 bg-black/30 p-1 rounded-lg">
-                        <button onclick="switchMoveTab('basic')" id="tab-basic" class="tab-btn active">BASIC</button>
-                        <button onclick="switchMoveTab('wide')" id="tab-wide" class="tab-btn">WIDE</button>
-                        <button onclick="switchMoveTab('slice')" id="tab-slice" class="tab-btn">SLICE/ROT</button>
+                        <button id="tab-basic" class="tab-btn active">BASIC</button>
+                        <button id="tab-wide" class="tab-btn">WIDE</button>
+                        <button id="tab-slice" class="tab-btn">SLICE/ROT</button>
                     </div>
                     <div id="move-grid" class="grid grid-cols-6 gap-1"></div>
                 </div>
@@ -101,15 +99,17 @@
     </div>
 
     <script type="module">
-        const i18n = {
-            ja: { display: "表示設定", allGray: "⬜ 全グレー", corners: "🧩 コーナー", target: "ターゲット色", reset: "リセット", placeholder: "手順を貼り付け..." },
-            en: { display: "DISPLAY SETTINGS", allGray: "⬜ ALL GRAY", corners: "🧩 CORNERS", target: "TARGET COLOR", reset: "RESET ALL", placeholder: "Paste algorithm..." }
-        };
-
         const player = document.getElementById('main-cube');
         const paintPanel = document.getElementById('paint-panel');
         const slider = document.getElementById('move-slider');
         let moves = [];
+
+        // 再描画を強制する関数
+        const forceRefresh = () => {
+            const currentAlg = player.alg;
+            player.alg = ""; // 一度リセット
+            setTimeout(() => { player.alg = currentAlg; }, 1); // 1ms後に戻す
+        };
 
         const render = (step) => {
             player.alg = moves.slice(0, step).join(" ");
@@ -118,14 +118,31 @@
             document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
         };
 
-        // 回転ボタン生成ロジック
+        // ROTATEボタンの修正
+        document.getElementById('mode-rotate').onclick = () => {
+            paintPanel.style.display = 'none';
+            player.experimentalStickeringMaskOrbits = ""; // マスク解除
+            forceRefresh(); // ← これが重要：カラー表示を強制復活
+            document.getElementById('mode-rotate').className = "flex-1 py-2.5 rounded-lg text-xs font-black bg-emerald-600 text-white";
+            document.getElementById('mode-paint').className = "flex-1 py-2.5 rounded-lg text-xs font-black text-slate-500";
+        };
+
+        document.getElementById('mode-paint').onclick = () => {
+            paintPanel.style.display = 'block';
+            player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
+            forceRefresh();
+            document.getElementById('mode-paint').className = "flex-1 py-2.5 rounded-lg text-xs font-black bg-orange-600 text-white shadow-lg";
+            document.getElementById('mode-rotate').className = "flex-1 py-2.5 rounded-lg text-xs font-black text-slate-500";
+        };
+
+        // タブ切り替えロジック
         const moveSets = {
             basic: ['U','D','L','R','F','B'],
             wide: ['u','d','l','r','f','b'],
             slice: ['M','E','S','x','y','z']
         };
 
-        window.switchMoveTab = (type) => {
+        const updateMoveGrid = (type) => {
             const grid = document.getElementById('move-grid');
             grid.innerHTML = '';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -147,30 +164,18 @@
             });
         };
 
-        // 初期表示
-        switchMoveTab('basic');
+        document.getElementById('tab-basic').onclick = () => updateMoveGrid('basic');
+        document.getElementById('tab-wide').onclick = () => updateMoveGrid('wide');
+        document.getElementById('tab-slice').onclick = () => updateMoveGrid('slice');
+        updateMoveGrid('basic'); // 初期化
 
-        // モード切替
-        document.getElementById('mode-rotate').onclick = () => {
-            paintPanel.style.display = 'none';
-            player.experimentalStickeringMaskOrbits = "";
-            document.getElementById('mode-rotate').className = "flex-1 py-2 rounded-lg text-xs font-black bg-emerald-600 text-white";
-            document.getElementById('mode-paint').className = "flex-1 py-2 rounded-lg text-xs font-black text-slate-500";
-        };
-
-        document.getElementById('mode-paint').onclick = () => {
-            paintPanel.style.display = 'block';
-            player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
-            document.getElementById('mode-paint').className = "flex-1 py-2 rounded-lg text-xs font-black bg-orange-600 text-white shadow-lg";
-            document.getElementById('mode-rotate').className = "flex-1 py-2 rounded-lg text-xs font-black text-slate-500";
-        };
-
+        // パレット・テンプレート
         document.querySelectorAll('.template-btn').forEach(btn => {
             btn.onclick = (e) => {
                 player.experimentalStickeringMaskOrbits = (e.currentTarget.dataset.type === 'clear') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------";
                 document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
                 e.currentTarget.classList.add('active');
-                const t = player.alg; player.alg = ""; setTimeout(()=>player.alg=t, 1);
+                forceRefresh();
             };
         });
 
@@ -185,10 +190,18 @@
         document.getElementById('btn-reset').onclick = () => { moves = []; slider.max = 0; render(0); };
         document.getElementById('btn-scramble').onclick = () => {
             const raw = document.getElementById('command-box').value;
-            if(raw) { moves = raw.trim().split(/\s+/); slider.max = moves.length; render(moves.length); }
+            if(raw) { 
+                moves = raw.trim().split(/\s+/); 
+                slider.max = moves.length; 
+                render(moves.length); 
+            }
         };
-        
+
         window.setLang = (lang) => {
+            const i18n = {
+                ja: { display: "表示設定", allGray: "⬜ 全グレー", corners: "🧩 コーナー", target: "ターゲット色", reset: "リセット", placeholder: "手順を貼り付け..." },
+                en: { display: "DISPLAY SETTINGS", allGray: "⬜ ALL GRAY", corners: "🧩 CORNERS", target: "TARGET COLOR", reset: "RESET ALL", placeholder: "Paste algorithm..." }
+            };
             const t = i18n[lang];
             document.getElementById('lbl-display').textContent = t.display;
             document.getElementById('btn-all-gray').textContent = t.allGray;
