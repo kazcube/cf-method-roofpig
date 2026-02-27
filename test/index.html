@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.23 Fixed Tabs</title>
+    <title>KAZCUBE Lab - v5.24 Sync & Reset</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -13,21 +13,18 @@
         .cube-container { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100% !important; height: 100% !important; }
         
-        /* ボタン基本構造：ここを固定する */
-        .mode-btn { flex: 1; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 900; transition: all 0.2s; border: 1px solid transparent; }
-        
-        /* 状態別スタイル */
-        .mode-rotate-active { background-color: #059669; color: white; border-color: #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .mode-paint-active { background-color: #ea580c; color: white; border-color: #fb923c; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .mode-inactive { background-color: transparent; color: #64748b; border-color: transparent; }
-        .mode-inactive:hover { color: white; }
+        /* ボタン基本 */
+        .mode-btn { flex: 1; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 900; transition: all 0.2s; border: 2px solid transparent; }
+        .mode-rotate-active { background-color: #059669 !important; color: white !important; border-color: #10b981 !important; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+        .mode-paint-active { background-color: #ea580c !important; color: white !important; border-color: #fb923c !important; box-shadow: 0 4px 12px rgba(234,88,12,0.3); }
+        .mode-inactive { background-color: #0f172a !important; color: #475569 !important; border-color: #1e293b !important; }
 
-        .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-2 rounded text-[10px] font-mono font-bold border border-slate-600 transition-all hover:bg-slate-600; }
+        .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-2 rounded text-[10px] font-mono font-bold border border-slate-600; }
         .tab-btn { @apply flex-1 py-1.5 text-[9px] font-black rounded-md transition-all border border-transparent text-slate-400; }
-        .tab-btn.active { @apply bg-slate-600 text-white border-slate-500 shadow-inner; }
-        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { @apply bg-slate-600 text-white border-slate-500; }
+        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; }
         .color-dot.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.4); }
-        .template-btn { @apply flex-1 py-2 text-[10px] font-black rounded-lg border-2 transition-all flex items-center justify-center gap-1 uppercase bg-slate-800 border-slate-700 text-slate-400; }
+        .template-btn { @apply flex-1 py-2 text-[10px] font-black rounded-lg border-2 bg-slate-800 border-slate-700 text-slate-400; }
         .template-btn.active { @apply bg-orange-600 border-orange-400 text-white shadow-lg; }
         
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; min-width: 100%; } }
@@ -39,7 +36,7 @@
         <header class="mb-4 flex justify-between items-center border-b border-slate-700 pb-4">
             <div class="flex items-baseline gap-3">
                 <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50 uppercase">v5.23</span>
+                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50 uppercase">v5.24</span>
             </div>
             <div class="flex gap-2">
                 <button onclick="setLang('ja')" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700">JP</button>
@@ -62,7 +59,7 @@
             </div>
 
             <div class="right-col">
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1">
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1 shadow-inner">
                     <button id="mode-rotate" class="mode-btn mode-rotate-active">ROTATE</button>
                     <button id="mode-paint" class="mode-btn mode-inactive">PAINT</button>
                 </div>
@@ -116,15 +113,33 @@
         const paintBtn = document.getElementById('mode-paint');
         let moves = [];
 
-        // 描画更新の徹底
-        const syncCube = () => {
-            const currentMask = player.experimentalStickeringMaskOrbits;
-            player.experimentalStickeringMaskOrbits = currentMask; // 代入し直すことで発火
-            const temp = player.alg;
+        // 描画更新の徹底：あえて長めのインターバルを設ける
+        const forceUpdate = () => {
+            const tempAlg = player.alg;
             player.alg = ""; 
-            setTimeout(() => { player.alg = temp; }, 1);
+            setTimeout(() => { player.alg = tempAlg; }, 30);
         };
 
+        const setRotateMode = () => {
+            paintPanel.style.display = 'none';
+            player.experimentalStickeringMaskOrbits = ""; // マスク全解除
+            rotateBtn.className = "mode-btn mode-rotate-active";
+            paintBtn.className = "mode-btn mode-inactive";
+            forceUpdate();
+        };
+
+        const setPaintMode = () => {
+            paintPanel.style.display = 'block';
+            player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
+            rotateBtn.className = "mode-btn mode-inactive";
+            paintBtn.className = "mode-btn mode-paint-active";
+            forceUpdate();
+        };
+
+        rotateBtn.onclick = setRotateMode;
+        paintBtn.onclick = setPaintMode;
+
+        // 手順の描画
         const render = (step) => {
             player.alg = moves.slice(0, step).join(" ");
             slider.value = step;
@@ -132,22 +147,7 @@
             document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
         };
 
-        rotateBtn.onclick = () => {
-            paintPanel.style.display = 'none';
-            player.experimentalStickeringMaskOrbits = ""; 
-            syncCube();
-            rotateBtn.className = "mode-btn mode-rotate-active";
-            paintBtn.className = "mode-btn mode-inactive";
-        };
-
-        paintBtn.onclick = () => {
-            paintPanel.style.display = 'block';
-            player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
-            syncCube();
-            rotateBtn.className = "mode-btn mode-inactive";
-            paintBtn.className = "mode-btn mode-paint-active";
-        };
-
+        // 以降、タブやパレットのロジックは維持
         const moveSets = {
             basic: ['U','D','L','R','F','B'],
             wide: ['u','d','l','r','f','b'],
@@ -185,7 +185,7 @@
                 player.experimentalStickeringMaskOrbits = (e.currentTarget.dataset.type === 'clear') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------";
                 document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
                 e.currentTarget.classList.add('active');
-                syncCube();
+                forceUpdate();
             };
         });
 
@@ -195,27 +195,3 @@
                 e.currentTarget.classList.add('active');
             };
         });
-
-        slider.oninput = () => render(parseInt(slider.value));
-        document.getElementById('btn-reset').onclick = () => { moves = []; slider.max = 0; render(0); };
-        document.getElementById('btn-scramble').onclick = () => {
-            const raw = document.getElementById('command-box').value;
-            if(raw) { moves = raw.trim().split(/\s+/); slider.max = moves.length; render(moves.length); }
-        };
-
-        window.setLang = (lang) => {
-            const i18n = {
-                ja: { display: "表示設定", allGray: "⬜ 全グレー", corners: "🧩 コーナー", target: "ターゲット色", reset: "リセット", placeholder: "手順を貼り付け..." },
-                en: { display: "DISPLAY SETTINGS", allGray: "⬜ ALL GRAY", corners: "🧩 CORNERS", target: "TARGET COLOR", reset: "RESET ALL", placeholder: "Paste algorithm..." }
-            };
-            const t = i18n[lang];
-            document.getElementById('lbl-display').textContent = t.display;
-            document.getElementById('btn-all-gray').textContent = t.allGray;
-            document.getElementById('btn-corners').textContent = t.corners;
-            document.getElementById('lbl-target').textContent = t.target;
-            document.getElementById('btn-reset').textContent = t.reset;
-            document.getElementById('command-box').placeholder = t.placeholder;
-        };
-    </script>
-</body>
-</html>
