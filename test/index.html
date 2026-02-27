@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.27 Component Re-mount</title>
+    <title>KAZCUBE Lab - v5.28 Scramble & Clean Reset</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
-        /* IDをコンテナに変更 */
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
 
@@ -32,13 +31,12 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-4 flex justify-between items-baseline border-b border-slate-700 pb-4">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic">v5.27</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic">v5.28 Sync</span></h2>
         </header>
 
         <div class="main-grid">
             <div class="left-col space-y-4">
                 <div id="cube-wrapper" class="shadow-2xl"></div>
-                
                 <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                     <div class="flex justify-between items-center font-mono">
@@ -70,10 +68,10 @@
                 </div>
 
                 <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Algorithm..."></textarea>
+                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Paste or Scramble..."></textarea>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="applyScramble()" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white">SCRAMBLE</button>
-                        <button onclick="fullReset()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300">RESET ALL</button>
+                        <button onclick="applyRandomScramble()" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95 shadow-lg">RANDOM SCRAMBLE</button>
+                        <button onclick="fullReset()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300 uppercase active:scale-95">RESET ALL</button>
                     </div>
                 </div>
 
@@ -90,42 +88,31 @@
     </div>
 
     <script type="module">
+        import { randomScrambleForPuzzle } from "https://cdn.cubing.net/v0/js/cubing/scramble";
+
         let moves = [];
         let currentMask = "";
-        let currentMode = "rotate";
 
-        // 【核心】キューブをゼロから描き直す関数
         const initCube = () => {
             const wrapper = document.getElementById('cube-wrapper');
-            wrapper.innerHTML = ''; // 中身を完全に消去
-            
+            wrapper.innerHTML = '';
             const player = document.createElement('twisty-player');
             player.setAttribute('puzzle', '3x3x3');
             player.setAttribute('background', 'none');
             player.setAttribute('control-panel', 'none');
+            if (currentMask) player.setAttribute('experimental-stickering-mask-orbits', currentMask);
             
-            // 現在のマスクを適用
-            if (currentMask) {
-                player.setAttribute('experimental-stickering-mask-orbits', currentMask);
-            }
-            
-            // 現在のアルゴリズムを適用
             const step = parseInt(document.getElementById('move-slider').value) || 0;
             player.alg = moves.slice(0, step).join(" ");
-            
             wrapper.appendChild(player);
         };
 
-        // モード切替
         window.switchMode = (mode) => {
-            currentMode = mode;
             currentMask = (mode === 'paint') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "";
-            
             document.getElementById('btn-mode-rotate').className = `mode-btn ${mode === 'rotate' ? 'btn-rotate-active' : 'btn-inactive'}`;
             document.getElementById('btn-mode-paint').className = `mode-btn ${mode === 'paint' ? 'btn-paint-active' : 'btn-inactive'}`;
             document.getElementById('panel-paint').style.display = (mode === 'paint') ? 'block' : 'none';
-            
-            initCube(); // 再描画
+            initCube();
         };
 
         window.updateMask = (type) => {
@@ -133,15 +120,17 @@
             initCube();
         };
 
-        window.applyScramble = () => {
-            const val = document.getElementById('command-box').value.trim();
-            if (val) {
-                moves = val.split(/\s+/);
-                const slider = document.getElementById('move-slider');
-                slider.max = moves.length;
-                slider.value = moves.length;
-                updateView();
-            }
+        // ランダムスクランブル
+        window.applyRandomScramble = async () => {
+            const scramble = await randomScrambleForPuzzle("3x3x3");
+            const scrambleStr = scramble.toString();
+            document.getElementById('command-box').value = scrambleStr;
+            moves = scrambleStr.split(/\s+/);
+            
+            const slider = document.getElementById('move-slider');
+            slider.max = moves.length;
+            slider.value = moves.length;
+            updateView();
         };
 
         const updateView = () => {
@@ -154,12 +143,14 @@
 
         window.fullReset = () => {
             moves = [];
-            document.getElementById('move-slider').max = 0;
-            document.getElementById('move-slider').value = 0;
+            // ボックスも空にする
+            document.getElementById('command-box').value = "";
+            const slider = document.getElementById('move-slider');
+            slider.max = 0;
+            slider.value = 0;
             updateView();
         };
 
-        // 回転ボタン生成
         const moveData = {
             basic: ['U','D','L','R','F','B'],
             wide: ['u','d','l','r','f','b'],
@@ -177,11 +168,12 @@
                     const b = document.createElement('button');
                     b.className = "move-btn"; b.textContent = m;
                     b.onclick = () => {
-                        const step = parseInt(document.getElementById('move-slider').value);
+                        const slider = document.getElementById('move-slider');
+                        const step = parseInt(slider.value);
                         if (step < moves.length) moves = moves.slice(0, step);
                         moves.push(m);
-                        document.getElementById('move-slider').max = moves.length;
-                        document.getElementById('move-slider').value = moves.length;
+                        slider.max = moves.length;
+                        slider.value = moves.length;
                         updateView();
                     };
                     grid.appendChild(b);
@@ -195,7 +187,6 @@
             el.classList.add('active');
         };
 
-        // 初回起動
         initCube();
         renderMoves('basic');
     </script>
