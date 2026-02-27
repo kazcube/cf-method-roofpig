@@ -3,44 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.24 Sync & Reset</title>
+    <title>KAZCUBE Lab - v5.25 Optimized</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
-        .right-col { width: 380px; min-width: 380px; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
-        .cube-container { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        twisty-player { width: 100% !important; height: 100% !important; }
-        
-        /* ボタン基本 */
-        .mode-btn { flex: 1; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 900; transition: all 0.2s; border: 2px solid transparent; }
-        .mode-rotate-active { background-color: #059669 !important; color: white !important; border-color: #10b981 !important; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
-        .mode-paint-active { background-color: #ea580c !important; color: white !important; border-color: #fb923c !important; box-shadow: 0 4px 12px rgba(234,88,12,0.3); }
-        .mode-inactive { background-color: #0f172a !important; color: #475569 !important; border-color: #1e293b !important; }
+        .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
+        .cube-container { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; }
+        twisty-player { width: 100%; height: 100%; }
 
-        .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-2 rounded text-[10px] font-mono font-bold border border-slate-600; }
-        .tab-btn { @apply flex-1 py-1.5 text-[9px] font-black rounded-md transition-all border border-transparent text-slate-400; }
-        .tab-btn.active { @apply bg-slate-600 text-white border-slate-500; }
-        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; }
-        .color-dot.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.4); }
-        .template-btn { @apply flex-1 py-2 text-[10px] font-black rounded-lg border-2 bg-slate-800 border-slate-700 text-slate-400; }
-        .template-btn.active { @apply bg-orange-600 border-orange-400 text-white shadow-lg; }
+        /* モード切替ボタンの完全定義 */
+        .mode-btn { flex: 1; py: 10px; border-radius: 8px; font-weight: 900; font-size: 12px; transition: 0.2s; border: 2px solid transparent; }
+        .btn-rotate-active { background-color: #059669; color: white; border-color: #10b981; }
+        .btn-paint-active { background-color: #ea580c; color: white; border-color: #fb923c; }
+        .btn-inactive { background-color: #1e293b; color: #64748b; }
+
+        /* 回転ボタン */
+        .move-btn { background-color: #334155; color: white; padding: 8px 0; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: bold; border: 1px solid #475569; }
+        .move-btn:active { background-color: #4f46e5; }
         
-        @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; min-width: 100%; } }
+        /* タブ */
+        .tab-btn { flex: 1; padding: 6px 0; font-size: 10px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
+        .tab-btn.active { background-color: #475569; color: white; }
+
+        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; }
+        .color-dot.active { border-color: white; transform: scale(1.1); }
+
+        @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100 p-4 font-sans overflow-x-hidden">
+<body class="min-h-screen bg-slate-900 text-slate-100 p-4">
 
     <div class="max-w-[1200px] mx-auto">
-        <header class="mb-4 flex justify-between items-center border-b border-slate-700 pb-4">
+        <header class="mb-4 flex justify-between items-baseline border-b border-slate-700 pb-4">
             <div class="flex items-baseline gap-3">
                 <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded bg-slate-800/50 uppercase">v5.24</span>
+                <span class="text-[10px] font-mono text-slate-500 border border-slate-700 px-2 py-0.5 rounded bg-slate-800">v5.25</span>
             </div>
-            <div class="flex gap-2">
-                <button onclick="setLang('ja')" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700">JP</button>
-                <button onclick="setLang('en')" class="px-2 py-1 text-[9px] font-bold rounded bg-slate-800 border border-slate-700">EN</button>
+            <div class="flex gap-2 text-[10px]">
+                <button onclick="setLang('ja')" class="hover:text-emerald-400">JP</button>
+                <button onclick="setLang('en')" class="hover:text-emerald-400">EN</button>
             </div>
         </header>
 
@@ -49,55 +52,49 @@
                 <div class="cube-container shadow-2xl">
                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
-                <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 shadow-xl space-y-3">
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                     <div class="flex justify-between items-center font-mono">
-                        <div class="flex flex-col"><span id="lbl-step" class="text-slate-500 text-[9px] font-bold uppercase">Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
+                        <div class="flex flex-col"><span class="text-slate-500 text-[9px] uppercase">Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
                         <div id="move-indicator" class="text-lg font-black bg-slate-900 px-4 py-1 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
                     </div>
                 </div>
             </div>
 
             <div class="right-col">
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1 shadow-inner">
-                    <button id="mode-rotate" class="mode-btn mode-rotate-active">ROTATE</button>
-                    <button id="mode-paint" class="mode-btn mode-inactive">PAINT</button>
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1">
+                    <button id="btn-mode-rotate" class="mode-btn btn-rotate-active" onclick="changeMode('rotate')">ROTATE</button>
+                    <button id="btn-mode-paint" class="mode-btn btn-inactive" onclick="changeMode('paint')">PAINT</button>
                 </div>
 
-                <div id="paint-panel" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20">
-                    <div class="space-y-2">
-                        <label id="lbl-display" class="text-[9px] font-black text-slate-500 uppercase">Display Settings</label>
-                        <div class="flex gap-2">
-                            <button class="template-btn" data-type="clear" id="btn-all-gray">⬜ ALL GRAY</button>
-                            <button class="template-btn" data-type="corners" id="btn-corners">🧩 CORNERS</button>
-                        </div>
+                <div id="panel-paint" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20">
+                    <div class="flex gap-2">
+                        <button onclick="setMask('clear')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700">⬜ ALL GRAY</button>
+                        <button onclick="setMask('corners')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700">🧩 CORNERS</button>
                     </div>
-                    <div class="space-y-2">
-                        <label id="lbl-target" class="text-[9px] font-black text-slate-500 uppercase">Target Color</label>
-                        <div class="flex flex-wrap justify-center gap-2 p-2 bg-black/40 rounded-xl border border-slate-800">
-                            <div class="color-dot" data-color="white" style="background-color: #fff;"></div>
-                            <div class="color-dot" data-color="yellow" style="background-color: #facc15;"></div>
-                            <div class="color-dot" data-color="red" style="background-color: #ef4444;"></div>
-                            <div class="color-dot" data-color="orange" style="background-color: #f97316;"></div>
-                            <div class="color-dot" data-color="blue" style="background-color: #3b82f6;"></div>
-                            <div class="color-dot" data-color="green" style="background-color: #22c55e;"></div>
-                        </div>
+                    <div class="flex justify-center gap-2 p-2 bg-black/40 rounded-lg">
+                        <div class="color-dot" style="background:#fff" onclick="selectColor(this)"></div>
+                        <div class="color-dot" style="background:#facc15" onclick="selectColor(this)"></div>
+                        <div class="color-dot" style="background:#ef4444" onclick="selectColor(this)"></div>
+                        <div class="color-dot" style="background:#f97316" onclick="selectColor(this)"></div>
+                        <div class="color-dot" style="background:#3b82f6" onclick="selectColor(this)"></div>
+                        <div class="color-dot" style="background:#22c55e" onclick="selectColor(this)"></div>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black/60 text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none resize-none" placeholder="Algorithm..."></textarea>
+                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Algorithm..."></textarea>
                     <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-scramble" class="py-2.5 rounded-lg bg-indigo-600 font-bold text-[10px] text-white uppercase shadow-lg active:scale-95 transition-all">SCRAMBLE</button>
-                        <button id="btn-reset" class="py-2.5 rounded-lg bg-slate-700 text-slate-300 border border-slate-600 font-bold text-[10px] uppercase active:scale-95 transition-all">RESET</button>
+                        <button onclick="applyScramble()" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white">SCRAMBLE</button>
+                        <button onclick="resetAll()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300">RESET</button>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-3">
                     <div class="flex gap-1 mb-3 bg-black/30 p-1 rounded-lg">
-                        <button id="tab-basic" class="tab-btn active">BASIC</button>
-                        <button id="tab-wide" class="tab-btn">WIDE</button>
-                        <button id="tab-slice" class="tab-btn">SLICE/ROT</button>
+                        <button id="tab-basic" onclick="drawMoveGrid('basic')" class="tab-btn active">BASIC</button>
+                        <button id="tab-wide" onclick="drawMoveGrid('wide')" class="tab-btn">WIDE</button>
+                        <button id="tab-slice" onclick="drawMoveGrid('slice')" class="tab-btn">SLICE</button>
                     </div>
                     <div id="move-grid" class="grid grid-cols-6 gap-1"></div>
                 </div>
@@ -107,91 +104,105 @@
 
     <script type="module">
         const player = document.getElementById('main-cube');
-        const paintPanel = document.getElementById('paint-panel');
-        const slider = document.getElementById('move-slider');
-        const rotateBtn = document.getElementById('mode-rotate');
-        const paintBtn = document.getElementById('mode-paint');
-        let moves = [];
+        let currentMoves = [];
 
-        // 描画更新の徹底：あえて長めのインターバルを設ける
-        const forceUpdate = () => {
-            const tempAlg = player.alg;
-            player.alg = ""; 
-            setTimeout(() => { player.alg = tempAlg; }, 30);
+        // --- コア機能 ---
+        window.changeMode = (mode) => {
+            const rBtn = document.getElementById('btn-mode-rotate');
+            const pBtn = document.getElementById('btn-mode-paint');
+            const panel = document.getElementById('panel-paint');
+
+            if (mode === 'rotate') {
+                player.experimentalStickeringMaskOrbits = "";
+                rBtn.className = "mode-btn btn-rotate-active";
+                pBtn.className = "mode-btn btn-inactive";
+                panel.style.display = 'none';
+            } else {
+                player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
+                rBtn.className = "mode-btn btn-inactive";
+                pBtn.className = "mode-btn btn-paint-active";
+                panel.style.display = 'block';
+            }
+            // 強制再描画
+            const t = player.alg; player.alg = ""; setTimeout(() => player.alg = t, 50);
         };
 
-        const setRotateMode = () => {
-            paintPanel.style.display = 'none';
-            player.experimentalStickeringMaskOrbits = ""; // マスク全解除
-            rotateBtn.className = "mode-btn mode-rotate-active";
-            paintBtn.className = "mode-btn mode-inactive";
-            forceUpdate();
+        window.setMask = (type) => {
+            player.experimentalStickeringMaskOrbits = (type === 'clear') 
+                ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" 
+                : "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------";
+            const t = player.alg; player.alg = ""; setTimeout(() => player.alg = t, 10);
         };
 
-        const setPaintMode = () => {
-            paintPanel.style.display = 'block';
-            player.experimentalStickeringMaskOrbits = "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII";
-            rotateBtn.className = "mode-btn mode-inactive";
-            paintBtn.className = "mode-btn mode-paint-active";
-            forceUpdate();
+        window.selectColor = (el) => {
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            el.classList.add('active');
         };
 
-        rotateBtn.onclick = setRotateMode;
-        paintBtn.onclick = setPaintMode;
-
-        // 手順の描画
-        const render = (step) => {
-            player.alg = moves.slice(0, step).join(" ");
-            slider.value = step;
-            document.getElementById('step-counter').textContent = step;
-            document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
-        };
-
-        // 以降、タブやパレットのロジックは維持
-        const moveSets = {
+        // --- 回転ボタン生成 ---
+        const moveData = {
             basic: ['U','D','L','R','F','B'],
             wide: ['u','d','l','r','f','b'],
             slice: ['M','E','S','x','y','z']
         };
 
-        const updateMoveGrid = (type) => {
+        window.drawMoveGrid = (type) => {
             const grid = document.getElementById('move-grid');
             grid.innerHTML = '';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + type).classList.add('active');
-            moveSets[type].forEach(f => {
+            document.getElementById('tab-'+type).classList.add('active');
+
+            moveData[type].forEach(f => {
                 [f, f+"'", f+"2"].forEach(m => {
                     const b = document.createElement('button');
-                    b.className = "move-btn"; b.textContent = m;
-                    b.onclick = () => {
-                        const step = parseInt(slider.value);
-                        if (step < moves.length) moves = moves.slice(0, step);
-                        moves.push(m);
-                        slider.max = moves.length;
-                        render(moves.length);
-                    };
+                    b.className = "move-btn";
+                    b.textContent = m;
+                    b.onclick = () => addMove(m);
                     grid.appendChild(b);
                 });
             });
         };
 
-        document.getElementById('tab-basic').onclick = () => updateMoveGrid('basic');
-        document.getElementById('tab-wide').onclick = () => updateMoveGrid('wide');
-        document.getElementById('tab-slice').onclick = () => updateMoveGrid('slice');
-        updateMoveGrid('basic');
+        const addMove = (m) => {
+            const step = parseInt(document.getElementById('move-slider').value);
+            if (step < currentMoves.length) currentMoves = currentMoves.slice(0, step);
+            currentMoves.push(m);
+            updateUI();
+        };
 
-        document.querySelectorAll('.template-btn').forEach(btn => {
-            btn.onclick = (e) => {
-                player.experimentalStickeringMaskOrbits = (e.currentTarget.dataset.type === 'clear') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------";
-                document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                forceUpdate();
-            };
-        });
+        const updateUI = () => {
+            const step = currentMoves.length;
+            const slider = document.getElementById('move-slider');
+            player.alg = currentMoves.join(" ");
+            slider.max = step;
+            slider.value = step;
+            document.getElementById('step-counter').textContent = step;
+            document.getElementById('move-indicator').textContent = step > 0 ? currentMoves[step-1] : "---";
+        };
 
-        document.querySelectorAll('.color-dot').forEach(dot => {
-            dot.onclick = (e) => {
-                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-            };
-        });
+        window.applyScramble = () => {
+            const val = document.getElementById('command-box').value.trim();
+            if (val) {
+                currentMoves = val.split(/\s+/);
+                updateUI();
+            }
+        };
+
+        window.resetAll = () => {
+            currentMoves = [];
+            updateUI();
+        };
+
+        document.getElementById('move-slider').oninput = (e) => {
+            const step = parseInt(e.target.value);
+            player.alg = currentMoves.slice(0, step).join(" ");
+            document.getElementById('step-counter').textContent = step;
+            document.getElementById('move-indicator').textContent = step > 0 ? currentMoves[step-1] : "---";
+        };
+
+        // 初期化
+        drawMoveGrid('basic');
+        window.setLang = (lang) => { /* 言語切替ロジック */ };
+    </script>
+</body>
+</html>
