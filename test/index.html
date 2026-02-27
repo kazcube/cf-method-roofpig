@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.29 Final Stability</title>
+    <title>KAZCUBE Lab - v5.30 Algorithm Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -13,13 +13,11 @@
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
 
-        /* モード切替 */
         .mode-btn { flex: 1; padding: 10px 0; border-radius: 8px; font-weight: 900; font-size: 12px; transition: 0.2s; border: 2px solid transparent; }
         .btn-rotate-active { background-color: #10b981 !important; color: white !important; border-color: #34d399 !important; }
         .btn-paint-active { background-color: #f97316 !important; color: white !important; border-color: #fb923c !important; }
         .btn-inactive { background-color: #1e293b !important; color: #475569 !important; }
 
-        /* 操作系 */
         .move-btn { background-color: #334155; color: white; padding: 8px 0; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 6px 0; font-size: 10px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
@@ -33,7 +31,7 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-4 border-b border-slate-700 pb-4">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic uppercase tracking-widest ml-2">v5.29</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic uppercase tracking-widest ml-2">v5.30 Sync</span></h2>
         </header>
 
         <div class="main-grid">
@@ -72,9 +70,9 @@
                 </div>
 
                 <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none focus:border-indigo-500 transition-all" placeholder="Enter Algorithm or Scramble..."></textarea>
+                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none focus:border-indigo-500 transition-all" placeholder="Enter Algorithm or Scramble..." oninput="onBoxInput()"></textarea>
                     <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-scramble" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95 shadow-lg">RANDOM SCRAMBLE</button>
+                        <button id="btn-action" onclick="handleMainAction()" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95 shadow-lg">RANDOM SCRAMBLE</button>
                         <button onclick="fullReset()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300 uppercase active:scale-95 border border-slate-600">RESET ALL</button>
                     </div>
                 </div>
@@ -95,12 +93,11 @@
         let moves = [];
         let currentMask = "";
 
-        // キューブの初期化・再描画
+        // 共通：キューブ再描画
         const refreshCube = () => {
             const wrapper = document.getElementById('cube-wrapper');
             const step = parseInt(document.getElementById('move-slider').value) || 0;
             const currentAlg = moves.slice(0, step).join(" ");
-
             wrapper.innerHTML = ''; 
             const player = document.createElement('twisty-player');
             player.setAttribute('puzzle', '3x3x3');
@@ -108,11 +105,51 @@
             player.setAttribute('control-panel', 'none');
             if (currentMask) player.setAttribute('experimental-stickering-mask-orbits', currentMask);
             player.alg = currentAlg;
-            
             wrapper.appendChild(player);
         };
 
-        // モード切替
+        // テキストボックスの入力監視
+        window.onBoxInput = () => {
+            const box = document.getElementById('command-box');
+            const btn = document.getElementById('btn-action');
+            if (box.value.trim().length > 0) {
+                btn.textContent = "APPLY ALGORITHM";
+                btn.classList.replace('bg-indigo-600', 'bg-emerald-600');
+            } else {
+                btn.textContent = "RANDOM SCRAMBLE";
+                btn.classList.replace('bg-emerald-600', 'bg-indigo-600');
+            }
+        };
+
+        // メインボタン（ランダム or 手順適用）
+        window.handleMainAction = () => {
+            const box = document.getElementById('command-box');
+            const val = box.value.trim();
+
+            if (val.length > 0) {
+                // 手順適用モード
+                moves = val.split(/\s+/);
+            } else {
+                // ランダムスクランブル生成
+                const faces = ['U','D','L','R','F','B'];
+                const mods = ['', "'", '2'];
+                let scram = [];
+                for(let i=0; i<20; i++) {
+                    let m = faces[Math.floor(Math.random()*faces.length)] + mods[Math.floor(Math.random()*mods.length)];
+                    if(i > 0 && m[0] === scram[i-1][0]) { i--; continue; }
+                    scram.push(m);
+                }
+                moves = scram;
+                box.value = scram.join(" ");
+            }
+            
+            const slider = document.getElementById('move-slider');
+            slider.max = moves.length;
+            slider.value = moves.length;
+            updateView();
+            onBoxInput(); // ボタン表示更新
+        };
+
         window.switchMode = (mode) => {
             currentMask = (mode === 'paint') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "";
             document.getElementById('btn-mode-rotate').className = `mode-btn ${mode === 'rotate' ? 'btn-rotate-active' : 'btn-inactive'}`;
@@ -126,32 +163,10 @@
             refreshCube();
         };
 
-        // ランダムスクランブル（ライブラリを使用せずPlayerから取得する安全策）
-        document.getElementById('btn-scramble').onclick = async () => {
-            // twisty-playerの機能を借用
-            const tempPlayer = document.querySelector('twisty-player');
-            // ランダムな動きを生成
-            const faces = ['U','D','L','R','F','B'];
-            const mods = ['', "'", '2'];
-            let scram = [];
-            for(let i=0; i<20; i++) {
-                let m = faces[Math.floor(Math.random()*faces.length)] + mods[Math.floor(Math.random()*mods.length)];
-                if(i > 0 && m[0] === scram[i-1][0]) { i--; continue; } // 同じ面の連続を避ける
-                scram.push(m);
-            }
-            const scramStr = scram.join(" ");
-            
-            document.getElementById('command-box').value = scramStr;
-            moves = scram;
-            const slider = document.getElementById('move-slider');
-            slider.max = moves.length;
-            slider.value = moves.length;
-            updateView();
-        };
-
         const updateView = () => {
             const player = document.querySelector('twisty-player');
-            const step = parseInt(document.getElementById('move-slider').value);
+            const slider = document.getElementById('move-slider');
+            const step = parseInt(slider.value);
             if (player) player.alg = moves.slice(0, step).join(" ");
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && moves[step-1]) ? moves[step-1] : "---";
@@ -164,6 +179,7 @@
             slider.max = 0;
             slider.value = 0;
             updateView();
+            onBoxInput();
         };
 
         const moveData = {
@@ -189,7 +205,9 @@
                         moves.push(m);
                         slider.max = moves.length;
                         slider.value = moves.length;
+                        document.getElementById('command-box').value = moves.join(" ");
                         updateView();
+                        onBoxInput();
                     };
                     grid.appendChild(b);
                 });
@@ -202,7 +220,6 @@
             el.classList.add('active');
         };
 
-        // 初期実行
         renderMoves('basic');
     </script>
 </body>
