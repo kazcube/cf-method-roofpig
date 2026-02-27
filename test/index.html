@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.30 Algorithm Sync</title>
+    <title>KAZCUBE Lab - v5.31 Setup Logic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -21,8 +21,8 @@
         .move-btn { background-color: #334155; color: white; padding: 8px 0; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 6px 0; font-size: 10px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
-        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; }
-        .color-dot.active { border-color: white; transform: scale(1.1); }
+        
+        .setup-tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #4f46e5; color: white; font-weight: bold; }
         
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
@@ -30,8 +30,9 @@
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
 
     <div class="max-w-[1200px] mx-auto">
-        <header class="mb-4 border-b border-slate-700 pb-4">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic uppercase tracking-widest ml-2">v5.30 Sync</span></h2>
+        <header class="mb-4 border-b border-slate-700 pb-4 flex justify-between items-center">
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic uppercase ml-2">v5.31 Setup</span></h2>
+            <div id="setup-indicator" class="hidden"><span class="setup-tag uppercase">Setup Applied</span></div>
         </header>
 
         <div class="main-grid">
@@ -42,7 +43,7 @@
                 <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-xl">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                     <div class="flex justify-between items-center font-mono">
-                        <div class="flex flex-col"><span class="text-slate-500 text-[9px] uppercase font-bold">Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
+                        <div class="flex flex-col"><span class="text-slate-500 text-[9px] uppercase font-bold">Solution Step</span><span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span></div>
                         <div id="move-indicator" class="text-lg font-black bg-slate-900 px-4 py-1 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
                     </div>
                 </div>
@@ -54,27 +55,13 @@
                     <button id="btn-mode-paint" class="mode-btn btn-inactive" onclick="switchMode('paint')">PAINT</button>
                 </div>
 
-                <div id="panel-paint" class="hidden space-y-4 p-4 bg-slate-900 rounded-xl border-2 border-orange-500/20 shadow-lg">
-                    <div class="flex gap-2">
-                        <button onclick="updateMask('all')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700 hover:bg-slate-700 transition-colors">⬜ ALL GRAY</button>
-                        <button onclick="updateMask('corners')" class="flex-1 py-2 bg-slate-800 text-[10px] font-bold rounded border border-slate-700 hover:bg-slate-700 transition-colors">🧩 CORNERS</button>
-                    </div>
-                    <div class="flex justify-center gap-2 p-3 bg-black/40 rounded-lg">
-                        <div class="color-dot active" style="background:#fff" onclick="pick(this)"></div>
-                        <div class="color-dot" style="background:#facc15" onclick="pick(this)"></div>
-                        <div class="color-dot" style="background:#ef4444" onclick="pick(this)"></div>
-                        <div class="color-dot" style="background:#f97316" onclick="pick(this)"></div>
-                        <div class="color-dot" style="background:#3b82f6" onclick="pick(this)"></div>
-                        <div class="color-dot" style="background:#22c55e" onclick="pick(this)"></div>
-                    </div>
-                </div>
-
                 <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none focus:border-indigo-500 transition-all" placeholder="Enter Algorithm or Scramble..." oninput="onBoxInput()"></textarea>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-action" onclick="handleMainAction()" class="py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95 shadow-lg">RANDOM SCRAMBLE</button>
-                        <button onclick="fullReset()" class="py-2.5 bg-slate-700 rounded-lg font-bold text-[10px] text-slate-300 uppercase active:scale-95 border border-slate-600">RESET ALL</button>
+                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Enter moves..." oninput="onBoxInput()"></textarea>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="btn-action" onclick="handleMainAction()" class="col-span-2 py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95">RANDOM SCRAMBLE</button>
+                        <button id="btn-setup" onclick="applySetup()" class="py-2.5 bg-slate-700 text-amber-400 border border-amber-900/50 rounded-lg font-bold text-[10px] uppercase active:scale-95">SET SETUP</button>
                     </div>
+                    <button onclick="fullReset()" class="w-full py-2 bg-slate-800 text-slate-500 rounded-lg font-bold text-[9px] uppercase border border-slate-700 hover:bg-slate-700 transition-all">RESET EVERYTHING</button>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-3">
@@ -90,137 +77,13 @@
     </div>
 
     <script type="module">
-        let moves = [];
+        let setupMoves = [];  // 基点となる手順
+        let solutionMoves = []; // ユーザーが動かす手順
         let currentMask = "";
 
-        // 共通：キューブ再描画
         const refreshCube = () => {
             const wrapper = document.getElementById('cube-wrapper');
             const step = parseInt(document.getElementById('move-slider').value) || 0;
-            const currentAlg = moves.slice(0, step).join(" ");
-            wrapper.innerHTML = ''; 
-            const player = document.createElement('twisty-player');
-            player.setAttribute('puzzle', '3x3x3');
-            player.setAttribute('background', 'none');
-            player.setAttribute('control-panel', 'none');
-            if (currentMask) player.setAttribute('experimental-stickering-mask-orbits', currentMask);
-            player.alg = currentAlg;
-            wrapper.appendChild(player);
-        };
-
-        // テキストボックスの入力監視
-        window.onBoxInput = () => {
-            const box = document.getElementById('command-box');
-            const btn = document.getElementById('btn-action');
-            if (box.value.trim().length > 0) {
-                btn.textContent = "APPLY ALGORITHM";
-                btn.classList.replace('bg-indigo-600', 'bg-emerald-600');
-            } else {
-                btn.textContent = "RANDOM SCRAMBLE";
-                btn.classList.replace('bg-emerald-600', 'bg-indigo-600');
-            }
-        };
-
-        // メインボタン（ランダム or 手順適用）
-        window.handleMainAction = () => {
-            const box = document.getElementById('command-box');
-            const val = box.value.trim();
-
-            if (val.length > 0) {
-                // 手順適用モード
-                moves = val.split(/\s+/);
-            } else {
-                // ランダムスクランブル生成
-                const faces = ['U','D','L','R','F','B'];
-                const mods = ['', "'", '2'];
-                let scram = [];
-                for(let i=0; i<20; i++) {
-                    let m = faces[Math.floor(Math.random()*faces.length)] + mods[Math.floor(Math.random()*mods.length)];
-                    if(i > 0 && m[0] === scram[i-1][0]) { i--; continue; }
-                    scram.push(m);
-                }
-                moves = scram;
-                box.value = scram.join(" ");
-            }
             
-            const slider = document.getElementById('move-slider');
-            slider.max = moves.length;
-            slider.value = moves.length;
-            updateView();
-            onBoxInput(); // ボタン表示更新
-        };
-
-        window.switchMode = (mode) => {
-            currentMask = (mode === 'paint') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "";
-            document.getElementById('btn-mode-rotate').className = `mode-btn ${mode === 'rotate' ? 'btn-rotate-active' : 'btn-inactive'}`;
-            document.getElementById('btn-mode-paint').className = `mode-btn ${mode === 'paint' ? 'btn-paint-active' : 'btn-inactive'}`;
-            document.getElementById('panel-paint').style.display = (mode === 'paint') ? 'block' : 'none';
-            refreshCube();
-        };
-
-        window.updateMask = (type) => {
-            currentMask = (type === 'all') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:------";
-            refreshCube();
-        };
-
-        const updateView = () => {
-            const player = document.querySelector('twisty-player');
-            const slider = document.getElementById('move-slider');
-            const step = parseInt(slider.value);
-            if (player) player.alg = moves.slice(0, step).join(" ");
-            document.getElementById('step-counter').textContent = step;
-            document.getElementById('move-indicator').textContent = (step > 0 && moves[step-1]) ? moves[step-1] : "---";
-        };
-
-        window.fullReset = () => {
-            moves = [];
-            document.getElementById('command-box').value = "";
-            const slider = document.getElementById('move-slider');
-            slider.max = 0;
-            slider.value = 0;
-            updateView();
-            onBoxInput();
-        };
-
-        const moveData = {
-            basic: ['U','D','L','R','F','B'],
-            wide: ['u','d','l','r','f','b'],
-            slice: ['M','E','S','x','y','z']
-        };
-
-        window.renderMoves = (type) => {
-            const grid = document.getElementById('move-grid');
-            grid.innerHTML = '';
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + type).classList.add('active');
-
-            moveData[type].forEach(f => {
-                [f, f+"'", f+"2"].forEach(m => {
-                    const b = document.createElement('button');
-                    b.className = "move-btn"; b.textContent = m;
-                    b.onclick = () => {
-                        const slider = document.getElementById('move-slider');
-                        const step = parseInt(slider.value);
-                        if (step < moves.length) moves = moves.slice(0, step);
-                        moves.push(m);
-                        slider.max = moves.length;
-                        slider.value = moves.length;
-                        document.getElementById('command-box').value = moves.join(" ");
-                        updateView();
-                        onBoxInput();
-                    };
-                    grid.appendChild(b);
-                });
-            });
-        };
-
-        document.getElementById('move-slider').oninput = updateView;
-        window.pick = (el) => {
-            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-            el.classList.add('active');
-        };
-
-        renderMoves('basic');
-    </script>
-</body>
-</html>
+            // 重要：セットアップ手順 + 解法手順(ステップ分) を合体させる
+            const fullAlg = [...setupMoves, ...solutionMoves.slice(
