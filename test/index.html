@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - Ver 5.7 Fix & Sync</title>
+    <title>KAZCUBE Lab - Ver 5.8 Hotfix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         twisty-player { touch-action: none; width: 100%; height: 100%; }
         .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
         @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr 300px; gap: 12px; } }
-        .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-1.5 rounded text-[10px] font-mono font-bold border border-slate-600 transition-all hover:border-emerald-500; }
+        .move-btn { @apply bg-slate-700 active:bg-indigo-600 text-white py-1.5 rounded text-[10px] font-mono font-bold border border-slate-600 transition-all; }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out; }
         .accordion-content.open { max-height: 800px; }
-        .cube-container { position: sticky; top: 20px; }
-        .color-dot { @apply w-6 h-6 rounded-full border-2 border-slate-700 cursor-pointer transition-transform; }
+        .color-dot { @apply w-6 h-6 rounded-full border-2 border-slate-700 cursor-pointer; }
         .color-dot.active { @apply border-white scale-125 shadow-[0_0_10px_#fff]; }
-        .template-btn { @apply flex-1 py-2 text-[10px] font-bold bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-all; }
+        .template-btn { @apply flex-1 py-2 text-[10px] font-bold bg-slate-800 border border-slate-700 rounded-lg transition-all; }
         .template-btn.active { @apply bg-orange-600 text-white border-orange-400; }
     </style>
 </head>
@@ -26,39 +25,35 @@
         <header class="mb-6 flex justify-between items-center border-b border-slate-700 pb-4">
             <div class="flex items-baseline gap-3">
                 <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab</h2>
-                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded uppercase">v5.7 Fix</span>
+                <span class="text-[10px] font-mono text-slate-500 px-2 py-0.5 border border-slate-700 rounded uppercase">v5.8 Fix</span>
             </div>
             <div id="mode-badge" class="text-[10px] font-mono bg-blue-900 text-blue-200 px-4 py-1 rounded-full border border-blue-500/30 uppercase tracking-[0.2em]">Rotate Mode</div>
         </header>
 
         <div class="main-grid">
-            <div class="cube-container space-y-4">
+            <div class="space-y-4">
                 <div class="bg-black rounded-3xl aspect-square border-4 border-slate-700 overflow-hidden shadow-2xl">
                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
-
-                <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700 shadow-xl space-y-4">
+                <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700 space-y-4">
                     <input type="range" id="move-slider" min="0" max="0" value="0" step="1" class="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                    <div class="flex justify-between text-[11px] font-mono font-bold">
-                        <div class="flex flex-col">
-                            <span class="text-slate-500 uppercase">Step</span>
-                            <span id="step-counter" class="text-emerald-500 text-2xl">0</span>
-                        </div>
-                        <div id="move-indicator" class="text-lg font-black bg-slate-900 px-6 py-1 rounded-xl text-emerald-400 border border-slate-700 self-center">---</div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex flex-col"><span class="text-slate-500 text-[10px] uppercase">Step</span><span id="step-counter" class="text-emerald-500 text-2xl font-bold">0</span></div>
+                        <div id="move-indicator" class="text-lg font-black bg-slate-900 px-6 py-1 rounded-xl text-emerald-400 border border-slate-700">---</div>
                     </div>
                 </div>
             </div>
 
-            <div class="space-y-6 pb-20">
+            <div class="space-y-6">
                 <div class="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-700 shadow-lg">
-                    <button id="mode-rotate" class="flex-1 py-3 rounded-xl text-xs font-black transition-all">ROTATE</button>
-                    <button id="mode-paint" class="flex-1 py-3 rounded-xl text-xs font-black transition-all">PAINT</button>
+                    <button id="mode-rotate-btn" class="flex-1 py-3 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white">ROTATE</button>
+                    <button id="mode-paint-btn" class="flex-1 py-3 rounded-xl text-xs font-black transition-all text-slate-500 hover:text-white">PAINT</button>
                 </div>
 
-                <div id="paint-panel" class="hidden space-y-4 p-4 bg-slate-900 rounded-2xl border-2 border-orange-500/20">
+                <div id="paint-panel" class="hidden space-y-4 p-4 bg-slate-900 rounded-2xl border-2 border-orange-500/20 shadow-xl">
                     <div class="flex gap-2">
-                        <button class="template-btn" data-type="clear" id="btn-clear">ALL CLEAR</button>
-                        <button class="template-btn" data-type="corners" id="btn-corners">CORNERS</button>
+                        <button class="template-btn" data-type="clear">ALL CLEAR</button>
+                        <button class="template-btn" data-type="corners">CORNERS</button>
                     </div>
                     <div class="flex flex-wrap justify-center gap-2 p-2 bg-black/30 rounded-xl">
                         <div class="color-dot active bg-white" data-color="white"></div>
@@ -72,31 +67,25 @@
                 </div>
 
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-28 bg-black/60 text-emerald-400 p-4 rounded-2xl font-mono text-xs border border-slate-700 outline-none focus:border-indigo-500 shadow-inner resize-none" placeholder="Paste algorithm here..."></textarea>
+                    <textarea id="command-box" class="w-full h-28 bg-black/60 text-emerald-400 p-4 rounded-2xl font-mono text-xs border border-slate-700 outline-none focus:border-indigo-500 resize-none" placeholder="Algorithm input..."></textarea>
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="py-3 bg-indigo-600 rounded-xl font-bold text-xs uppercase tracking-widest">Scramble</button>
-                        <button id="btn-reset" class="py-3 bg-slate-700 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest border border-slate-600">Reset</button>
+                        <button id="btn-scramble" class="py-3 bg-indigo-600 rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">Scramble</button>
+                        <button id="btn-reset" class="py-3 bg-slate-700 text-slate-300 rounded-xl font-bold text-xs uppercase border border-slate-600">Reset</button>
                     </div>
                 </div>
 
-                <div class="space-y-4" id="move-panel-area">
+                <div class="space-y-4">
                     <div class="border border-slate-700 rounded-2xl overflow-hidden bg-slate-900/40">
                         <button class="accordion-toggle w-full flex justify-between items-center p-4 text-[10px] font-black uppercase tracking-widest" data-target="basic-moves">
-                            <span>Basic Layer</span>
-                            <span class="icon">▼</span>
+                            <span>Basic Layer</span><span class="icon">▼</span>
                         </button>
-                        <div id="basic-moves" class="accordion-content open">
-                            <div class="grid grid-cols-4 gap-1.5 p-4" id="grid-basic"></div>
-                        </div>
+                        <div id="basic-moves" class="accordion-content open"><div class="grid grid-cols-4 gap-1.5 p-4" id="grid-basic"></div></div>
                     </div>
                     <div class="border border-slate-700 rounded-2xl overflow-hidden bg-slate-900/40">
                         <button class="accordion-toggle w-full flex justify-between items-center p-4 text-[10px] font-black uppercase tracking-widest" data-target="wide-moves">
-                            <span>Wide & Middle</span>
-                            <span class="icon">▼</span>
+                            <span>Wide & Middle</span><span class="icon">▼</span>
                         </button>
-                        <div id="wide-moves" class="accordion-content">
-                            <div class="grid grid-cols-4 gap-1.5 p-4" id="grid-wide"></div>
-                        </div>
+                        <div id="wide-moves" class="accordion-content"><div class="grid grid-cols-4 gap-1.5 p-4" id="grid-wide"></div></div>
                     </div>
                 </div>
             </div>
@@ -104,141 +93,117 @@
     </div>
 
     <script type="module">
-        import { TwistyPlayer } from "https://cdn.cubing.net/v0/js/cubing/twisty";
+        document.addEventListener('DOMContentLoaded', () => {
+            const player = document.getElementById('main-cube');
+            const badge = document.getElementById('mode-badge');
+            const paintPanel = document.getElementById('paint-panel');
+            const rotateBtn = document.getElementById('mode-rotate-btn');
+            const paintBtn = document.getElementById('mode-paint-btn');
+            const cmdBox = document.getElementById('command-box');
+            const slider = document.getElementById('move-slider');
 
-        const player = document.getElementById('main-cube');
-        const badge = document.getElementById('mode-badge');
-        const paintPanel = document.getElementById('paint-panel');
-        const cmdBox = document.getElementById('command-box');
-        const slider = document.getElementById('move-slider');
+            let moves = [];
+            let currentMode = 'rotate';
 
-        let moves = [];
-        let currentMode = 'rotate';
+            // --- 1. Mode Switcher ---
+            const switchMode = (mode) => {
+                currentMode = mode;
+                const isPaint = mode === 'paint';
 
-        // --- 1. Mode Logic (文字と表示の修正) ---
-        const updateModeUI = () => {
-            const isPaint = currentMode === 'paint';
-            
-            // バッジの文字更新
-            badge.textContent = isPaint ? "Paint Mode (Analysis)" : "Rotate Mode";
-            badge.className = isPaint 
-                ? "text-[10px] font-mono bg-orange-900 text-orange-200 px-4 py-1 rounded-full border border-orange-500/30 uppercase tracking-[0.2em]"
-                : "text-[10px] font-mono bg-blue-900 text-blue-200 px-4 py-1 rounded-full border border-blue-500/30 uppercase tracking-[0.2em]";
+                // UI Status Update
+                badge.textContent = isPaint ? "Paint Mode (Analysis)" : "Rotate Mode";
+                badge.className = isPaint 
+                    ? "text-[10px] font-mono bg-orange-900 text-orange-200 px-4 py-1 rounded-full border border-orange-500/30 uppercase tracking-[0.2em]"
+                    : "text-[10px] font-mono bg-blue-900 text-blue-200 px-4 py-1 rounded-full border border-blue-500/30 uppercase tracking-[0.2em]";
 
-            // ボタンのスタイル更新
-            document.getElementById('mode-rotate').className = isPaint 
-                ? "flex-1 py-3 rounded-xl text-xs font-black text-slate-500" 
-                : "flex-1 py-3 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-lg";
-            document.getElementById('mode-paint').className = isPaint 
-                ? "flex-1 py-3 rounded-xl text-xs font-black bg-orange-600 text-white shadow-lg" 
-                : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
+                rotateBtn.className = isPaint ? "flex-1 py-3 rounded-xl text-xs font-black text-slate-500" : "flex-1 py-3 rounded-xl text-xs font-black bg-emerald-600 text-white shadow-lg";
+                paintBtn.className = isPaint ? "flex-1 py-3 rounded-xl text-xs font-black bg-orange-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500";
 
-            // パネルの表示
-            paintPanel.style.display = isPaint ? "block" : "none";
-        };
+                paintPanel.classList.toggle('hidden', !isPaint);
 
-        document.getElementById('mode-rotate').onclick = () => {
-            currentMode = 'rotate';
-            player.experimentalStickeringMaskOrbits = ""; // マスク解除
-            updateModeUI();
-        };
-
-        document.getElementById('mode-paint').onclick = () => {
-            currentMode = 'paint';
-            // Paintモード移行時に自動でALL CLEARテンプレートを適用
-            applyTemplate("clear");
-            updateModeUI();
-        };
-
-        // --- 2. Template Logic (キューブの色変化) ---
-        const applyTemplate = (type) => {
-            const masks = {
-                clear: "EDGES:------------,CORNERS:--------,CENTERS:------",
-                corners: "EDGES:------------,CORNERS:IIIIIIII,CENTERS:------"
+                if (isPaint) {
+                    applyTemplate("clear");
+                } else {
+                    player.experimentalStickeringMaskOrbits = "";
+                }
             };
-            
-            // プロパティをセット
-            player.experimentalStickeringMaskOrbits = masks[type];
-            
-            // UIのactive状態を更新
-            document.querySelectorAll('.template-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === type);
-            });
-            
-            // 強制描画を促すために微小なプロパティ操作を入れる（ハック的ですが確実です）
-            const currentAlg = player.alg;
-            player.alg = currentAlg; 
-        };
 
-        document.querySelectorAll('.template-btn').forEach(btn => {
-            btn.onclick = () => applyTemplate(btn.dataset.type);
-        });
+            rotateBtn.onclick = () => switchMode('rotate');
+            paintBtn.onclick = () => switchMode('paint');
 
-        // --- 3. Base Engine ---
-        const createBtns = (targetId, faces) => {
-            const grid = document.getElementById(targetId);
-            faces.forEach(f => {
-                [f, f+"'", f+"2"].forEach(m => {
-                    const btn = document.createElement('button');
-                    btn.className = "move-btn";
-                    btn.textContent = m;
-                    btn.onclick = () => handleMove(m);
-                    grid.appendChild(btn);
+            // --- 2. Template Logic ---
+            const applyTemplate = (type) => {
+                const masks = {
+                    clear: "EDGES:------------,CORNERS:--------,CENTERS:------",
+                    corners: "EDGES:------------,CORNERS:IIIIIIII,CENTERS:------"
+                };
+                player.experimentalStickeringMaskOrbits = masks[type];
+                
+                document.querySelectorAll('.template-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === type);
                 });
-            });
-        };
-        createBtns('grid-basic', ['U','D','L','R','F','B']);
-        createBtns('grid-wide', ['u','d','l','r','f','b','M','E','S','x','y','z']);
-
-        const render = (step) => {
-            player.alg = moves.slice(0, step).join(" ");
-            slider.value = step;
-            document.getElementById('step-counter').textContent = step;
-            document.getElementById('total-counter')?.remove(); // 簡易化のため一旦消去
-            document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
-            if (currentMode === 'rotate') cmdBox.value = moves.join(" ");
-        };
-
-        const handleMove = (m) => {
-            const step = parseInt(slider.value);
-            if (step < moves.length) moves = moves.slice(0, step);
-            moves.push(m);
-            slider.max = moves.length;
-            render(moves.length);
-        };
-
-        slider.oninput = () => render(parseInt(slider.value));
-
-        document.getElementById('btn-reset').onclick = () => {
-            moves = []; slider.max = 0; cmdBox.value = ""; player.alg = "";
-            player.experimentalStickeringMaskOrbits = "";
-            currentMode = 'rotate';
-            updateModeUI();
-            render(0);
-        };
-
-        document.getElementById('btn-scramble').onclick = () => {
-            if(cmdBox.value) moves = cmdBox.value.split(/\s+/).filter(x => x.length > 0);
-            else {
-                const f = ['U','D','L','R','F','B'];
-                moves = Array.from({length:20}, () => f[Math.floor(Math.random()*6)] + (Math.random() > 0.6 ? "2" : (Math.random() > 0.3 ? "'" : "")));
-            }
-            slider.max = moves.length;
-            render(moves.length);
-        };
-
-        // アコーディオン
-        document.querySelectorAll('.accordion-toggle').forEach(btn => {
-            btn.onclick = () => {
-                const target = document.getElementById(btn.dataset.target);
-                const isOpen = target.classList.contains('open');
-                target.classList.toggle('open', !isOpen);
-                btn.querySelector('.icon').textContent = isOpen ? '▼' : '▲';
+                // Force Redraw
+                const tmp = player.alg; player.alg = tmp;
             };
-        });
 
-        // 初期化
-        updateModeUI();
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                btn.onclick = (e) => applyTemplate(e.currentTarget.dataset.type);
+            });
+
+            // --- 3. Base Functions ---
+            const handleMove = (m) => {
+                const step = parseInt(slider.value);
+                if (step < moves.length) moves = moves.slice(0, step);
+                moves.push(m);
+                slider.max = moves.length;
+                render(moves.length);
+            };
+
+            const render = (step) => {
+                player.alg = moves.slice(0, step).join(" ");
+                slider.value = step;
+                document.getElementById('step-counter').textContent = step;
+                document.getElementById('move-indicator').textContent = step > 0 ? moves[step-1] : "---";
+                if (currentMode === 'rotate') cmdBox.value = moves.join(" ");
+            };
+
+            const createBtns = (id, faces) => {
+                const grid = document.getElementById(id);
+                faces.forEach(f => {
+                    [f, f+"'", f+"2"].forEach(m => {
+                        const b = document.createElement('button');
+                        b.className = "move-btn"; b.textContent = m;
+                        b.onclick = () => handleMove(m);
+                        grid.appendChild(b);
+                    });
+                });
+            };
+            createBtns('grid-basic', ['U','D','L','R','F','B']);
+            createBtns('grid-wide', ['u','d','l','r','f','b','M','E','S','x','y','z']);
+
+            slider.oninput = () => render(parseInt(slider.value));
+
+            document.getElementById('btn-reset').onclick = () => {
+                moves = []; slider.max = 0; cmdBox.value = ""; player.alg = "";
+                switchMode('rotate');
+                render(0);
+            };
+
+            document.getElementById('btn-scramble').onclick = () => {
+                if(cmdBox.value) moves = cmdBox.value.split(/\s+/).filter(x => x.length > 0);
+                else moves = Array.from({length:20}, () => ['U','D','L','R','F','B'][Math.floor(Math.random()*6)] + (Math.random() > 0.6 ? "2" : (Math.random() > 0.3 ? "'" : "")));
+                slider.max = moves.length;
+                render(moves.length);
+            };
+
+            document.querySelectorAll('.accordion-toggle').forEach(btn => {
+                btn.onclick = () => {
+                    const target = document.getElementById(btn.dataset.target);
+                    target.classList.toggle('open');
+                    btn.querySelector('.icon').textContent = target.classList.contains('open') ? '▲' : '▼';
+                };
+            });
+        });
     </script>
 </body>
 </html>
