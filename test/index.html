@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.37 Multilingual</title>
+    <title>KAZCUBE Lab - v5.38 Visual UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -13,22 +13,22 @@
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
 
-        /* スイッチのデザイン */
+        /* スイッチ */
         .lang-switch { position: relative; display: inline-flex; background: #1e293b; border: 1px solid #475569; border-radius: 999px; padding: 2px; cursor: pointer; }
-        .lang-btn { padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; transition: 0.3s; }
+        .lang-btn { padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; }
         .lang-active { background: #3b82f6; color: white; }
 
-        .mode-btn { flex: 1; padding: 10px 0; border-radius: 8px; font-weight: 900; font-size: 11px; transition: 0.2s; border: 2px solid transparent; }
-        .btn-rotate-active { background-color: #10b981 !important; color: white !important; border-color: #34d399 !important; }
-        .btn-paint-active { background-color: #f97316 !important; color: white !important; border-color: #fb923c !important; }
-        .btn-inactive { background-color: #1e293b !important; color: #475569 !important; }
-
-        .move-btn { background-color: #334155; color: white; padding: 8px 0; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: bold; border: 1px solid #475569; }
-        .tab-btn { flex: 1; padding: 6px 0; font-size: 10px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
+        /* ボタン共通設定：文字を大きく、太く */
+        .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; }
+        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
+        .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
         
-        .btn-hard-reset { background-color: #e11d48 !important; color: #ffffff !important; border: 2px solid #fb7185 !important; font-weight: 900 !important; }
-        .setup-indicator { font-size: 10px; font-weight: 900; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 2px 8px; border: 1px solid #fbbf24; border-radius: 4px; }
+        /* リセットボタン：赤色・大型 */
+        .btn-reset-ui { background-color: #e11d48 !important; color: #ffffff !important; border: 2px solid #fb7185 !important; }
+        .btn-reset-ui:hover { background-color: #be123c !important; transform: translateY(-1px); }
+
+        .setup-indicator { font-size: 10px; font-weight: 900; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 10px; border: 1px solid #fbbf24; border-radius: 4px; }
         
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
@@ -36,11 +36,11 @@
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
 
     <div class="max-w-[1200px] mx-auto">
-        <header class="mb-4 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.37</span></h2>
+        <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.38</span></h2>
             
             <div class="flex items-center gap-4">
-                <div id="setup-status" class="hidden setup-indicator uppercase">Setup Applied</div>
+                <div id="setup-status" class="hidden setup-indicator uppercase italic">Setup Applied</div>
                 <div class="lang-switch" onclick="toggleLang()">
                     <div id="lang-jp" class="lang-btn lang-active">JP</div>
                     <div id="lang-en" class="lang-btn">EN</div>
@@ -53,40 +53,42 @@
                 <div id="cube-wrapper" class="shadow-2xl">
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-xl">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="updateView()">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-4 shadow-xl">
+                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="updateView()">
                     <div class="flex justify-between items-center font-mono">
                         <div class="flex flex-col">
-                            <span id="label-step" class="text-slate-500 text-[9px] uppercase font-bold">Step</span>
-                            <span id="step-counter" class="text-emerald-500 text-xl font-bold">0</span>
+                            <span id="label-step" class="text-slate-500 text-[10px] uppercase font-black">Step</span>
+                            <span id="step-counter" class="text-emerald-500 text-2xl font-black">0</span>
                         </div>
-                        <div id="move-indicator" class="text-lg font-black bg-slate-900 px-4 py-1 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
+                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic shadow-inner">---</div>
                     </div>
                 </div>
             </div>
 
             <div class="right-col">
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700 gap-1 mb-2">
-                    <button id="btn-mode-rotate" class="mode-btn btn-rotate-active" onclick="switchMode('rotate')">ROTATE</button>
-                    <button id="btn-mode-paint" class="mode-btn btn-inactive" onclick="switchMode('paint')">PAINT</button>
+                <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-700 gap-1.5 mb-2">
+                    <button id="btn-mode-rotate" class="mode-btn btn-rotate-active text-[12px]" onclick="switchMode('rotate')">ROTATE</button>
+                    <button id="btn-mode-paint" class="mode-btn btn-inactive text-[12px]" onclick="switchMode('paint')">PAINT</button>
                 </div>
 
-                <div class="space-y-2">
-                    <textarea id="command-box" class="w-full h-20 bg-black text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none" placeholder="Enter Algorithm..." oninput="updateBtnLabel()"></textarea>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button id="btn-main-action" onclick="handleMainAction()" class="col-span-2 py-2.5 bg-indigo-600 rounded-lg font-bold text-[10px] text-white uppercase active:scale-95 shadow-lg">RANDOM SCRAMBLE</button>
-                        <button id="btn-setup" onclick="applySetup()" class="py-2.5 bg-slate-700 text-amber-400 border border-amber-500/30 rounded-lg font-bold text-[10px] uppercase active:scale-95">SET SETUP</button>
+                <div class="space-y-3">
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="..." oninput="updateBtnLabel()"></textarea>
+                    
+                    <div class="grid grid-cols-3 gap-3">
+                        <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 rounded-xl text-[13px] text-white shadow-lg active:scale-95">RANDOM SCRAMBLE</button>
+                        <button id="btn-setup" onclick="applySetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px] active:scale-95">SET SETUP</button>
                     </div>
-                    <button id="btn-reset" onclick="fullReset()" class="w-full py-2.5 btn-hard-reset rounded-lg text-[11px] uppercase shadow-lg transition-all active:scale-95">HARD RESET</button>
+                    
+                    <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg active:scale-95">RESET</button>
                 </div>
 
-                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-3">
-                    <div class="flex gap-1 mb-3 bg-black/30 p-1 rounded-lg">
+                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
+                    <div class="flex gap-1.5 mb-4 bg-black/30 p-1.5 rounded-lg">
                         <button id="tab-basic" onclick="renderMoves('basic')" class="tab-btn active">BASIC</button>
                         <button id="tab-wide" onclick="renderMoves('wide')" class="tab-btn">WIDE</button>
                         <button id="tab-slice" onclick="renderMoves('slice')" class="tab-btn">SLICE</button>
                     </div>
-                    <div id="move-grid" class="grid grid-cols-6 gap-1"></div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
                 </div>
             </div>
         </div>
@@ -101,19 +103,19 @@
         const i18n = {
             jp: {
                 scramble: "ランダムスクランブル",
-                apply: "アルゴリズム適用",
+                apply: "アルゴリズムを適用",
                 setup: "セットアップ完了",
                 setBtn: "セットアップ",
-                reset: "ハードリセット (全消去)",
+                reset: "リセット",
                 step: "ステップ",
-                placeholder: "手順を入力するかボタンを使用してください..."
+                placeholder: "手順を入力するか、下のボタンを使ってください..."
             },
             en: {
                 scramble: "RANDOM SCRAMBLE",
                 apply: "APPLY ALGORITHM",
                 setup: "SETUP APPLIED",
                 setBtn: "SET SETUP",
-                reset: "HARD RESET (CLEAR ALL)",
+                reset: "RESET",
                 step: "STEP",
                 placeholder: "Enter moves or use buttons..."
             }
@@ -191,8 +193,8 @@
 
         window.switchMode = (mode) => {
             currentMask = (mode === 'paint') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "";
-            document.getElementById('btn-mode-rotate').className = `mode-btn ${mode === 'rotate' ? 'btn-rotate-active' : 'btn-inactive'}`;
-            document.getElementById('btn-mode-paint').className = `mode-btn ${mode === 'paint' ? 'btn-paint-active' : 'btn-inactive'}`;
+            document.getElementById('btn-mode-rotate').className = `mode-btn ${mode === 'rotate' ? 'btn-rotate-active' : 'btn-inactive'} text-[12px]`;
+            document.getElementById('btn-mode-paint').className = `mode-btn ${mode === 'paint' ? 'btn-paint-active' : 'btn-inactive'} text-[12px]`;
             const player = document.querySelector('twisty-player');
             if (currentMask) player.setAttribute('experimental-stickering-mask-orbits', currentMask);
             else player.removeAttribute('experimental-stickering-mask-orbits');
