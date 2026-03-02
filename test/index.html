@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.39 Navigation</title>
+    <title>KAZCUBE Lab - v5.40 Slider Sync Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -40,9 +40,9 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.39</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.40 Final</span></h2>
             <div class="flex items-center gap-4">
-                <div id="setup-status" class="hidden setup-indicator uppercase italic">Setup Applied</div>
+                <div id="setup-status" class="hidden setup-indicator uppercase italic">Algorithm Loaded</div>
                 <div class="lang-switch" onclick="toggleLang()">
                     <div id="lang-jp" class="lang-btn lang-active">JP</div>
                     <div id="lang-en" class="lang-btn">EN</div>
@@ -60,11 +60,11 @@
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="updateView()">
                     
                     <div class="flex justify-center items-center gap-2">
-                        <button onclick="navMove('first')" class="nav-btn" title="First">&lt;&lt;</button>
-                        <button onclick="navMove('prev')" class="nav-btn" title="Prev">&lt;</button>
-                        <button id="btn-play" onclick="togglePlay()" class="nav-btn play-btn" title="Play/Pause">▶</button>
-                        <button onclick="navMove('next')" class="nav-btn" title="Next">&gt;</button>
-                        <button onclick="navMove('last')" class="nav-btn" title="Last">&gt;&gt;</button>
+                        <button onclick="navMove('first')" class="nav-btn">&lt;&lt;</button>
+                        <button onclick="navMove('prev')" class="nav-btn">&lt;</button>
+                        <button id="btn-play" onclick="togglePlay()" class="nav-btn play-btn">▶</button>
+                        <button onclick="navMove('next')" class="nav-btn">&gt;</button>
+                        <button onclick="navMove('last')" class="nav-btn">&gt;&gt;</button>
                     </div>
 
                     <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
@@ -87,7 +87,7 @@
                     <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" oninput="updateBtnLabel()"></textarea>
                     <div class="grid grid-cols-3 gap-3">
                         <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 rounded-xl text-[13px] text-white shadow-lg">RANDOM SCRAMBLE</button>
-                        <button id="btn-setup" onclick="applySetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px]">SET SETUP</button>
+                        <button id="btn-setup" onclick="applySetupToSlider()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px]">SET SETUP</button>
                     </div>
                     <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg">RESET</button>
                 </div>
@@ -106,15 +106,15 @@
 
     <script type="module">
         let currentLang = 'jp';
-        let setupMoves = [];
-        let activeMoves = [];
+        let setupMoves = []; // 基点用
+        let activeMoves = []; // スライダー制御用
         let currentMask = "";
         let isPlaying = false;
         let playInterval = null;
 
         const i18n = {
-            jp: { scramble: "ランダムスクランブル", apply: "アルゴリズムを適用", setup: "セットアップ完了", setBtn: "セットアップ", reset: "リセット", step: "ステップ", placeholder: "手順を入力するか、下のボタンを使ってください..." },
-            en: { scramble: "RANDOM SCRAMBLE", apply: "APPLY ALGORITHM", setup: "SETUP APPLIED", setBtn: "SET SETUP", reset: "RESET", step: "STEP", placeholder: "Enter moves or use buttons..." }
+            jp: { scramble: "ランダムスクランブル", apply: "アルゴリズムを適用", setup: "手順を読み込みました", setBtn: "セットアップ", reset: "リセット", step: "ステップ", placeholder: "手順を入力するか、ボタンを押してください..." },
+            en: { scramble: "RANDOM SCRAMBLE", apply: "APPLY ALGORITHM", setup: "ALGORITHM LOADED", setBtn: "SET SETUP", reset: "RESET", step: "STEP", placeholder: "Enter moves or use buttons..." }
         };
 
         window.toggleLang = () => {
@@ -134,6 +134,7 @@
             updateBtnLabel();
         };
 
+        // スライダー同期の要：setupMoves(固定) + activeMoves(スライダー分) を合成
         window.updateView = () => {
             const player = document.querySelector('twisty-player');
             const slider = document.getElementById('move-slider');
@@ -144,7 +145,22 @@
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
         };
 
-        // ナビゲーション関数
+        // 新しいセットアップ：入力内容をスライダーで動かせるようにする
+        window.applySetupToSlider = () => {
+            const val = document.getElementById('command-box').value.trim();
+            if (val) {
+                setupMoves = []; // 基点は完成状態にする
+                activeMoves = val.split(/\s+/); // 入力手順をすべてスライダー対象にする
+                document.getElementById('setup-status').classList.remove('hidden');
+                
+                const slider = document.getElementById('move-slider');
+                slider.max = activeMoves.length;
+                slider.value = activeMoves.length; // 初期表示は最後の手順まで回した状態
+                updateView();
+                updateBtnLabel();
+            }
+        };
+
         window.navMove = (type) => {
             const slider = document.getElementById('move-slider');
             if (type === 'first') slider.value = 0;
@@ -154,7 +170,6 @@
             updateView();
         };
 
-        // 再生・停止
         window.togglePlay = () => {
             const btn = document.getElementById('btn-play');
             const slider = document.getElementById('move-slider');
@@ -176,25 +191,6 @@
             isPlaying = !isPlaying;
         };
 
-        const syncSliderRange = () => {
-            const slider = document.getElementById('move-slider');
-            slider.max = activeMoves.length;
-            slider.value = activeMoves.length;
-            updateView();
-            document.getElementById('command-box').value = activeMoves.join(" ");
-            updateBtnLabel();
-        };
-
-        window.applySetup = () => {
-            const val = document.getElementById('command-box').value.trim();
-            if (val) {
-                setupMoves = val.split(/\s+/);
-                activeMoves = []; 
-                document.getElementById('setup-status').classList.remove('hidden');
-                syncSliderRange();
-            }
-        };
-
         window.handleMainAction = () => {
             const val = document.getElementById('command-box').value.trim();
             if (val) {
@@ -209,7 +205,10 @@
                 }
                 activeMoves = scram;
             }
-            syncSliderRange();
+            const slider = document.getElementById('move-slider');
+            slider.max = activeMoves.length;
+            slider.value = activeMoves.length;
+            updateView();
         };
 
         window.updateBtnLabel = () => {
@@ -233,7 +232,10 @@
             setupMoves = []; activeMoves = [];
             document.getElementById('command-box').value = "";
             document.getElementById('setup-status').classList.add('hidden');
-            syncSliderRange();
+            const slider = document.getElementById('move-slider');
+            slider.max = 0;
+            slider.value = 0;
+            updateView();
         };
 
         window.renderMoves = (type) => {
@@ -251,7 +253,11 @@
                         const step = parseInt(slider.value);
                         if (step < activeMoves.length) activeMoves = activeMoves.slice(0, step);
                         activeMoves.push(m);
-                        syncSliderRange();
+                        slider.max = activeMoves.length;
+                        slider.value = activeMoves.length;
+                        document.getElementById('command-box').value = activeMoves.join(" ");
+                        updateView();
+                        updateBtnLabel();
                     };
                     grid.appendChild(b);
                 });
