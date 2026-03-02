@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.38 Visual UI</title>
+    <title>KAZCUBE Lab - v5.39 Navigation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -13,20 +13,23 @@
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
 
-        /* スイッチ */
         .lang-switch { position: relative; display: inline-flex; background: #1e293b; border: 1px solid #475569; border-radius: 999px; padding: 2px; cursor: pointer; }
         .lang-btn { padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; }
         .lang-active { background: #3b82f6; color: white; }
 
-        /* ボタン共通設定：文字を大きく、太く */
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; }
         .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
         
-        /* リセットボタン：赤色・大型 */
         .btn-reset-ui { background-color: #e11d48 !important; color: #ffffff !important; border: 2px solid #fb7185 !important; }
-        .btn-reset-ui:hover { background-color: #be123c !important; transform: translateY(-1px); }
+        .btn-reset-ui:hover { background-color: #be123c !important; }
+
+        /* ナビゲーションボタン */
+        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; transition: 0.2s; }
+        .nav-btn:hover { background: #334155; color: white; border-color: #64748b; }
+        .nav-btn:active { transform: scale(0.9); }
+        .play-btn { background: #059669 !important; color: white !important; border: none !important; width: 56px !important; }
 
         .setup-indicator { font-size: 10px; font-weight: 900; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 10px; border: 1px solid #fbbf24; border-radius: 4px; }
         
@@ -37,8 +40,7 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.38</span></h2>
-            
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.39</span></h2>
             <div class="flex items-center gap-4">
                 <div id="setup-status" class="hidden setup-indicator uppercase italic">Setup Applied</div>
                 <div class="lang-switch" onclick="toggleLang()">
@@ -53,14 +55,24 @@
                 <div id="cube-wrapper" class="shadow-2xl">
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-4 shadow-xl">
+                
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5 shadow-xl">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="updateView()">
-                    <div class="flex justify-between items-center font-mono">
+                    
+                    <div class="flex justify-center items-center gap-2">
+                        <button onclick="navMove('first')" class="nav-btn" title="First">&lt;&lt;</button>
+                        <button onclick="navMove('prev')" class="nav-btn" title="Prev">&lt;</button>
+                        <button id="btn-play" onclick="togglePlay()" class="nav-btn play-btn" title="Play/Pause">▶</button>
+                        <button onclick="navMove('next')" class="nav-btn" title="Next">&gt;</button>
+                        <button onclick="navMove('last')" class="nav-btn" title="Last">&gt;&gt;</button>
+                    </div>
+
+                    <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
                         <div class="flex flex-col">
                             <span id="label-step" class="text-slate-500 text-[10px] uppercase font-black">Step</span>
                             <span id="step-counter" class="text-emerald-500 text-2xl font-black">0</span>
                         </div>
-                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic shadow-inner">---</div>
+                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
                     </div>
                 </div>
             </div>
@@ -72,14 +84,12 @@
                 </div>
 
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="..." oninput="updateBtnLabel()"></textarea>
-                    
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" oninput="updateBtnLabel()"></textarea>
                     <div class="grid grid-cols-3 gap-3">
-                        <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 rounded-xl text-[13px] text-white shadow-lg active:scale-95">RANDOM SCRAMBLE</button>
-                        <button id="btn-setup" onclick="applySetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px] active:scale-95">SET SETUP</button>
+                        <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 rounded-xl text-[13px] text-white shadow-lg">RANDOM SCRAMBLE</button>
+                        <button id="btn-setup" onclick="applySetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px]">SET SETUP</button>
                     </div>
-                    
-                    <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg active:scale-95">RESET</button>
+                    <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg">RESET</button>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
@@ -99,26 +109,12 @@
         let setupMoves = [];
         let activeMoves = [];
         let currentMask = "";
+        let isPlaying = false;
+        let playInterval = null;
 
         const i18n = {
-            jp: {
-                scramble: "ランダムスクランブル",
-                apply: "アルゴリズムを適用",
-                setup: "セットアップ完了",
-                setBtn: "セットアップ",
-                reset: "リセット",
-                step: "ステップ",
-                placeholder: "手順を入力するか、下のボタンを使ってください..."
-            },
-            en: {
-                scramble: "RANDOM SCRAMBLE",
-                apply: "APPLY ALGORITHM",
-                setup: "SETUP APPLIED",
-                setBtn: "SET SETUP",
-                reset: "RESET",
-                step: "STEP",
-                placeholder: "Enter moves or use buttons..."
-            }
+            jp: { scramble: "ランダムスクランブル", apply: "アルゴリズムを適用", setup: "セットアップ完了", setBtn: "セットアップ", reset: "リセット", step: "ステップ", placeholder: "手順を入力するか、下のボタンを使ってください..." },
+            en: { scramble: "RANDOM SCRAMBLE", apply: "APPLY ALGORITHM", setup: "SETUP APPLIED", setBtn: "SET SETUP", reset: "RESET", step: "STEP", placeholder: "Enter moves or use buttons..." }
         };
 
         window.toggleLang = () => {
@@ -146,6 +142,38 @@
             if (player) player.alg = fullAlg;
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+        };
+
+        // ナビゲーション関数
+        window.navMove = (type) => {
+            const slider = document.getElementById('move-slider');
+            if (type === 'first') slider.value = 0;
+            if (type === 'last') slider.value = activeMoves.length;
+            if (type === 'prev' && slider.value > 0) slider.value--;
+            if (type === 'next' && slider.value < activeMoves.length) slider.value++;
+            updateView();
+        };
+
+        // 再生・停止
+        window.togglePlay = () => {
+            const btn = document.getElementById('btn-play');
+            const slider = document.getElementById('move-slider');
+            if (isPlaying) {
+                clearInterval(playInterval);
+                btn.textContent = "▶";
+            } else {
+                if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
+                btn.textContent = "⏸";
+                playInterval = setInterval(() => {
+                    if (parseInt(slider.value) < activeMoves.length) {
+                        slider.value++;
+                        updateView();
+                    } else {
+                        togglePlay();
+                    }
+                }, 800);
+            }
+            isPlaying = !isPlaying;
         };
 
         const syncSliderRange = () => {
@@ -219,7 +247,8 @@
                     const b = document.createElement('button');
                     b.className = "move-btn"; b.textContent = m;
                     b.onclick = () => {
-                        const step = parseInt(document.getElementById('move-slider').value);
+                        const slider = document.getElementById('move-slider');
+                        const step = parseInt(slider.value);
                         if (step < activeMoves.length) activeMoves = activeMoves.slice(0, step);
                         activeMoves.push(m);
                         syncSliderRange();
