@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v5.42 Reverse Setup Flow</title>
+    <title>KAZCUBE Lab - v5.44 Logic Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -12,17 +12,22 @@
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
+        
         .lang-switch { display: inline-flex; background: #1e293b; border: 1px solid #475569; border-radius: 999px; padding: 2px; cursor: pointer; }
         .lang-btn { padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; }
         .lang-active { background: #3b82f6; color: white; }
+
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; }
         .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
+        
         .btn-reset-ui { background-color: #e11d48 !important; color: #ffffff !important; border: 2px solid #fb7185 !important; }
         .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; transition: 0.2s; }
         .play-btn { background: #059669 !important; color: white !important; border: none !important; width: 56px !important; }
-        .setup-indicator { font-size: 10px; font-weight: 900; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 10px; border: 1px solid #fbbf24; border-radius: 4px; }
+        
+        .status-badge { font-size: 10px; font-weight: 900; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 10px; border: 1px solid #fbbf24; border-radius: 4px; }
+        
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
@@ -30,9 +35,9 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.42</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v5.44</span></h2>
             <div class="flex items-center gap-4">
-                <div id="setup-status" class="hidden setup-indicator uppercase italic">Scrambled by Inverse</div>
+                <div id="setup-status" class="hidden status-badge uppercase italic">Ready</div>
                 <div class="lang-switch" onclick="toggleLang()">
                     <div id="lang-jp" class="lang-btn lang-active">JP</div>
                     <div id="lang-en" class="lang-btn">EN</div>
@@ -68,18 +73,15 @@
             </div>
 
             <div class="right-col">
-                <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-700 gap-1.5 mb-2">
-                    <button id="btn-mode-rotate" class="mode-btn btn-rotate-active text-[12px]" onclick="switchMode('rotate')">ROTATE</button>
-                    <button id="btn-mode-paint" class="mode-btn btn-inactive text-[12px]" onclick="switchMode('paint')">PAINT</button>
-                </div>
-
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none" oninput="updateBtnLabel()"></textarea>
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" oninput="updateBtnLabel()"></textarea>
+                    
                     <div class="grid grid-cols-3 gap-3">
-                        <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 rounded-xl text-[13px] text-white shadow-lg">RANDOM SCRAMBLE</button>
-                        <button id="btn-setup" onclick="applyReverseSetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px]">SET SETUP</button>
+                        <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 rounded-xl text-[13px] text-white shadow-lg active:scale-95">RANDOM SCRAMBLE</button>
+                        <button id="btn-setup" onclick="applyReverseSetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px] active:scale-95">SET SETUP</button>
                     </div>
-                    <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg">RESET</button>
+                    
+                    <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg active:scale-95">RESET</button>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
@@ -102,18 +104,11 @@
         let playInterval = null;
 
         const i18n = {
-            jp: { scramble: "ランダムスクランブル", apply: "解法を適用", setup: "逆手順で崩しました", setBtn: "セットアップ", reset: "リセット", step: "ステップ", placeholder: "手順を入力してください..." },
-            en: { scramble: "RANDOM SCRAMBLE", apply: "APPLY SOLUTION", setup: "SCRAMBLED BY INVERSE", setBtn: "SET SETUP", reset: "RESET", step: "STEP", placeholder: "Enter algorithm..." }
+            jp: { scramble: "ランダムスクランブル", scrambleInput: "スクランブル", setup: "逆手順で崩しました", setBtn: "セットアップ", reset: "リセット", step: "ステップ", placeholder: "手順を入力してください..." },
+            en: { scramble: "RANDOM SCRAMBLE", scrambleInput: "SCRAMBLE", setup: "SCRAMBLED BY INVERSE", setBtn: "SET SETUP", reset: "RESET", step: "STEP", placeholder: "Enter algorithm..." }
         };
 
-        // 逆手順を生成する関数
-        const getInverseMoves = (moves) => {
-            return [...moves].reverse().map(m => {
-                if (m.endsWith("2")) return m;
-                if (m.endsWith("'")) return m.slice(0, -1);
-                return m + "'";
-            });
-        };
+        const getInverseMoves = (moves) => [...moves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
 
         window.toggleLang = () => {
             currentLang = (currentLang === 'jp') ? 'en' : 'jp';
@@ -127,7 +122,6 @@
             document.getElementById('label-step').textContent = t.step;
             document.getElementById('btn-setup').textContent = t.setBtn;
             document.getElementById('btn-reset').textContent = t.reset;
-            document.getElementById('setup-status').textContent = t.setup;
             document.getElementById('command-box').placeholder = t.placeholder;
             updateBtnLabel();
         };
@@ -136,97 +130,69 @@
             const player = document.querySelector('twisty-player');
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
-            // 崩した状態(setupMoves) + ソルブ手順(activeMovesをstep分)
             const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
             if (player) player.alg = fullAlg;
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
         };
 
-        // 核心：逆手順で崩してからスライダーをセット
         window.applyReverseSetup = () => {
             const val = document.getElementById('command-box').value.trim();
             if (val) {
                 const moves = val.split(/\s+/);
-                setupMoves = getInverseMoves(moves); // 逆手順で崩す
-                activeMoves = moves; // 正の手順を「ソルブ手順」にする
+                setupMoves = getInverseMoves(moves);
+                activeMoves = moves;
+                document.getElementById('setup-status').textContent = i18n[currentLang].setup;
                 document.getElementById('setup-status').classList.remove('hidden');
-                
                 const slider = document.getElementById('move-slider');
-                slider.max = activeMoves.length;
-                slider.value = 0; // 崩れた状態でスタート
+                slider.max = activeMoves.length; slider.value = 0;
                 updateView();
-                updateBtnLabel();
             }
-        };
-
-        window.navMove = (type) => {
-            const slider = document.getElementById('move-slider');
-            if (type === 'first') slider.value = 0;
-            if (type === 'last') slider.value = activeMoves.length;
-            if (type === 'prev' && slider.value > 0) slider.value--;
-            if (type === 'next' && slider.value < activeMoves.length) slider.value++;
-            updateView();
-        };
-
-        window.togglePlay = () => {
-            const btn = document.getElementById('btn-play');
-            const slider = document.getElementById('move-slider');
-            if (isPlaying) {
-                clearInterval(playInterval);
-                btn.textContent = "▶";
-            } else {
-                if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
-                btn.textContent = "⏸";
-                playInterval = setInterval(() => {
-                    if (parseInt(slider.value) < activeMoves.length) {
-                        slider.value++;
-                        updateView();
-                    } else {
-                        togglePlay();
-                    }
-                }, 800);
-            }
-            isPlaying = !isPlaying;
         };
 
         window.handleMainAction = () => {
             const val = document.getElementById('command-box').value.trim();
+            setupMoves = [];
+            document.getElementById('setup-status').classList.add('hidden');
             if (val) {
                 activeMoves = val.split(/\s+/);
-                setupMoves = []; // 通常適用は崩さない
             } else {
-                const faces = ['U','D','L','R','F','B'];
-                const mods = ['', "'", '2'];
-                let scram = [];
-                for(let i=0; i<20; i++) {
-                    let m = faces[Math.floor(Math.random()*faces.length)] + mods[Math.floor(Math.random()*mods.length)];
-                    scram.push(m);
-                }
-                activeMoves = scram;
-                setupMoves = [];
+                const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
+                activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
             }
             const slider = document.getElementById('move-slider');
-            slider.max = activeMoves.length;
-            slider.value = 0;
+            slider.max = activeMoves.length; slider.value = activeMoves.length;
             updateView();
         };
 
         window.updateBtnLabel = () => {
             const box = document.getElementById('command-box');
             const btn = document.getElementById('btn-main-action');
-            const t = i18n[currentLang];
-            if(btn) btn.textContent = box.value.trim().length > 0 ? t.apply : t.scramble;
+            btn.textContent = box.value.trim().length > 0 ? i18n[currentLang].scrambleInput : i18n[currentLang].scramble;
         };
 
-        window.switchMode = (mode) => {
-            const mask = (mode === 'paint') ? "EDGES:IIIIIIIIIIII,CORNERS:IIIIIIII,CENTERS:IIIIII" : "";
-            document.getElementById('btn-mode-rotate').className = `mode-btn ${mode === 'rotate' ? 'btn-rotate-active' : 'btn-inactive'} text-[12px]`;
-            document.getElementById('btn-mode-paint').className = `mode-btn ${mode === 'paint' ? 'btn-paint-active' : 'btn-inactive'} text-[12px]`;
-            const player = document.querySelector('twisty-player');
-            if (mask) player.setAttribute('experimental-stickering-mask-orbits', mask);
-            else player.removeAttribute('experimental-stickering-mask-orbits');
+        window.navMove = (type) => {
+            const slider = document.getElementById('move-slider');
+            if (type === 'first') slider.value = 0;
+            else if (type === 'last') slider.value = activeMoves.length;
+            else if (type === 'prev' && slider.value > 0) slider.value--;
+            else if (type === 'next' && slider.value < activeMoves.length) slider.value++;
             updateView();
+        };
+
+        window.togglePlay = () => {
+            const btn = document.getElementById('btn-play');
+            const slider = document.getElementById('move-slider');
+            if (isPlaying) { clearInterval(playInterval); btn.textContent = "▶"; }
+            else {
+                if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
+                btn.textContent = "⏸";
+                playInterval = setInterval(() => {
+                    if (parseInt(slider.value) < activeMoves.length) { slider.value++; updateView(); }
+                    else togglePlay();
+                }, 800);
+            }
+            isPlaying = !isPlaying;
         };
 
         window.fullReset = () => {
@@ -253,22 +219,16 @@
                         const step = parseInt(slider.value);
                         if (step < activeMoves.length) activeMoves = activeMoves.slice(0, step);
                         activeMoves.push(m);
-                        slider.max = activeMoves.length;
-                        slider.value = activeMoves.length;
+                        slider.max = activeMoves.length; slider.value = activeMoves.length;
                         document.getElementById('command-box').value = activeMoves.join(" ");
-                        updateView();
-                        updateBtnLabel();
+                        updateView(); updateBtnLabel();
                     };
                     grid.appendChild(b);
                 });
             });
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            renderMoves('basic');
-            updateUIStrings();
-            updateView();
-        });
+        window.addEventListener('DOMContentLoaded', () => { renderMoves('basic'); updateUIStrings(); updateView(); });
     </script>
 </body>
 </html>
