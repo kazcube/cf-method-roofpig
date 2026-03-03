@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.3.0 Professional</title>
+    <title>KAZCUBE Lab - v1.3.1 Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -12,26 +12,28 @@
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
-        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; cursor: pointer; }
-        .play-btn { background: #059669 !important; color: white !important; width: 56px !important; }
+        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.2s; }
+        .nav-btn:hover { background: #334155; color: white; }
+        .play-btn { background: #059669 !important; color: white !important; width: 56px !important; border: none !important; }
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; border-radius: 0.75rem; }
-        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
+        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; transition: 0.1s; }
+        .move-btn:active { transform: scale(0.9); background-color: #475569; }
         .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100 p-4">
+<body class="min-h-screen bg-slate-900 text-slate-100 p-4 font-sans">
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.3.0</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.3.1</span></h2>
         </header>
 
         <div class="main-grid">
             <div class="left-col space-y-4">
                 <div id="cube-wrapper" class="shadow-2xl">
-                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
+                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none" tempo-scale="1.5"></twisty-player>
                 </div>
                 
                 <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5">
@@ -45,7 +47,7 @@
                     </div>
                     <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
                         <div class="flex flex-col"><span class="text-slate-500 text-[10px] uppercase font-black">Step</span><span id="step-counter" class="text-emerald-500 text-2xl font-black">0</span></div>
-                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
+                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic min-w-[80px] text-center">---</div>
                     </div>
                 </div>
             </div>
@@ -55,9 +57,9 @@
                     <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="R U R' U'"></textarea>
                     
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="action-btn py-4 bg-indigo-600 text-white text-[12px] shadow-lg active:scale-95 uppercase">Random Scramble</button>
-                        <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px] active:scale-95 uppercase">Set Setup</button>
-                        <button id="btn-reset" class="action-btn col-span-2 py-4 bg-rose-600 text-white text-[14px] shadow-lg active:scale-95 uppercase">Reset</button>
+                        <button id="btn-scramble" class="action-btn py-4 bg-indigo-600 text-white text-[12px] shadow-lg active:scale-95">Random Scramble</button>
+                        <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px] active:scale-95">Set Setup</button>
+                        <button id="btn-reset" class="action-btn col-span-2 py-4 bg-rose-600 text-white text-[14px] shadow-lg active:scale-95">Reset</button>
                     </div>
                 </div>
 
@@ -79,7 +81,6 @@
         let playInterval = null;
         const player = document.getElementById('main-cube');
 
-        // 手順の逆転（例：R -> R', R' -> R, R2 -> R2）
         const invertMove = (move) => {
             if (move.endsWith("2")) return move;
             if (move.endsWith("'")) return move.slice(0, -1);
@@ -89,46 +90,51 @@
         const updateView = () => {
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
-            player.alg = activeMoves.slice(0, step).join(" ");
+            
+            // 重要：algは変えず、cursorPosition（再生位置）だけを更新する
+            player.cursorPosition = step;
+            
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            // SET SETUP: 入力手順を逆算して「崩し」にセットし、Step 0で崩れた状態にする
+            // SET SETUP
             document.getElementById('btn-setup').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
                 if (!val) return;
 
                 const moves = val.split(/\s+/).filter(m => m.length > 0);
-                // 逆順の逆回転手順を作成してセットアップとして埋め込む
                 const inverse = moves.slice().reverse().map(invertMove).join(" ");
                 
-                player.experimentalSetupAlg = inverse; // これでStep 0が崩れた状態になる
-                activeMoves = moves; // 順方向の手順を再生対象にする
+                // 1. セットアップ（背景）を固定
+                player.experimentalSetupAlg = inverse; 
+                // 2. 手順をセット（これ自体は一瞬で行われる）
+                activeMoves = moves;
+                player.alg = activeMoves.join(" ");
                 
                 const slider = document.getElementById('move-slider');
                 slider.max = activeMoves.length;
-                slider.value = 0; // 開始地点にセット
+                slider.value = 0; // 崩れた状態（Step 0）に移動
                 updateView();
             };
 
-            // RANDOM SCRAMBLE: 適当に崩して、最後の手（崩れきった状態）にする
+            // SCRAMBLE
             document.getElementById('btn-scramble').onclick = () => {
                 const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
                 const scramble = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
                 
                 document.getElementById('command-box').value = scramble.join(" ");
-                player.experimentalSetupAlg = ""; // セットアップはクリア
+                player.experimentalSetupAlg = ""; 
                 activeMoves = scramble;
+                player.alg = activeMoves.join(" ");
                 
                 const slider = document.getElementById('move-slider');
                 slider.max = activeMoves.length;
-                slider.value = activeMoves.length; // 崩し終了状態にする
+                slider.value = activeMoves.length; // 崩し終わった状態に移動
                 updateView();
             };
 
-            // RESET: すべてを初期化
             document.getElementById('btn-reset').onclick = () => {
                 player.experimentalSetupAlg = "";
                 player.alg = "";
@@ -139,20 +145,10 @@
                 updateView();
             };
 
-            // スライダー・ナビゲーション
+            // スライダー操作
             document.getElementById('move-slider').oninput = updateView;
-            document.getElementById('nav-first').onclick = () => { document.getElementById('move-slider').value = 0; updateView(); };
-            document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = activeMoves.length; updateView(); };
-            document.getElementById('nav-prev').onclick = () => { 
-                const s = document.getElementById('move-slider');
-                if(parseInt(s.value) > 0) { s.value--; updateView(); }
-            };
-            document.getElementById('nav-next').onclick = () => {
-                const s = document.getElementById('move-slider');
-                if(parseInt(s.value) < activeMoves.length) { s.value++; updateView(); }
-            };
 
-            // 再生
+            // 再生ロジック（ここでもupdateViewを呼ぶことでcursorPositionが更新される）
             document.getElementById('btn-play').onclick = () => {
                 if (isPlaying) { 
                     clearInterval(playInterval); 
@@ -170,12 +166,18 @@
                             isPlaying = false; 
                             document.getElementById('btn-play').textContent = "▶"; 
                         }
-                    }, 800);
+                    }, 600); // 0.6秒ごとに1手（お好みで調整可能）
                 }
                 isPlaying = !isPlaying;
             };
 
-            // ボタン生成（省略せず全機能維持）
+            // ナビゲーション
+            document.getElementById('nav-first').onclick = () => { document.getElementById('move-slider').value = 0; updateView(); };
+            document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = activeMoves.length; updateView(); };
+            document.getElementById('nav-prev').onclick = () => { if(document.getElementById('move-slider').value > 0) { document.getElementById('move-slider').value--; updateView(); } };
+            document.getElementById('nav-next').onclick = () => { if(parseInt(document.getElementById('move-slider').value) < activeMoves.length) { document.getElementById('move-slider').value++; updateView(); } };
+
+            // キーボード入力補助（省略なし）
             const renderMoves = (type) => {
                 const grid = document.getElementById('move-grid');
                 grid.innerHTML = '';
@@ -187,8 +189,10 @@
                         b.className = "move-btn"; b.textContent = m;
                         b.onclick = () => {
                             const slider = document.getElementById('move-slider');
+                            // 現在のスライダー位置までの手順を維持しつつ、新しい手を追加
                             activeMoves = activeMoves.slice(0, parseInt(slider.value));
                             activeMoves.push(m);
+                            player.alg = activeMoves.join(" ");
                             slider.max = activeMoves.length;
                             slider.value = activeMoves.length;
                             document.getElementById('command-box').value = activeMoves.join(" ");
