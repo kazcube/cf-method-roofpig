@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.2.7 Playback Fix</title>
+    <title>KAZCUBE Lab - v1.2.8 Perfect Setup</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
+        /* スタイルは維持 */
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
@@ -29,16 +30,16 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic uppercase text-white">KAZCUBE Lab <span class="text-xs text-emerald-400 not-italic ml-2 tracking-widest">v1.2.7</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.2.8</span></h2>
             <div class="lang-switch" id="lang-switch">
                 <div id="lang-jp" class="lang-btn lang-active">JP</div>
                 <div id="lang-en" class="lang-btn">EN</div>
             </div>
         </header>
 
-        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6">
+        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6 shadow-lg">
             <input type="text" id="hash-io" class="hash-io" readonly>
-            <button id="btn-copy" class="bg-indigo-600 text-[10px] font-black px-3 py-1.5 rounded uppercase">Copy Link</button>
+            <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-3 py-1.5 rounded uppercase transition">Copy Link</button>
         </div>
 
         <div class="main-grid">
@@ -47,7 +48,7 @@
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
                 
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5 shadow-xl">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                     <div class="flex justify-center items-center gap-2">
                         <button id="nav-first" class="nav-btn">&lt;&lt;</button>
@@ -78,9 +79,9 @@
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
                     <div class="flex gap-1.5 mb-4 bg-black/30 p-1.5 rounded-lg">
-                        <button id="tab-basic" class="tab-btn active uppercase">Basic</button>
-                        <button id="tab-wide" class="tab-btn uppercase">Wide</button>
-                        <button id="tab-slice" class="tab-btn uppercase">Slice</button>
+                        <button id="tab-basic" class="tab-btn active">BASIC</button>
+                        <button id="tab-wide" class="tab-btn">WIDE</button>
+                        <button id="tab-slice" class="tab-btn">SLICE</button>
                     </div>
                     <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
                 </div>
@@ -90,7 +91,8 @@
 
     <script type="module">
         let currentLang = 'jp';
-        let activeMoves = []; 
+        let setupAlg = "";    // 背景（崩れた状態）として固定する手順
+        let playbackAlg = []; // スライダーで回す手順
         let isPlaying = false;
         let playInterval = null;
         const player = document.getElementById('main-cube');
@@ -104,16 +106,17 @@
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
             
-            // 全てをalg（再生手順）として扱う
-            player.alg = activeMoves.slice(0, step).join(" ");
+            // 重要：setupAlgでベースの状態を作り、その上にplaybackAlgの指定ステップまでを重ねる
+            player.experimentalSetupAlg = setupAlg;
+            player.alg = playbackAlg.slice(0, step).join(" ");
             
             document.getElementById('step-counter').textContent = step;
-            document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+            document.getElementById('move-indicator').textContent = (step > 0 && playbackAlg[step-1]) ? playbackAlg[step-1] : "---";
             syncHash();
         };
 
         const syncHash = () => {
-            const state = { a: activeMoves, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
+            const state = { s: setupAlg, a: playbackAlg, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
             document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
         };
 
@@ -123,55 +126,57 @@
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            // SET SETUP: 手順を読み込み、スライダーを 0 にして「再生待ち」にする
+            // SET SETUP: テキストエリアの内容を「背景」に固定し、スライダーは0（その崩れた状態）からスタート
             document.getElementById('btn-setup').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
                 if (val) {
-                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+                    setupAlg = val;
+                    playbackAlg = []; // 再生手順は一旦クリア（必要ならここに手順を移すことも可能）
                     const slider = document.getElementById('move-slider');
-                    slider.max = activeMoves.length;
-                    slider.value = 0; // 0手目（完成状態）に戻す
+                    slider.max = 0;
+                    slider.value = 0;
                     updateView();
                 }
             };
 
-            // SCRAMBLE / APPLY: 手順を読み込み、最後の手（崩れた状態）にする
+            // SCRAMBLE / APPLY: 通常の再生手順として流し込む
             document.getElementById('btn-scramble').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
                 if (val) {
-                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+                    playbackAlg = val.split(/\s+/).filter(m => m.length > 0);
                 } else {
                     const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-                    activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-                    document.getElementById('command-box').value = activeMoves.join(" ");
+                    playbackAlg = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+                    document.getElementById('command-box').value = playbackAlg.join(" ");
                 }
                 const slider = document.getElementById('move-slider');
-                slider.max = activeMoves.length;
-                slider.value = activeMoves.length; // 最後まで回した状態にする
+                slider.max = playbackAlg.length;
+                slider.value = playbackAlg.length; 
                 updateView();
             };
 
             document.getElementById('btn-reset').onclick = () => {
-                activeMoves = [];
+                setupAlg = "";
+                playbackAlg = [];
                 document.getElementById('command-box').value = "";
                 const slider = document.getElementById('move-slider');
                 slider.max = 0; slider.value = 0;
                 updateView();
             };
 
-            // ナビゲーション・再生・タブ生成は安定版を維持
+            // 以下、ナビゲーション・再生・コピー等のロジックは安定版を継承
             document.getElementById('nav-first').onclick = () => { document.getElementById('move-slider').value = 0; updateView(); };
-            document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = activeMoves.length; updateView(); };
+            document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = playbackAlg.length; updateView(); };
             document.getElementById('nav-prev').onclick = () => { if(document.getElementById('move-slider').value > 0) { document.getElementById('move-slider').value--; updateView(); } };
-            document.getElementById('nav-next').onclick = () => { if(parseInt(document.getElementById('move-slider').value) < activeMoves.length) { document.getElementById('move-slider').value++; updateView(); } };
+            document.getElementById('nav-next').onclick = () => { if(parseInt(document.getElementById('move-slider').value) < playbackAlg.length) { document.getElementById('move-slider').value++; updateView(); } };
             document.getElementById('btn-play').onclick = () => {
                 if (isPlaying) { clearInterval(playInterval); document.getElementById('btn-play').textContent = "▶"; }
                 else {
                     const slider = document.getElementById('move-slider');
-                    if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
+                    if (parseInt(slider.value) >= playbackAlg.length) slider.value = 0;
                     document.getElementById('btn-play').textContent = "⏸";
                     playInterval = setInterval(() => {
-                        if (parseInt(slider.value) < activeMoves.length) { slider.value++; updateView(); }
+                        if (parseInt(slider.value) < playbackAlg.length) { slider.value++; updateView(); }
                         else { clearInterval(playInterval); isPlaying = false; document.getElementById('btn-play').textContent = "▶"; }
                     }, 800);
                 }
@@ -208,11 +213,11 @@
                         b.className = "move-btn"; b.textContent = m;
                         b.onclick = () => {
                             const slider = document.getElementById('move-slider');
-                            activeMoves = activeMoves.slice(0, parseInt(slider.value));
-                            activeMoves.push(m);
-                            slider.max = activeMoves.length;
-                            slider.value = activeMoves.length;
-                            document.getElementById('command-box').value = activeMoves.join(" ");
+                            playbackAlg = playbackAlg.slice(0, parseInt(slider.value));
+                            playbackAlg.push(m);
+                            slider.max = playbackAlg.length;
+                            slider.value = playbackAlg.length;
+                            document.getElementById('command-box').value = playbackAlg.join(" ");
                             updateView();
                         };
                         grid.appendChild(b);
@@ -229,11 +234,12 @@
             if (hash && hash.startsWith("v1.2:")) {
                 try {
                     const state = JSON.parse(atob(hash.replace("v1.2:", "")));
-                    activeMoves = state.a || [];
+                    setupAlg = state.s || "";
+                    playbackAlg = state.a || [];
                     currentLang = state.l || 'jp';
-                    document.getElementById('move-slider').max = activeMoves.length;
+                    document.getElementById('move-slider').max = playbackAlg.length;
                     document.getElementById('move-slider').value = state.v || 0;
-                    document.getElementById('command-box').value = activeMoves.join(" ");
+                    document.getElementById('command-box').value = playbackAlg.join(" ");
                     updateView();
                 } catch(e) {}
             }
