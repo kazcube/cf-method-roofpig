@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.2.5 Final</title>
+    <title>KAZCUBE Lab - v1.2.6 Setup Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -12,20 +12,16 @@
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
-        
         .lang-switch { display: inline-flex; background: #1e293b; border: 1px solid #475569; border-radius: 999px; padding: 2px; cursor: pointer; }
         .lang-btn { padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; }
         .lang-active { background: #3b82f6; color: white; }
-        
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; border-radius: 0.75rem; }
         .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
-        
         .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; cursor: pointer; }
         .play-btn { background: #059669 !important; color: white !important; border: none !important; width: 56px !important; }
         .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
-
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
@@ -33,7 +29,7 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase tracking-widest text-white">v1.2.5</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 tracking-widest text-white">v1.2.6</span></h2>
             <div class="lang-switch" id="lang-switch">
                 <div id="lang-jp" class="lang-btn lang-active">JP</div>
                 <div id="lang-en" class="lang-btn">EN</div>
@@ -52,9 +48,8 @@
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
                 
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5 shadow-xl">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                    
                     <div class="flex justify-center items-center gap-2">
                         <button id="nav-first" class="nav-btn">&lt;&lt;</button>
                         <button id="nav-prev" class="nav-btn">&lt;</button>
@@ -62,7 +57,6 @@
                         <button id="nav-next" class="nav-btn">&gt;</button>
                         <button id="nav-last" class="nav-btn">&gt;&gt;</button>
                     </div>
-
                     <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
                         <div class="flex flex-col">
                             <span id="label-step" class="text-slate-500 text-[10px] uppercase font-black">Step</span>
@@ -76,7 +70,6 @@
             <div class="right-col">
                 <div class="space-y-3">
                     <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="Enter moves (e.g. R U R' U')"></textarea>
-                    
                     <div class="grid grid-cols-3 gap-3">
                         <button id="btn-scramble" class="action-btn col-span-2 py-4 bg-indigo-600 text-white text-[13px] shadow-lg active:scale-95">RANDOM SCRAMBLE</button>
                         <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px] active:scale-95">SET SETUP</button>
@@ -98,7 +91,8 @@
 
     <script type="module">
         let currentLang = 'jp';
-        let activeMoves = []; 
+        let setupMoves = []; // セットアップ（初期状態）用の履歴
+        let activeMoves = []; // 操作・練習用の履歴
         let isPlaying = false;
         let playInterval = null;
         const player = document.getElementById('main-cube');
@@ -111,14 +105,18 @@
         const updateView = () => {
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
+            
+            // 重要：setupMovesを初期状態として固定し、activeMovesをスライダーで動かす
+            player.experimentalSetupAlg = setupMoves.join(" ");
             player.alg = activeMoves.slice(0, step).join(" ");
+            
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
             syncHash();
         };
 
         const syncHash = () => {
-            const state = { a: activeMoves, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
+            const state = { s: setupMoves, a: activeMoves, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
             document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
         };
 
@@ -128,35 +126,39 @@
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            // SET SETUP: 手順をセットして「0手目（開始）」に戻す
+            // SET SETUP: テキストエリアの手順を「初期状態」として固定する
             document.getElementById('btn-setup').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
                 if (val) {
-                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+                    setupMoves = val.split(/\s+/).filter(m => m.length > 0);
+                    activeMoves = []; // 練習用手順はクリア
                     const slider = document.getElementById('move-slider');
-                    slider.max = activeMoves.length;
-                    slider.value = 0; // 開始地点にセット
+                    slider.max = 0;
+                    slider.value = 0;
                     updateView();
                 }
             };
 
-            // SCRAMBLE / APPLY: 手順を適用して「最後の手」まで進める
+            // SCRAMBLE / APPLY: 通常の手順として追加
             document.getElementById('btn-scramble').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
+                let newMoves = [];
                 if (val) {
-                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+                    newMoves = val.split(/\s+/).filter(m => m.length > 0);
                 } else {
                     const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-                    activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-                    document.getElementById('command-box').value = activeMoves.join(" ");
+                    newMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+                    document.getElementById('command-box').value = newMoves.join(" ");
                 }
+                activeMoves = newMoves;
                 const slider = document.getElementById('move-slider');
                 slider.max = activeMoves.length;
-                slider.value = activeMoves.length; // 崩し終わった状態にセット
+                slider.value = activeMoves.length;
                 updateView();
             };
 
             document.getElementById('btn-reset').onclick = () => {
+                setupMoves = [];
                 activeMoves = [];
                 document.getElementById('command-box').value = "";
                 const slider = document.getElementById('move-slider');
@@ -164,11 +166,11 @@
                 updateView();
             };
 
+            // スライダー・ナビゲーション・再生ロジックは維持
             document.getElementById('nav-first').onclick = () => { document.getElementById('move-slider').value = 0; updateView(); };
             document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = activeMoves.length; updateView(); };
             document.getElementById('nav-prev').onclick = () => { if(document.getElementById('move-slider').value > 0) { document.getElementById('move-slider').value--; updateView(); } };
             document.getElementById('nav-next').onclick = () => { if(parseInt(document.getElementById('move-slider').value) < activeMoves.length) { document.getElementById('move-slider').value++; updateView(); } };
-
             document.getElementById('btn-play').onclick = () => {
                 if (isPlaying) { clearInterval(playInterval); document.getElementById('btn-play').textContent = "▶"; }
                 else {
@@ -182,9 +184,9 @@
                 }
                 isPlaying = !isPlaying;
             };
-
             document.getElementById('move-slider').oninput = updateView;
 
+            // 言語・コピー・タブ生成ロジックは維持
             document.getElementById('lang-switch').onclick = () => {
                 currentLang = currentLang === 'jp' ? 'en' : 'jp';
                 document.getElementById('lang-jp').classList.toggle('lang-active', currentLang === 'jp');
@@ -194,7 +196,6 @@
                 updateBtnLabels();
                 syncHash();
             };
-
             document.getElementById('btn-copy').onclick = () => {
                 const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(document.getElementById('hash-io').value)}`;
                 navigator.clipboard.writeText(url).then(() => {
@@ -203,17 +204,12 @@
                     setTimeout(() => btn.textContent = "COPY LINK", 1500);
                 });
             };
-
             document.getElementById('command-box').oninput = updateBtnLabels;
 
             const renderMoves = (type) => {
                 const grid = document.getElementById('move-grid');
                 grid.innerHTML = '';
-                const lib = { 
-                    basic:['U','D','L','R','F','B'], 
-                    wide:['u','d','l','r','f','b'], 
-                    slice:['M','E','S','x','y','z'] 
-                };
+                const lib = { basic:['U','D','L','R','F','B'], wide:['u','d','l','r','f','b'], slice:['M','E','S','x','y','z'] };
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.id === 'tab-'+type));
                 lib[type].forEach(f => {
                     [f, f+"'", f+"2"].forEach(m => {
@@ -242,6 +238,7 @@
             if (hash && hash.startsWith("v1.2:")) {
                 try {
                     const state = JSON.parse(atob(hash.replace("v1.2:", "")));
+                    setupMoves = state.s || [];
                     activeMoves = state.a || [];
                     currentLang = state.l || 'jp';
                     document.getElementById('move-slider').max = activeMoves.length;
