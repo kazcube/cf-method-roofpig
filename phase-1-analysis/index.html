@@ -3,132 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.2.1 Final Stable</title>
+    <title>KAZCUBE Lab - v1.2.1 FINAL STABLE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
-        .left-col { flex: 1; min-width: 300px; }
-        .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
-        .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
-        /* ボタンが無効な時は半透明にする */
-        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; transition: 0.2s; }
-        .move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .move-btn:active:not(:disabled) { background-color: #3b82f6; transform: scale(0.95); }
-        @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
+        .move-btn { background-color: #334155; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-size: 14px; font-weight: bold; border: 1px solid #475569; cursor: pointer; transition: all 0.1s; }
+        .move-btn:active { background-color: #3b82f6; transform: scale(0.9); }
+        .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
+        @media (max-width: 850px) { .main-grid { flex-direction: column; } }
     </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
 
-    <div class="max-w-[1200px] mx-auto">
-        <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase tracking-widest text-white">v1.2.1 Final</span></h2>
+    <div class="max-w-[1000px] mx-auto">
+        <header class="mb-6 border-b border-slate-700 pb-4">
+            <h2 class="text-2xl font-black text-emerald-400 italic text-center uppercase">KAZCUBE Lab v1.2.1 FINAL</h2>
         </header>
 
-        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6 shadow-lg">
-            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">State Hash</span>
-            <input type="text" id="hash-io" class="hash-io" readonly placeholder="Waiting for player initialization...">
-            <button onclick="copyLink()" id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-4 py-2 rounded uppercase transition">Copy Link</button>
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex gap-3 items-center mb-6">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hash</span>
+            <input type="text" id="hash-io" class="hash-io" readonly placeholder="Waiting for player...">
+            <button onclick="window.copyLink()" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-4 py-2 rounded uppercase transition">Copy URL</button>
         </div>
 
         <div class="main-grid">
-            <div class="left-col space-y-4">
+            <div class="flex-1 space-y-4">
                 <div id="cube-wrapper" class="shadow-2xl">
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none" drag-pointable="true"></twisty-player>
                 </div>
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
-                    <p id="status-text" class="text-[10px] text-amber-400 font-bold uppercase tracking-widest italic">Initializing components...</p>
+                <div class="bg-slate-800 p-3 rounded-lg text-center border border-slate-700">
+                    <p id="status-display" class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">System Ready</p>
                 </div>
             </div>
 
-            <div class="right-col">
-                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
-                    <div id="move-grid" class="grid grid-cols-6 gap-2">
+            <div class="w-full lg:w-[350px] space-y-4">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <div id="move-grid" class="grid grid-cols-4 gap-2">
                         </div>
                 </div>
-                <button onclick="location.reload()" class="w-full py-4 bg-slate-700 text-white rounded-xl font-black text-sm shadow-lg active:scale-95 transition uppercase">Reset / Reload</button>
+                <button onclick="location.reload()" class="w-full py-4 bg-slate-700 text-white rounded-xl font-black text-xs uppercase shadow-lg">Reset / Reload</button>
             </div>
         </div>
     </div>
 
     <script type="module">
-        const player = document.getElementById('main-cube');
-        const hashIo = document.getElementById('hash-io');
-        const statusText = document.getElementById('status-text');
-
-        // ハッシュ更新ロジック
-        const syncStickerHash = async () => {
-            if (!player.experimentalGetPattern) return;
-            try {
-                const pattern = await player.experimentalGetPattern();
-                const state = { k: pattern };
-                hashIo.value = "v1.2:" + btoa(JSON.stringify(state));
-            } catch (e) { console.warn("Pattern not ready"); }
-        };
-
-        // ボタンの生成と有効化
-        const initButtons = () => {
+        // ライブラリの定義を待ってから初期化
+        customElements.whenDefined('twisty-player').then(() => {
+            const player = document.getElementById('main-cube');
+            const hashIo = document.getElementById('hash-io');
             const grid = document.getElementById('move-grid');
-            grid.innerHTML = '';
-            ['U','D','L','R','F','B'].forEach(f => {
-                [f, f+"'"].forEach(m => {
-                    const b = document.createElement('button');
-                    b.className = "move-btn";
-                    b.textContent = m;
-                    b.disabled = true; // 最初は無効化
-                    b.onclick = async () => {
-                        if (player.applyMove) {
-                            await player.applyMove(m);
-                            syncStickerHash();
-                        }
-                    };
-                    grid.appendChild(b);
-                });
+
+            // 1. ハッシュ更新
+            const updateHash = async () => {
+                try {
+                    const pattern = await player.experimentalGetPattern();
+                    const state = { k: pattern };
+                    hashIo.value = "v1.2:" + btoa(JSON.stringify(state));
+                } catch(e) {}
+            };
+
+            // 2. ボタン生成 (ここで直接 onclick をバインド)
+            const moves = ['U', "U'", 'D', "D'", 'L', "L'", 'R', "R'", 'F', "F'", 'B', "B'"];
+            moves.forEach(m => {
+                const btn = document.createElement('button');
+                btn.className = "move-btn";
+                btn.textContent = m;
+                btn.onclick = async () => {
+                    await player.applyMove(m);
+                    updateHash();
+                };
+                grid.appendChild(btn);
             });
-        };
 
-        // 共有URLコピー
-        window.copyLink = () => {
-            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hashIo.value)}`;
-            navigator.clipboard.writeText(url).then(() => {
-                const btn = document.getElementById('btn-copy');
-                btn.textContent = "COPIED!";
-                setTimeout(() => btn.textContent = "COPY LINK", 1500);
-            });
-        };
+            // 3. URLコピー機能
+            window.copyLink = () => {
+                const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hashIo.value)}`;
+                navigator.clipboard.writeText(url).then(() => alert("URL Copied!"));
+            };
 
-        // メイン初期化
-        const setup = async () => {
-            initButtons();
-
-            // プレイヤーの準備が整うのを待つ (applyMoveが関数になるまで)
-            const checkReady = setInterval(async () => {
-                if (player.applyMove && typeof player.applyMove === 'function') {
-                    clearInterval(checkReady);
-                    
-                    // ボタンを全て有効化
-                    document.querySelectorAll('.move-btn').forEach(btn => btn.disabled = false);
-                    statusText.textContent = "READY - OPERATE TO UPDATE HASH";
-                    statusText.className = "text-[10px] text-emerald-400 font-bold uppercase tracking-widest";
-
-                    // URLパラメータからの復元
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const hash = urlParams.get('hash');
-                    if (hash && hash.startsWith("v1.2:")) {
-                        try {
-                            const state = JSON.parse(atob(hash.replace("v1.2:", "")));
-                            if (state.k) player.experimentalSetupAlg = state.k;
-                        } catch (e) { console.error(e); }
-                    }
-                    syncStickerHash();
-                    player.addEventListener("twisty-player-navigation-change", syncStickerHash);
+            // 4. 初期読み込み
+            const init = async () => {
+                const params = new URLSearchParams(window.location.search);
+                const hash = params.get('hash');
+                if (hash && hash.startsWith("v1.2:")) {
+                    try {
+                        const state = JSON.parse(atob(hash.replace("v1.2:", "")));
+                        player.experimentalSetupAlg = state.k;
+                    } catch(e) {}
                 }
-            }, 100);
-        };
+                setTimeout(updateHash, 500);
+            };
 
-        window.addEventListener('DOMContentLoaded', setup);
+            player.addEventListener("twisty-player-navigation-change", updateHash);
+            init();
+        });
     </script>
 </body>
 </html>
