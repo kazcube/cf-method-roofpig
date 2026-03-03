@@ -3,85 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - GitHub Stable</title>
+    <title>KAZCUBE Lab - v1.2.1 Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        .main-grid { display: flex; gap: 20px; align-items: start; justify-content: center; }
-        #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; }
+        #cube-wrapper { width: 100%; height: 350px; background: #000; border-radius: 1rem; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
-        .move-btn { background-color: #334155; color: white; padding: 14px 0; border-radius: 8px; font-family: monospace; font-size: 14px; font-weight: bold; border: 1px solid #475569; cursor: pointer; }
-        .move-btn:hover { background-color: #475569; }
-        .move-btn:active { background-color: #3b82f6; transform: scale(0.9); }
-        .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; }
-        @media (max-width: 850px) { .main-grid { flex-direction: column; } }
+        .move-btn { background: #1e293b; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid #475569; text-align: center; cursor: pointer; }
+        .move-btn:active { background: #3b82f6; transform: scale(0.95); }
+        .hash-io { width: 100%; background: #000; color: #10b981; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 8px; border: 1px solid #334155; }
     </style>
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100 p-4">
+<body class="bg-slate-900 text-white p-4">
 
-    <div class="max-w-[1000px] mx-auto">
-        <header class="mb-6 border-b border-slate-700 pb-4 text-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 uppercase">v1.2.1 Stable</span></h2>
-        </header>
+    <div class="max-w-md mx-auto space-y-4">
+        <h1 class="text-xl font-black text-emerald-400 italic">KAZCUBE Lab v1.2.1</h1>
 
-        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6">
-            <input type="text" id="hash-io" class="hash-io" readonly placeholder="Waiting...">
-            <button onclick="window.copyLink()" class="bg-indigo-600 px-4 py-2 rounded text-[10px] font-black uppercase">Copy URL</button>
+        <div id="cube-wrapper">
+            <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
         </div>
 
-        <div class="main-grid">
-            <div class="flex-1">
-                <div id="cube-wrapper">
-                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
-                </div>
-            </div>
+        <div class="grid grid-cols-4 gap-2">
+            <button class="move-btn" onclick="applyMove('U')">U</button>
+            <button class="move-btn" onclick="applyMove('U\'')">U'</button>
+            <button class="move-btn" onclick="applyMove('D')">D</button>
+            <button class="move-btn" onclick="applyMove('D\'')">D'</button>
+            <button class="move-btn" onclick="applyMove('L')">L</button>
+            <button class="move-btn" onclick="applyMove('L\'')">L'</button>
+            <button class="move-btn" onclick="applyMove('R')">R</button>
+            <button class="move-btn" onclick="applyMove('R\'')">R'</button>
+            <button class="move-btn" onclick="applyMove('F')">F</button>
+            <button class="move-btn" onclick="applyMove('F\'')">F'</button>
+            <button class="move-btn" onclick="applyMove('B')">B</button>
+            <button class="move-btn" onclick="applyMove('B\'')">B'</button>
+        </div>
 
-            <div class="w-full lg:w-[350px] space-y-4">
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                    <div id="move-grid" class="grid grid-cols-4 gap-2">
-                        </div>
-                </div>
-                <button onclick="location.reload()" class="w-full py-3 bg-slate-700 rounded-lg text-xs font-black uppercase">Reset</button>
-            </div>
+        <div class="p-4 bg-slate-800 rounded-xl border border-slate-700 space-y-3">
+            <input type="text" id="hash-io" class="hash-io" readonly>
+            <button onclick="copyURL()" class="w-full bg-indigo-600 p-3 rounded font-black text-xs uppercase">Copy Share URL</button>
         </div>
     </div>
 
     <script type="module">
-        // 以前動いていた v5.44 の「履歴蓄積方式」を採用
-        let moveHistory = [];
         const player = document.getElementById('main-cube');
         const hashIo = document.getElementById('hash-io');
+        let moveHistory = [];
 
-        // ハッシュ更新
-        const syncHash = () => {
+        // グローバルに関数を公開（HTMLのonclickから呼べるようにする）
+        window.applyMove = (m) => {
+            moveHistory.push(m);
+            // v5.44で実績のある .alg 直接代入方式
+            player.alg = moveHistory.join(" ");
+            updateHash();
+        };
+
+        const updateHash = () => {
             const data = { a: moveHistory };
             hashIo.value = "v1.2:" + btoa(JSON.stringify(data));
         };
 
-        // ボタン生成
-        const grid = document.getElementById('move-grid');
-        const moves = ['U', "U'", 'D', "D'", 'L', "L'", 'R', "R'", 'F', "F'", 'B', "B'"];
-        
-        moves.forEach(m => {
-            const btn = document.createElement('button');
-            btn.className = "move-btn";
-            btn.textContent = m;
-            btn.onclick = () => {
-                moveHistory.push(m);
-                // 直接 applyMove を呼ばず、alg属性を更新する（v5.44と同じ方式）
-                player.alg = moveHistory.join(" ");
-                syncHash();
-            };
-            grid.appendChild(btn);
-        });
-
-        // URLコピー
-        window.copyLink = () => {
+        window.copyURL = () => {
             const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hashIo.value)}`;
-            navigator.clipboard.writeText(url).then(() => alert("URL Copied!"));
+            navigator.clipboard.writeText(url).then(() => alert("Copied!"));
         };
 
-        // 初期化：URLから状態復元
+        // 初期ロード処理
         window.addEventListener('load', () => {
             const params = new URLSearchParams(window.location.search);
             const hash = params.get('hash');
@@ -92,9 +78,9 @@
                         moveHistory = state.a;
                         player.alg = moveHistory.join(" ");
                     }
-                } catch(e) { console.error(e); }
+                } catch(e) {}
             }
-            syncHash();
+            updateHash();
         });
     </script>
 </body>
