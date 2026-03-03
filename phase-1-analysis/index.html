@@ -2,245 +2,234 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - Phase 1.1.3 (Setup Fix)</title>
+    <title>KAZCUBE Lab - Phase 1.1.4 (Stable Analysis)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
-        .left-col { flex: 1; min-width: 300px; }
-        .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
-        #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        twisty-player { width: 100%; height: 100%; }
-        .analysis-panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; }
-        .hash-input { font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #10b981; background: #000; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; width: 100%; outline: none; }
-        .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; }
-        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; }
-        .play-btn { background: #059669 !important; color: white !important; width: 56px !important; }
-        .btn-reset-ui { background-color: #e11d48 !important; color: #ffffff !important; border-bottom: 4px solid #9f1239 !important; }
-        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
-        @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
+        /* スライダーの見た目を調整 */
+        input[type=range]::-webkit-slider-thumb { border: 2px solid #10b981; height: 18px; width: 18px; border-radius: 50%; background: #ffffff; cursor: pointer; -webkit-appearance: none; margin-top: -5px; }
     </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
-
-    <div class="max-w-[1200px] mx-auto">
-        <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
+    <div class="max-w-5xl mx-auto bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-2xl">
+        <header class="mb-4 flex justify-between items-center border-b border-slate-700 pb-2">
             <div class="flex items-center gap-3">
-                <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE <span class="text-white">Lab</span></h2>
-                <span class="bg-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-1 rounded border border-indigo-500/50">v1.1.3</span>
+                <h2 class="text-xl font-black text-emerald-400 italic">KAZCUBE <span class="text-white">Lab</span></h2>
+                <span class="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/50 font-bold">v1.1.4</span>
             </div>
-            <div id="setup-status" class="hidden text-[10px] font-black text-amber-400 bg-amber-400/10 px-3 py-1 border border-amber-400/50 rounded italic uppercase">Ready</div>
+            <div id="status" class="text-[10px] font-mono bg-black px-2 py-1 rounded text-emerald-400 uppercase tracking-tighter">READY</div>
         </header>
 
-        <div class="main-grid">
-            <div class="left-col space-y-4">
-                <div id="cube-wrapper">
-                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
+        <div class="mb-6 p-3 bg-slate-900 rounded-xl border border-slate-700 flex flex-col md:flex-row gap-3 items-center shadow-inner">
+            <div class="flex-1 w-full">
+                <input type="text" id="hash-io" placeholder="Hash data..." class="w-full bg-black border border-slate-700 rounded px-3 py-2 text-[10px] font-mono text-emerald-500 outline-none focus:border-indigo-500" spellcheck="false">
+            </div>
+            <div class="flex gap-2 w-full md:w-auto">
+                <button id="btn-copy-url" class="flex-1 md:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-[10px] font-black uppercase transition-all active:scale-95">Copy Link</button>
+                <button id="btn-import" class="flex-1 md:flex-none px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-[10px] font-black uppercase transition-all active:scale-95">Import Hash</button>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-black rounded-lg aspect-square border border-slate-700 overflow-hidden shadow-lg">
+                        <twisty-player id="p1" puzzle="3x3x3" background="checkered" control-panel="none" class="w-full h-full"></twisty-player>
+                    </div>
+                    <div class="bg-black rounded-lg aspect-square border border-slate-700 overflow-hidden shadow-lg">
+                        <twisty-player id="p2" puzzle="3x3x3" background="none" control-panel="none" 
+                            experimental-stickering-mask-orbits="EDGES:IIIIIIIIIIII,CORNERS:--------,CENTERS:IIIIII" class="w-full h-full"></twisty-player>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-3 shadow-inner">
+                    <div class="flex justify-between text-xs font-mono text-emerald-500 font-bold">
+                        <span>STEP: <span id="step-counter">0</span></span>
+                        <span id="move-indicator" class="bg-emerald-500/10 px-2 rounded tracking-widest">---</span>
+                    </div>
+                    <input type="range" id="move-slider" min="0" max="0" value="0" step="1" 
+                           class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <div class="bg-black/50 p-2 rounded text-[10px] font-mono text-slate-400 break-all min-h-[2.5rem] border border-slate-800" id="alg-display">Ready.</div>
                 </div>
                 
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5 shadow-xl">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="updateView()">
-                    
-                    <div class="flex justify-center items-center gap-2">
-                        <button onclick="navMove('first')" class="nav-btn">&lt;&lt;</button>
-                        <button onclick="navMove('prev')" class="nav-btn">&lt;</button>
-                        <button id="btn-play" onclick="togglePlay()" class="nav-btn play-btn">▶</button>
-                        <button onclick="navMove('next')" class="nav-btn">&gt;</button>
-                        <button onclick="navMove('last')" class="nav-btn">&gt;&gt;</button>
-                    </div>
-
-                    <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
-                        <div class="flex flex-col">
-                            <span class="text-slate-500 text-[10px] uppercase font-black tracking-widest">Step</span>
-                            <span id="step-counter" class="text-emerald-400 text-2xl font-black">0</span>
-                        </div>
-                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic min-w-[80px] text-center">---</div>
-                    </div>
+                <div class="flex gap-2">
+                    <button id="btn-play" class="flex-[3] bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-black text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 uppercase tracking-widest" disabled>再生</button>
+                    <button id="btn-reset" class="flex-1 bg-red-900/30 text-red-400 rounded-xl text-xs font-bold border border-red-900/50 hover:bg-red-900/50 transition-colors uppercase">Reset</button>
                 </div>
             </div>
 
-            <div class="right-col">
-                <div class="analysis-panel space-y-3 shadow-lg border-l-4 border-indigo-500">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Share / Hash</span>
-                        <div class="flex gap-1">
-                            <button id="btn-copy-url" onclick="copyShareLink()" class="text-[9px] bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded font-bold transition uppercase">Copy Link</button>
-                            <button onclick="importHash()" class="text-[9px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded font-bold transition uppercase">Import</button>
-                        </div>
-                    </div>
-                    <input type="text" id="hash-io" class="hash-input" value="v1:SOLVED_BASE_STATE" spellcheck="false">
-                </div>
-
-                <div class="space-y-3">
-                    <textarea id="command-box" placeholder="Enter algorithm..." class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-indigo-500 transition-all"></textarea>
-                    
-                    <div class="grid grid-cols-3 gap-3">
-                        <button onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[13px] text-white shadow-lg active:scale-95 transition">RANDOM SCRAMBLE</button>
-                        <button onclick="applyReverseSetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px] active:scale-95 hover:bg-slate-600 transition tracking-tighter">SET SETUP</button>
-                    </div>
-                    
-                    <button onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg active:scale-95 transition">FULL RESET</button>
-                </div>
-
-                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
-                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-3 gap-1" id="button-grid"></div>
+                <div class="pt-4 border-t border-slate-700">
+                    <button id="btn-setup" class="w-full py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl font-black text-base shadow-xl active:scale-95 transition-all">
+                        上記の手順でセットアップ
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        let setupMoves = [];
-        let activeMoves = [];
-        let isPlaying = false;
-        let playInterval = null;
+        const p1 = document.getElementById('p1');
+        const p2 = document.getElementById('p2');
+        const algDisplay = document.getElementById('alg-display');
+        const status = document.getElementById('status');
+        const playBtn = document.getElementById('btn-play');
+        const slider = document.getElementById('move-slider');
+        const stepCounter = document.getElementById('step-counter');
+        const moveIndicator = document.getElementById('move-indicator');
+        const buttonGrid = document.getElementById('button-grid');
+        const hashIo = document.getElementById('hash-io');
 
-        const getInverseMoves = (moves) => [...moves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
+        let recordedMoves = []; 
+        let baseAlg = "";      
+        let isSetupMode = false;
 
-        window.exportState = () => {
-            const slider = document.getElementById('move-slider');
-            const step = parseInt(slider.value) || 0;
-            const currentPath = [...setupMoves, ...activeMoves.slice(0, step)].join(",");
-            const stateHash = currentPath ? btoa(currentPath) : "SOLVED_BASE_STATE";
-            document.getElementById('hash-io').value = "v1:" + stateHash;
+        // ハッシュ生成関数
+        const updateHash = () => {
+            const data = { b: baseAlg, r: recordedMoves, s: isSetupMode };
+            hashIo.value = "v1:" + btoa(JSON.stringify(data));
         };
 
-        window.importHash = () => {
-            const input = document.getElementById('hash-io').value.trim();
-            if (!input.startsWith("v1:")) return;
-            try {
-                const hashData = input.replace("v1:", "");
-                if (hashData === "SOLVED_BASE_STATE") { fullReset(); return; }
-                setupMoves = atob(hashData).split(",").filter(m => m !== "");
-                activeMoves = []; 
-                const slider = document.getElementById('move-slider');
-                slider.max = 0; slider.value = 0;
-                document.getElementById('setup-status').classList.remove('hidden');
-                document.getElementById('setup-status').textContent = "Imported";
-                updateView();
-            } catch (e) { console.error(e); }
-        };
-
-        window.copyShareLink = () => {
-            const hash = document.getElementById('hash-io').value;
-            const shareUrl = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                const btn = document.getElementById('btn-copy-url');
-                const oldText = btn.textContent;
-                btn.textContent = "COPIED!";
-                setTimeout(() => btn.textContent = oldText, 1500);
-            });
-        };
-
-        window.updateView = () => {
-            const player = document.querySelector('twisty-player');
-            const slider = document.getElementById('move-slider');
-            const step = parseInt(slider.value) || 0;
+        const render = (step) => {
+            const currentPlayMoves = recordedMoves.slice(0, step);
+            const totalAlg = (baseAlg + " " + currentPlayMoves.join(" ")).trim();
             
-            // 重要：セットアップ手順（逆手順）をベースにして、現在の手順（正手順）をステップ分だけ足す
-            const currentAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
-            if (player) player.alg = currentAlg;
+            p1.alg = totalAlg;
+            p2.alg = totalAlg;
             
-            document.getElementById('step-counter').textContent = step;
-            document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-            exportState();
-        };
-
-        window.applyReverseSetup = () => {
-            const val = document.getElementById('command-box').value.trim();
-            if (!val) return;
+            slider.value = step;
+            stepCounter.textContent = step;
+            moveIndicator.textContent = step > 0 ? recordedMoves[step - 1] : "---";
             
-            const moves = val.split(/\s+/).filter(m => m !== "");
-            setupMoves = getInverseMoves(moves); // 逆手順を土台にする
-            activeMoves = moves; // 正手順をなぞるリストにする
-            
-            const slider = document.getElementById('move-slider');
-            slider.max = activeMoves.length;
-            slider.value = 0; // ここで強制的に「逆手順のみ適用された状態」へ
-
-            document.getElementById('setup-status').classList.remove('hidden');
-            document.getElementById('setup-status').textContent = "Scrambled by Inverse";
-            updateView();
-        };
-
-        window.handleMainAction = () => {
-            const val = document.getElementById('command-box').value.trim();
-            setupMoves = [];
-            document.getElementById('setup-status').classList.add('hidden');
-            if (val) activeMoves = val.split(/\s+/).filter(m => m !== "");
-            else {
-                const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-                activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+            if (!isSetupMode) {
+                algDisplay.textContent = recordedMoves.join(" ");
             }
-            const slider = document.getElementById('move-slider');
-            slider.max = activeMoves.length; 
-            slider.value = activeMoves.length; // 通常スクランブルは最後を表示
-            updateView();
+            updateHash(); // 操作のたびにハッシュを更新
         };
 
-        window.navMove = (type) => {
-            const slider = document.getElementById('move-slider');
-            if (type === 'first') slider.value = 0;
-            else if (type === 'last') slider.value = activeMoves.length;
-            else if (type === 'prev' && slider.value > 0) slider.value--;
-            else if (type === 'next' && parseInt(slider.value) < activeMoves.length) slider.value++;
-            updateView();
+        const handleInput = (move) => {
+            const currentStep = parseInt(slider.value);
+            if (isSetupMode) {
+                recordedMoves = recordedMoves.slice(0, currentStep);
+            }
+            recordedMoves.push(move);
+            slider.max = recordedMoves.length;
+            render(recordedMoves.length);
         };
 
-        window.togglePlay = () => {
-            const btn = document.getElementById('btn-play');
-            const slider = document.getElementById('move-slider');
-            if (isPlaying) { clearInterval(playInterval); btn.textContent = "▶"; }
-            else {
-                if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
-                btn.textContent = "⏸";
+        slider.oninput = () => render(parseInt(slider.value));
+
+        let playInterval = null;
+        playBtn.onclick = () => {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+                playBtn.textContent = "再開";
+                playBtn.classList.replace('bg-orange-600', 'bg-emerald-600');
+            } else {
+                playBtn.textContent = "停止";
+                playBtn.classList.replace('bg-emerald-600', 'bg-orange-600');
                 playInterval = setInterval(() => {
-                    if (parseInt(slider.value) < activeMoves.length) { slider.value++; updateView(); }
-                    else togglePlay();
+                    let current = parseInt(slider.value);
+                    if (current < recordedMoves.length) {
+                        render(current + 1);
+                    } else {
+                        clearInterval(playInterval);
+                        playInterval = null;
+                        playBtn.textContent = "再生";
+                        playBtn.classList.replace('bg-orange-600', 'bg-emerald-600');
+                    }
                 }, 800);
             }
-            isPlaying = !isPlaying;
         };
 
-        window.fullReset = () => {
-            setupMoves = []; activeMoves = [];
-            document.getElementById('command-box').value = "";
-            document.getElementById('setup-status').classList.add('hidden');
-            const slider = document.getElementById('move-slider');
-            slider.max = 0; slider.value = 0;
-            updateView();
+        ['U','D','L','R','F','B','M','E','S'].forEach(f => {
+            [f, f+"'", f+"2"].forEach(move => {
+                const btn = document.createElement('button');
+                btn.className = "p-2 bg-slate-700 hover:bg-emerald-700 rounded text-sm transition-all active:scale-95 shadow font-mono";
+                btn.textContent = move;
+                btn.onclick = () => handleInput(move);
+                buttonGrid.appendChild(btn);
+            });
+        });
+
+        document.getElementById('btn-setup').onclick = () => {
+            if (recordedMoves.length === 0) return;
+            const inverse = [...recordedMoves].reverse().map(m => 
+                m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'")
+            );
+
+            baseAlg = inverse.join(" ");
+            isSetupMode = true;
+            slider.max = recordedMoves.length;
+            playBtn.disabled = false;
+            render(0); 
+            status.textContent = "SETUP COMPLETE";
+            algDisplay.textContent = "再生準備完了: " + recordedMoves.join(" ");
         };
 
-        const renderMoves = () => {
-            const grid = document.getElementById('move-grid');
-            grid.innerHTML = '';
-            ['U','D','L','R','F','B'].forEach(f => {
-                [f, f+"'", f+"2"].forEach(m => {
-                    const b = document.createElement('button');
-                    b.className = "move-btn"; b.textContent = m;
-                    b.onclick = () => {
-                        const slider = document.getElementById('move-slider');
-                        const step = parseInt(slider.value);
-                        if (step < activeMoves.length) activeMoves = activeMoves.slice(0, step);
-                        activeMoves.push(m);
-                        slider.max = activeMoves.length; slider.value = activeMoves.length;
-                        updateView();
-                    };
-                    grid.appendChild(b);
-                });
+        document.getElementById('btn-reset').onclick = () => {
+            if (playInterval) clearInterval(playInterval);
+            playInterval = null;
+            baseAlg = ""; recordedMoves = []; isSetupMode = false;
+            p1.alg = ""; p2.alg = "";
+            slider.value = 0; slider.max = 0;
+            playBtn.disabled = true;
+            playBtn.textContent = "再生";
+            playBtn.className = "flex-[3] bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-black text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 uppercase tracking-widest";
+            algDisplay.textContent = "Ready.";
+            status.textContent = "READY";
+            stepCounter.textContent = "0";
+            moveIndicator.textContent = "---";
+            updateHash();
+        };
+
+        // --- 移植部分: 共有機能 ---
+
+        document.getElementById('btn-copy-url').onclick = () => {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hashIo.value)}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                const btn = document.getElementById('btn-copy-url');
+                const old = btn.textContent;
+                btn.textContent = "COPIED!";
+                setTimeout(() => btn.textContent = old, 1500);
             });
         };
 
+        const importProcess = (hashStr) => {
+            try {
+                const json = JSON.parse(atob(hashStr.replace("v1:", "")));
+                baseAlg = json.b || "";
+                recordedMoves = json.r || [];
+                isSetupMode = json.s || false;
+
+                slider.max = recordedMoves.length;
+                if (isSetupMode) {
+                    playBtn.disabled = false;
+                    status.textContent = "IMPORTED: SETUP MODE";
+                    algDisplay.textContent = "再生準備完了: " + recordedMoves.join(" ");
+                    render(0);
+                } else {
+                    status.textContent = "IMPORTED: RECORD MODE";
+                    render(recordedMoves.length);
+                }
+            } catch (e) {
+                alert("Invalid Hash Format");
+            }
+        };
+
+        document.getElementById('btn-import').onclick = () => importProcess(hashIo.value);
+
         window.addEventListener('DOMContentLoaded', () => {
-            renderMoves();
             const urlParams = new URLSearchParams(window.location.search);
-            const sharedHash = urlParams.get('hash');
-            if (sharedHash) {
-                document.getElementById('hash-io').value = sharedHash;
-                importHash();
-            } else { updateView(); }
+            const hash = urlParams.get('hash');
+            if (hash) {
+                hashIo.value = hash;
+                importProcess(hash);
+            }
         });
+
     </script>
 </body>
 </html>
