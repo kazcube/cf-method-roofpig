@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.2.1 Stable Hybrid</title>
+    <title>KAZCUBE Lab - v1.2.1 Final Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        /* v5.44 のスタイルを継承 */
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
         .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
-        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
+        /* ボタンが無効な時は半透明にする */
+        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; transition: 0.2s; }
+        .move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .move-btn:active:not(:disabled) { background-color: #3b82f6; transform: scale(0.95); }
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
@@ -22,12 +24,12 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase tracking-widest text-white">v1.2.1 State-Integrated</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase tracking-widest text-white">v1.2.1 Final</span></h2>
         </header>
 
         <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6 shadow-lg">
-            <span class="text-[9px] font-black text-slate-400 uppercase">State Hash</span>
-            <input type="text" id="hash-io" class="hash-io" readonly>
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">State Hash</span>
+            <input type="text" id="hash-io" class="hash-io" readonly placeholder="Waiting for player initialization...">
             <button onclick="copyLink()" id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-4 py-2 rounded uppercase transition">Copy Link</button>
         </div>
 
@@ -37,13 +39,14 @@
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none" drag-pointable="true"></twisty-player>
                 </div>
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
-                    <p id="status-text" class="text-xs text-slate-400 font-bold uppercase tracking-widest">自由な操作をハッシュに記録します</p>
+                    <p id="status-text" class="text-[10px] text-amber-400 font-bold uppercase tracking-widest italic">Initializing components...</p>
                 </div>
             </div>
 
             <div class="right-col">
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
-                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-2">
+                        </div>
                 </div>
                 <button onclick="location.reload()" class="w-full py-4 bg-slate-700 text-white rounded-xl font-black text-sm shadow-lg active:scale-95 transition uppercase">Reset / Reload</button>
             </div>
@@ -52,42 +55,43 @@
 
     <script type="module">
         const player = document.getElementById('main-cube');
+        const hashIo = document.getElementById('hash-io');
+        const statusText = document.getElementById('status-text');
 
-        // 【新機能】現在のキューブの「全ステッカー状態」を抽出する
-        // KociembaLibraryの代わりに、より直接的な手法をとります
+        // ハッシュ更新ロジック
         const syncStickerHash = async () => {
-            // twisty-player が完全に準備できていない場合はスキップ
             if (!player.experimentalGetPattern) return;
-
             try {
-                // 現在の配置パターンを取得
                 const pattern = await player.experimentalGetPattern();
-                // 配置をシリアライズしてハッシュ化（手順ではなく「形」を保存）
-                const state = {
-                    k: pattern, // ステッカーパターンをそのまま保存
-                    t: Date.now()
-                };
-                document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
-            } catch (e) {
-                console.warn("Syncing...");
-            }
+                const state = { k: pattern };
+                hashIo.value = "v1.2:" + btoa(JSON.stringify(state));
+            } catch (e) { console.warn("Pattern not ready"); }
         };
 
-        // ハッシュから「見た目」を復元する
-        const loadStickerState = (hashStr) => {
-            try {
-                const state = JSON.parse(atob(hashStr.replace("v1.2:", "")));
-                if (state.k) {
-                    // 以前の手順履歴を無視して、直接「その形」をセットする
-                    player.experimentalSetupAlg = state.k;
-                }
-            } catch (e) { console.error("Import failed", e); }
+        // ボタンの生成と有効化
+        const initButtons = () => {
+            const grid = document.getElementById('move-grid');
+            grid.innerHTML = '';
+            ['U','D','L','R','F','B'].forEach(f => {
+                [f, f+"'"].forEach(m => {
+                    const b = document.createElement('button');
+                    b.className = "move-btn";
+                    b.textContent = m;
+                    b.disabled = true; // 最初は無効化
+                    b.onclick = async () => {
+                        if (player.applyMove) {
+                            await player.applyMove(m);
+                            syncStickerHash();
+                        }
+                    };
+                    grid.appendChild(b);
+                });
+            });
         };
 
         // 共有URLコピー
         window.copyLink = () => {
-            const hash = document.getElementById('hash-io').value;
-            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
+            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hashIo.value)}`;
             navigator.clipboard.writeText(url).then(() => {
                 const btn = document.getElementById('btn-copy');
                 btn.textContent = "COPIED!";
@@ -95,42 +99,36 @@
             });
         };
 
-        // 操作ボタンの生成 (v5.44のロジックをシンプルに)
-        const renderButtons = () => {
-            const grid = document.getElementById('move-grid');
-            ['U','D','L','R','F','B'].forEach(f => {
-                [f, f+"'"].forEach(m => {
-                    const b = document.createElement('button');
-                    b.className = "move-btn";
-                    b.textContent = m;
-                    b.onclick = () => {
-                        player.applyMove(m);
-                        // 回転後にハッシュを更新
-                        setTimeout(syncStickerHash, 100);
-                    };
-                    grid.appendChild(b);
-                });
-            });
+        // メイン初期化
+        const setup = async () => {
+            initButtons();
+
+            // プレイヤーの準備が整うのを待つ (applyMoveが関数になるまで)
+            const checkReady = setInterval(async () => {
+                if (player.applyMove && typeof player.applyMove === 'function') {
+                    clearInterval(checkReady);
+                    
+                    // ボタンを全て有効化
+                    document.querySelectorAll('.move-btn').forEach(btn => btn.disabled = false);
+                    statusText.textContent = "READY - OPERATE TO UPDATE HASH";
+                    statusText.className = "text-[10px] text-emerald-400 font-bold uppercase tracking-widest";
+
+                    // URLパラメータからの復元
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const hash = urlParams.get('hash');
+                    if (hash && hash.startsWith("v1.2:")) {
+                        try {
+                            const state = JSON.parse(atob(hash.replace("v1.2:", "")));
+                            if (state.k) player.experimentalSetupAlg = state.k;
+                        } catch (e) { console.error(e); }
+                    }
+                    syncStickerHash();
+                    player.addEventListener("twisty-player-navigation-change", syncStickerHash);
+                }
+            }, 100);
         };
 
-        // 初期化
-        window.addEventListener('DOMContentLoaded', () => {
-            renderButtons();
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const hash = urlParams.get('hash');
-
-            if (hash && hash.startsWith("v1.2:")) {
-                loadStickerState(hash);
-                document.getElementById('hash-io').value = hash;
-            }
-
-            // マウス操作やボタン操作など、何かが動くたびにハッシュを更新
-            player.addEventListener("twisty-player-navigation-change", syncStickerHash);
-            
-            // 起動直後のハッシュ生成
-            setTimeout(syncStickerHash, 1000);
-        });
+        window.addEventListener('DOMContentLoaded', setup);
     </script>
 </body>
 </html>
