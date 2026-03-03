@@ -2,92 +2,95 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>KAZCUBE Lab - v1.2.1 FINAL CHECK</title>
+    <title>KAZCUBE Lab - v1.2.1 EMERGENCY FIX</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         #cube-wrapper { width: 100%; height: 350px; background: #000; border-radius: 1rem; border: 2px solid #475569; overflow: hidden; margin-bottom: 20px; }
+        /* ボタンを最初から表示させるためのスタイル */
         .move-btn { background: #1e293b; color: white; padding: 15px 0; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid #475569; cursor: pointer; text-align: center; }
         .move-btn:hover { background: #334155; }
-        #hash-io { width: 100%; background: #000; color: #10b981; font-family: monospace; font-size: 12px; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px; }
+        #hash-io { width: 100%; background: #000; color: #10b981; font-family: monospace; font-size: 12px; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px; min-height: 40px; }
     </style>
 </head>
 <body class="bg-slate-900 text-white p-6">
 
     <div class="max-w-md mx-auto">
-        <h1 class="text-xl font-bold text-emerald-400 mb-4 italic">PHASE 1.2.1 TEST</h1>
+        <h1 class="text-xl font-bold text-emerald-400 mb-4 italic">PHASE 1.2.1 TEST (FIXED)</h1>
 
         <div id="cube-wrapper">
             <twisty-player id="main-cube" puzzle="3x3x3" background="none"></twisty-player>
         </div>
 
         <div class="grid grid-cols-3 gap-2 mb-6" id="button-container">
-            </div>
+            <div class="move-btn" onclick="handleMove('U')">U</div>
+            <div class="move-btn" onclick="handleMove('U\'')">U'</div>
+            <div class="move-btn" onclick="handleMove('D')">D</div>
+            <div class="move-btn" onclick="handleMove('D\'')">D'</div>
+            <div class="move-btn" onclick="handleMove('L')">L</div>
+            <div class="move-btn" onclick="handleMove('L\'')">L'</div>
+            <div class="move-btn" onclick="handleMove('R')">R</div>
+            <div class="move-btn" onclick="handleMove('R\'')">R'</div>
+            <div class="move-btn" onclick="handleMove('F')">F</div>
+            <div class="move-btn" onclick="handleMove('F\'')">F'</div>
+            <div class="move-btn" onclick="handleMove('B')">B</div>
+            <div class="move-btn" onclick="handleMove('B\'')">B'</div>
+        </div>
 
         <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <button id="btn-copy" class="w-full bg-indigo-600 p-2 rounded font-bold mb-2 text-sm uppercase">Copy Share URL</button>
-            <input type="text" id="hash-io" readonly>
+            <button id="btn-copy" onclick="copyLink()" class="w-full bg-indigo-600 p-2 rounded font-bold mb-2 text-sm uppercase">Copy Share URL</button>
+            <input type="text" id="hash-io" readonly placeholder="Waiting for player...">
         </div>
     </div>
 
     <script type="module">
         import { KociembaLibrary } from "https://cdn.cubing.net/v0/js/cubing/search";
+        import "https://cdn.cubing.net/v0/js/cubing/twisty";
 
-        // 全ての準備が整ってから実行
-        window.addEventListener('load', async () => {
-            const player = document.getElementById('main-cube');
-            const hashIo = document.getElementById('hash-io');
-            const btnCopy = document.getElementById('btn-copy');
-            const btnContainer = document.getElementById('button-container');
+        const player = document.getElementById('main-cube');
+        const hashIo = document.getElementById('hash-io');
 
-            // 1. ボタンを生成 (確実に表示させる)
-            const moves = ['U', "U'", 'D', "D'", 'L', "L'", 'R', "R'", 'F', "F'", 'B', "B'"];
-            moves.forEach(m => {
-                const btn = document.createElement('div');
-                btn.className = "move-btn";
-                btn.textContent = m;
-                btn.onclick = () => {
-                    player.applyMove(m);
-                    updateHash();
-                };
-                btnContainer.appendChild(btn);
-            });
-
-            // 2. ハッシュ更新関数
-            async function updateHash() {
-                try {
-                    const pattern = await player.experimentalGetPattern();
-                    const kString = await KociembaLibrary.patternToKociembaString(pattern);
-                    const data = { k: kString };
-                    hashIo.value = "v1.2:" + btoa(JSON.stringify(data));
-                } catch (e) { console.log(e); }
+        // グローバルに関数を公開
+        window.handleMove = async (m) => {
+            if (player.applyMove) {
+                await player.applyMove(m);
+                updateHash();
             }
+        };
 
-            // 3. コピー機能
-            btnCopy.onclick = () => {
-                const url = window.location.origin + window.location.pathname + "?hash=" + encodeURIComponent(hashIo.value);
-                navigator.clipboard.writeText(url).then(() => {
-                    btnCopy.textContent = "COPIED!";
-                    setTimeout(() => btnCopy.textContent = "COPY SHARE URL", 1500);
-                });
-            };
+        window.updateHash = async () => {
+            try {
+                const pattern = await player.experimentalGetPattern();
+                const kString = await KociembaLibrary.patternToKociembaString(pattern);
+                const data = { k: kString };
+                hashIo.value = "v1.2:" + btoa(JSON.stringify(data));
+            } catch (e) { console.error("Hash Error:", e); }
+        };
 
-            // 4. 初期読み込み処理
+        window.copyLink = () => {
+            const url = window.location.origin + window.location.pathname + "?hash=" + encodeURIComponent(hashIo.value);
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('btn-copy');
+                btn.textContent = "COPIED!";
+                setTimeout(() => btn.textContent = "COPY SHARE URL", 1500);
+            });
+        };
+
+        // 初期化
+        const init = async () => {
             const params = new URLSearchParams(window.location.search);
             const hash = params.get('hash');
             if (hash && hash.startsWith("v1.2:")) {
-                try {
-                    const state = JSON.parse(atob(hash.replace("v1.2:", "")));
-                    player.experimentalSetupAlg = state.k;
-                    hashIo.value = hash;
-                } catch(e) { console.error(e); }
+                const state = JSON.parse(atob(hash.replace("v1.2:", "")));
+                player.experimentalSetupAlg = state.k;
+                hashIo.value = hash;
             } else {
-                updateHash();
+                // 初期状態のハッシュを表示（少し待ってから）
+                setTimeout(updateHash, 1000);
             }
+        };
 
-            // 5. マウス操作などでもハッシュ更新
-            player.addEventListener("twisty-player-navigation-change", updateHash);
-        });
+        player.addEventListener("twisty-player-navigation-change", updateHash);
+        init();
     </script>
 </body>
 </html>
