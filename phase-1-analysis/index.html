@@ -2,28 +2,29 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>KAZCUBE Lab - v1.2.1 Fix (Sticker State)</title>
+    <title>KAZCUBE Lab - v1.2.1 Fix 2 (Sticker State)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         #cube-wrapper { width: 100%; height: 400px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
         .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
-        .move-btn { background-color: #1e293b; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-size: 14px; font-weight: bold; border: 1px solid #475569; transition: 0.2s; }
-        .move-btn:active { transform: scale(0.9); background-color: #334155; }
+        .move-btn { background-color: #1e293b; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-size: 14px; font-weight: bold; border: 1px solid #475569; transition: 0.2s; min-width: 50px; }
+        .move-btn:hover { background-color: #334155; border-color: #10b981; }
+        .move-btn:active { transform: scale(0.9); }
     </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
 
     <div class="max-w-[800px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 text-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">STATE HASH TEST <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v1.2.1 Fix</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic">STATE HASH TEST <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v1.2.1 Fix 2</span></h2>
         </header>
 
         <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col gap-3 mb-6 shadow-xl">
             <div class="flex justify-between items-center px-1">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current State Hash</span>
-                <button onclick="copyLink()" id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-4 py-1.5 rounded uppercase transition">Copy Share Link</button>
+                <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-4 py-1.5 rounded uppercase transition">Copy Share Link</button>
             </div>
             <input type="text" id="hash-io" class="hash-io" readonly placeholder="Waiting for move...">
         </div>
@@ -34,18 +35,21 @@
                     id="main-cube" 
                     puzzle="3x3x3" 
                     background="none" 
-                    control-panel="none"
                     drag-pointable="true"
+                    keyboard-control="enabled"
                  ></twisty-player>
             </div>
             
-            <div class="grid grid-cols-6 gap-2" id="move-grid"></div>
+            <div class="grid grid-cols-4 sm:grid-cols-6 gap-2" id="move-grid">
+                </div>
 
-            <div class="bg-amber-500/10 border border-amber-500/50 p-4 rounded-xl text-center">
-                <p class="text-xs text-amber-400 font-bold uppercase tracking-widest">
-                    1. ボタンかマウスでキューブを崩す<br>
-                    2. "Copy Share Link" を押す<br>
-                    3. 別タブで開いて同じ色か確認
+            <div class="bg-emerald-500/10 border border-emerald-500/50 p-4 rounded-xl text-center">
+                <p class="text-[11px] text-emerald-400 font-bold uppercase tracking-widest leading-relaxed">
+                    【操作方法】<br>
+                    ● 画面上のボタンをクリック<br>
+                    ● キーボードの [U, D, L, R, F, B] キーを押す<br>
+                    ● マウスで面の縁をドラッグ<br>
+                    (崩した後にURLをコピーして別タブで開いてください)
                 </p>
             </div>
         </div>
@@ -55,75 +59,68 @@
         import { KociembaLibrary } from "https://cdn.cubing.net/v0/js/cubing/search";
 
         const player = document.getElementById('main-cube');
+        const hashIo = document.getElementById('hash-io');
+        const btnCopy = document.getElementById('btn-copy');
 
         // ステッカー配置を抽出してハッシュ化
         const syncStickerHash = async () => {
             try {
-                // 現在のステッカーパターンを取得
                 const pattern = await player.experimentalGetPattern();
-                // Kociemba形式の文字列に変換
                 const kString = await KociembaLibrary.patternToKociembaString(pattern);
-                
                 const state = { k: kString };
-                document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
+                hashIo.value = "v1.2:" + btoa(JSON.stringify(state));
             } catch (e) {
                 console.error("Sync failed", e);
             }
         };
 
         // ハッシュから見た目を復元
-        window.loadStickerState = async (hashStr) => {
+        const loadStickerState = async (hashStr) => {
             try {
                 const state = JSON.parse(atob(hashStr.replace("v1.2:", "")));
                 if (state.k) {
-                    // setup-algにステッカー文字列を流し込む
                     player.experimentalSetupAlg = state.k;
                 }
             } catch (e) { console.error("Import failed", e); }
         };
 
-        window.copyLink = () => {
-            const hash = document.getElementById('hash-io').value;
-            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
+        // コピー機能
+        btnCopy.onclick = () => {
+            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hashIo.value)}`;
             navigator.clipboard.writeText(url).then(() => {
-                const btn = document.getElementById('btn-copy');
-                btn.textContent = "COPIED!";
-                setTimeout(() => btn.textContent = "COPY SHARE LINK", 1500);
+                btnCopy.textContent = "COPIED!";
+                setTimeout(() => btnCopy.textContent = "COPY SHARE LINK", 1500);
             });
         };
 
         // 操作ボタンの生成
-        const renderMoves = () => {
-            const grid = document.getElementById('move-grid');
-            ['U','D','L','R','F','B'].forEach(f => {
-                [f, f+"'"].forEach(m => {
-                    const b = document.createElement('button');
-                    b.className = "move-btn"; b.textContent = m;
-                    b.onclick = async () => {
-                        await player.applyMove(m);
-                    };
-                    grid.appendChild(b);
-                });
+        const grid = document.getElementById('move-grid');
+        ['U','D','L','R','F','B'].forEach(f => {
+            [f, f+"'"].forEach(m => {
+                const b = document.createElement('button');
+                b.className = "move-btn"; 
+                b.textContent = m;
+                b.onclick = () => player.applyMove(m);
+                grid.appendChild(b);
             });
-        };
-
-        // twisty-player の動きが終わるたびにハッシュを更新するリスナー
-        player.addEventListener("twisty-player-navigation-change", () => {
-            syncStickerHash();
         });
 
-        window.addEventListener('DOMContentLoaded', () => {
-            renderMoves();
-            
+        // 状態変化を監視
+        player.addEventListener("twisty-player-navigation-change", syncStickerHash);
+
+        // 初期読み込み
+        const init = async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const hash = urlParams.get('hash');
             if (hash && hash.startsWith("v1.2:")) {
-                loadStickerState(hash);
-                document.getElementById('hash-io').value = hash;
+                await loadStickerState(hash);
+                hashIo.value = hash;
             } else {
-                syncStickerHash();
+                await syncStickerHash();
             }
-        });
+        };
+
+        init();
     </script>
 </body>
 </html>
