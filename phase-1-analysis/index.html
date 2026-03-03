@@ -2,46 +2,51 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>KAZCUBE Lab - Phase 1.2.1 (Sticker State)</title>
+    <title>KAZCUBE Lab - v1.2.1 Fix (Sticker State)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
-        .left-col { flex: 1; min-width: 300px; }
-        .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
-        #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; }
+        #cube-wrapper { width: 100%; height: 400px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
-        .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
-        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
-        @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
+        .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
+        .move-btn { background-color: #1e293b; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-size: 14px; font-weight: bold; border: 1px solid #475569; transition: 0.2s; }
+        .move-btn:active { transform: scale(0.9); background-color: #334155; }
     </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
 
-    <div class="max-w-[1200px] mx-auto">
-        <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v1.2.1 Sticker Edition</span></h2>
+    <div class="max-w-[800px] mx-auto">
+        <header class="mb-6 border-b border-slate-700 pb-4 text-center">
+            <h2 class="text-2xl font-black text-emerald-400 italic">STATE HASH TEST <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v1.2.1 Fix</span></h2>
         </header>
 
-        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6 shadow-lg">
-            <span class="text-[9px] font-black text-slate-400 uppercase">State Hash</span>
-            <input type="text" id="hash-io" class="hash-io" readonly>
-            <button onclick="copyLink()" id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-4 py-2 rounded uppercase transition">Copy Link</button>
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col gap-3 mb-6 shadow-xl">
+            <div class="flex justify-between items-center px-1">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current State Hash</span>
+                <button onclick="copyLink()" id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-4 py-1.5 rounded uppercase transition">Copy Share Link</button>
+            </div>
+            <input type="text" id="hash-io" class="hash-io" readonly placeholder="Waiting for move...">
         </div>
 
-        <div class="main-grid">
-            <div class="left-col space-y-4">
-                <div id="cube-wrapper" class="shadow-2xl">
-                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
-                </div>
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">現在の状態（見た目）を保存・再現します</p>
-                </div>
+        <div class="space-y-6">
+            <div id="cube-wrapper" class="shadow-2xl">
+                 <twisty-player 
+                    id="main-cube" 
+                    puzzle="3x3x3" 
+                    background="none" 
+                    control-panel="none"
+                    drag-pointable="true"
+                 ></twisty-player>
             </div>
+            
+            <div class="grid grid-cols-6 gap-2" id="move-grid"></div>
 
-            <div class="right-col">
-                <div class="grid grid-cols-6 gap-2 bg-slate-800/40 p-4 rounded-xl border border-slate-700" id="move-grid"></div>
-                <button onclick="location.reload()" class="w-full py-4 bg-slate-700 text-white rounded-xl font-black text-sm shadow-lg active:scale-95 transition">RELOAD (Clear Memory)</button>
+            <div class="bg-amber-500/10 border border-amber-500/50 p-4 rounded-xl text-center">
+                <p class="text-xs text-amber-400 font-bold uppercase tracking-widest">
+                    1. ボタンかマウスでキューブを崩す<br>
+                    2. "Copy Share Link" を押す<br>
+                    3. 別タブで開いて同じ色か確認
+                </p>
             </div>
         </div>
     </div>
@@ -51,25 +56,27 @@
 
         const player = document.getElementById('main-cube');
 
-        // キューブの現在のステッカー配置を抽出してハッシュを更新
+        // ステッカー配置を抽出してハッシュ化
         const syncStickerHash = async () => {
-            // twisty-playerから現在のパズル状態（Kociemba形式の文字列）を取得
-            // UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB のような形式
-            const kString = await KociembaLibrary.patternToKociembaString(player.experimentalGetPattern());
-            
-            const state = {
-                k: kString, // Sticker pattern
-                t: Date.now()
-            };
-            document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
+            try {
+                // 現在のステッカーパターンを取得
+                const pattern = await player.experimentalGetPattern();
+                // Kociemba形式の文字列に変換
+                const kString = await KociembaLibrary.patternToKociembaString(pattern);
+                
+                const state = { k: kString };
+                document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
+            } catch (e) {
+                console.error("Sync failed", e);
+            }
         };
 
-        // 抽出したステッカー文字列から見た目を再現
-        window.loadStickerState = (hashStr) => {
+        // ハッシュから見た目を復元
+        window.loadStickerState = async (hashStr) => {
             try {
                 const state = JSON.parse(atob(hashStr.replace("v1.2:", "")));
                 if (state.k) {
-                    // setup-alg に直接パターンの文字列を渡すことで、その見た目から開始できる
+                    // setup-algにステッカー文字列を流し込む
                     player.experimentalSetupAlg = state.k;
                 }
             } catch (e) { console.error("Import failed", e); }
@@ -81,25 +88,29 @@
             navigator.clipboard.writeText(url).then(() => {
                 const btn = document.getElementById('btn-copy');
                 btn.textContent = "COPIED!";
-                setTimeout(() => btn.textContent = "COPY LINK", 1500);
+                setTimeout(() => btn.textContent = "COPY SHARE LINK", 1500);
             });
         };
 
-        // 動作確認用のボタン生成
+        // 操作ボタンの生成
         const renderMoves = () => {
             const grid = document.getElementById('move-grid');
             ['U','D','L','R','F','B'].forEach(f => {
-                [f, f+"'", f+"2"].forEach(m => {
+                [f, f+"'"].forEach(m => {
                     const b = document.createElement('button');
                     b.className = "move-btn"; b.textContent = m;
                     b.onclick = async () => {
-                        player.applyMove(m); // 1手ずつ適用
-                        setTimeout(syncStickerHash, 100); // 描画完了を待ってからハッシュ更新
+                        await player.applyMove(m);
                     };
                     grid.appendChild(b);
                 });
             });
         };
+
+        // twisty-player の動きが終わるたびにハッシュを更新するリスナー
+        player.addEventListener("twisty-player-navigation-change", () => {
+            syncStickerHash();
+        });
 
         window.addEventListener('DOMContentLoaded', () => {
             renderMoves();
@@ -108,7 +119,6 @@
             const hash = urlParams.get('hash');
             if (hash && hash.startsWith("v1.2:")) {
                 loadStickerState(hash);
-                // 読み込み後も現在のハッシュを表示
                 document.getElementById('hash-io').value = hash;
             } else {
                 syncStickerHash();
