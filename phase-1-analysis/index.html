@@ -1,0 +1,206 @@
+!DOCTYPE html
+html lang=ja
+head
+    meta charset=UTF-8
+    meta name=viewport content=width=device-width, initial-scale=1.0
+    titleKAZCUBE Lab - v1.0.0 Phase1 (Analysis)title
+    script src=httpscdn.tailwindcss.comscript
+    script src=httpscdn.cubing.netv0jscubingtwisty type=modulescript
+    style
+        .main-grid { display flex; gap 24px; align-items start; justify-content center; }
+        .left-col { flex 1; min-width 300px; }
+        .right-col { width 380px; min-width 380px; display flex; flex-direction column; gap 16px; }
+        #cube-wrapper { width 100%; height 380px; background #000; border-radius 1.5rem; border 4px solid #334155; overflow hidden; display flex; align-items center; justify-content center; }
+        twisty-player { width 100%; height 100%; }
+        
+         Analysis Panel Style 
+        .analysis-panel { background #0f172a; border 1px solid #1e293b; border-radius 12px; padding 12px; }
+        .hash-display { font-family 'Courier New', Courier, monospace; font-size 11px; word-break break-all; color #10b981; background #000; padding 8px; border-radius 6px; border 1px solid #064e3b; margin-top 8px; }
+
+        .action-btn { font-weight 900; letter-spacing 0.05em; transition 0.2s; text-transform uppercase; }
+        .nav-btn { background #1e293b; border 1px solid #475569; color #94a3b8; width 44px; height 44px; display flex; align-items center; justify-content center; border-radius 12px; font-weight 900; }
+        .play-btn { background #059669 !important; color white !important; width 56px !important; }
+        .btn-reset-ui { background-color #e11d48 !important; color #ffffff !important; }
+        
+        @media (max-width 850px) { .main-grid { flex-direction column; } .right-col { width 100%; } }
+    style
+head
+body class=min-h-screen bg-slate-900 text-slate-100 p-4
+
+    div class=max-w-[1200px] mx-auto
+        header class=mb-6 border-b border-slate-700 pb-4 flex justify-between items-center
+            div class=flex items-center gap-3
+                h2 class=text-2xl font-black text-emerald-400 italicKAZCUBE span class=text-whiteLabspanh2
+                span class=bg-emerald-50020 text-emerald-400 text-[10px] font-black px-2 py-1 rounded border border-emerald-50050v1.0.0 PHASE 1span
+            div
+            div id=setup-status class=hidden text-[10px] font-black text-amber-400 bg-amber-40010 px-3 py-1 border border-amber-40050 rounded italic uppercaseInverse Scrambleddiv
+        header
+
+        div class=main-grid
+            div class=left-col space-y-4
+                div id=cube-wrapper class=shadow-2xl
+                     twisty-player id=main-cube puzzle=3x3x3 background=none control-panel=nonetwisty-player
+                div
+                
+                div class=bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5 shadow-xl
+                    input type=range id=move-slider min=0 max=0 value=0 class=w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500 oninput=updateView()
+                    
+                    div class=flex justify-center items-center gap-2
+                        button onclick=navMove('first') class=nav-btn&lt;&lt;button
+                        button onclick=navMove('prev') class=nav-btn&lt;button
+                        button id=btn-play onclick=togglePlay() class=nav-btn play-btn▶button
+                        button onclick=navMove('next') class=nav-btn&gt;button
+                        button onclick=navMove('last') class=nav-btn&gt;&gt;button
+                    div
+
+                    div class=flex justify-between items-center font-mono pt-2 border-t border-slate-700
+                        div class=flex flex-col
+                            span class=text-slate-500 text-[10px] uppercase font-blackStepspan
+                            span id=step-counter class=text-emerald-400 text-2xl font-black0span
+                        div
+                        div id=move-indicator class=text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic---div
+                    div
+                div
+            div
+
+            div class=right-col
+                div class=analysis-panel space-y-3 shadow-lg border-l-4 border-emerald-500
+                    div class=flex justify-between items-center
+                        span class=text-[10px] font-black text-slate-400 uppercase tracking-widestState Serializerspan
+                        button onclick=exportState() class=text-[10px] bg-emerald-600 hoverbg-emerald-500 px-2 py-1 rounded font-bold transitionGENERATE HASHbutton
+                    div
+                    div id=hash-output class=hash-display italicHash waiting...div
+                div
+
+                div class=space-y-3
+                    textarea id=command-box placeholder=Enter algorithm... class=w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focusborder-emerald-500 transition-alltextarea
+                    
+                    div class=grid grid-cols-3 gap-3
+                        button id=btn-main-action onclick=handleMainAction() class=action-btn col-span-2 py-4 bg-indigo-600 rounded-xl text-[13px] text-white shadow-lg activescale-95RANDOM SCRAMBLEbutton
+                        button id=btn-setup onclick=applyReverseSetup() class=action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-50030 rounded-xl text-[13px] activescale-95SET SETUPbutton
+                    div
+                    
+                    button id=btn-reset onclick=fullReset() class=action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg activescale-95 border-b-4 border-rose-900FULL RESETbutton
+                div
+
+                div class=bg-slate-80040 rounded-xl border border-slate-700 p-4
+                    div id=move-grid class=grid grid-cols-6 gap-2div
+                div
+            div
+        div
+    div
+
+    script type=module
+         将来的には jsanalyzer.js に分離するロジック
+        let setupMoves = [];
+        let activeMoves = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        const getInverseMoves = (moves) = [...moves].reverse().map(m = m.endsWith(2)  m  (m.endsWith(')  m.slice(0, -1)  m + '));
+
+         Phase 1 State Serializer
+        window.exportState = async () = {
+            const player = document.querySelector('twisty-player');
+             twisty-playerの内部状態（stickering情報など）を取得する試み
+             簡易版として、現在適用されているアルゴリズムからハッシュを生成
+            const stateHash = btoa([...setupMoves, ...activeMoves.slice(0, parseInt(document.getElementById('move-slider').value))].join(,));
+            document.getElementById('hash-output').textContent = v1 + (stateHash  SOLVED_BASE_STATE);
+        };
+
+        window.updateView = () = {
+            const player = document.querySelector('twisty-player');
+            const slider = document.getElementById('move-slider');
+            const step = parseInt(slider.value)  0;
+            const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join( );
+            if (player) player.alg = fullAlg;
+            document.getElementById('step-counter').textContent = step;
+            document.getElementById('move-indicator').textContent = (step  0 && activeMoves[step-1])  activeMoves[step-1]  ---;
+             状態が変わるたびにハッシュを更新
+            exportState();
+        };
+
+        window.applyReverseSetup = () = {
+            const val = document.getElementById('command-box').value.trim();
+            if (val) {
+                const moves = val.split(s+);
+                setupMoves = getInverseMoves(moves);
+                activeMoves = moves;
+                document.getElementById('setup-status').classList.remove('hidden');
+                const slider = document.getElementById('move-slider');
+                slider.max = activeMoves.length; slider.value = 0;
+                updateView();
+            }
+        };
+
+        window.handleMainAction = () = {
+            const val = document.getElementById('command-box').value.trim();
+            setupMoves = [];
+            document.getElementById('setup-status').classList.add('hidden');
+            if (val) activeMoves = val.split(s+);
+            else {
+                const faces = ['U','D','L','R','F','B'], mods = ['', ', '2'];
+                activeMoves = Array.from({length20}, () = faces[Math.floor(Math.random()6)] + mods[Math.floor(Math.random()3)]);
+            }
+            const slider = document.getElementById('move-slider');
+            slider.max = activeMoves.length; slider.value = activeMoves.length;
+            updateView();
+        };
+
+        window.navMove = (type) = {
+            const slider = document.getElementById('move-slider');
+            if (type === 'first') slider.value = 0;
+            else if (type === 'last') slider.value = activeMoves.length;
+            else if (type === 'prev' && slider.value  0) slider.value--;
+            else if (type === 'next' && slider.value  activeMoves.length) slider.value++;
+            updateView();
+        };
+
+        window.togglePlay = () = {
+            const btn = document.getElementById('btn-play');
+            const slider = document.getElementById('move-slider');
+            if (isPlaying) { clearInterval(playInterval); btn.textContent = ▶; }
+            else {
+                if (parseInt(slider.value) = activeMoves.length) slider.value = 0;
+                btn.textContent = ⏸;
+                playInterval = setInterval(() = {
+                    if (parseInt(slider.value)  activeMoves.length) { slider.value++; updateView(); }
+                    else togglePlay();
+                }, 800);
+            }
+            isPlaying = !isPlaying;
+        };
+
+        window.fullReset = () = {
+            setupMoves = []; activeMoves = [];
+            document.getElementById('command-box').value = ;
+            document.getElementById('setup-status').classList.add('hidden');
+            const slider = document.getElementById('move-slider');
+            slider.max = 0; slider.value = 0;
+            updateView();
+        };
+
+        const renderMoves = () = {
+            const grid = document.getElementById('move-grid');
+            grid.innerHTML = '';
+            ['U','D','L','R','F','B'].forEach(f = {
+                [f, f+', f+2].forEach(m = {
+                    const b = document.createElement('button');
+                    b.className = move-btn; b.textContent = m;
+                    b.onclick = () = {
+                        const slider = document.getElementById('move-slider');
+                        const step = parseInt(slider.value);
+                        if (step  activeMoves.length) activeMoves = activeMoves.slice(0, step);
+                        activeMoves.push(m);
+                        slider.max = activeMoves.length; slider.value = activeMoves.length;
+                        updateView();
+                    };
+                    grid.appendChild(b);
+                });
+            });
+        };
+
+        window.addEventListener('DOMContentLoaded', () = { renderMoves(); updateView(); });
+    script
+body
+html
