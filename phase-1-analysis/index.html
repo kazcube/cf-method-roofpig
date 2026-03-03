@@ -2,95 +2,107 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>KAZCUBE Lab - v1.2.1 Stable</title>
+    <title>KAZCUBE Lab - v1.2.1 Stable Move</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        #cube-container { width: 100%; height: 350px; background: #000; border-radius: 1rem; border: 2px solid #475569; overflow: hidden; margin-bottom: 20px; position: relative; }
+        #cube-container { width: 100%; height: 350px; background: #000; border-radius: 1rem; border: 2px solid #475569; overflow: hidden; margin-bottom: 20px; }
         twisty-player { width: 100%; height: 100%; }
-        .move-btn { background: #1e293b; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid #475569; cursor: pointer; text-align: center; transition: 0.2s; }
-        .move-btn:hover { background: #334155; border-color: #10b981; }
+        .move-btn { background: #1e293b; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid #475569; cursor: pointer; text-align: center; user-select: none; }
+        .move-btn:active { background: #3b82f6; transform: scale(0.95); }
         #hash-io { width: 100%; background: #000; color: #10b981; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 8px; border: 1px solid #334155; min-height: 40px; }
     </style>
 </head>
 <body class="bg-slate-900 text-white p-6">
 
     <div class="max-w-md mx-auto">
-        <h1 class="text-xl font-bold text-emerald-400 mb-4 italic uppercase tracking-tighter">Phase 1.2.1 Stable Test</h1>
+        <h1 class="text-xl font-bold text-emerald-400 mb-4 italic uppercase">Phase 1.2.1 Stable Move</h1>
 
         <div id="cube-container">
             <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
         </div>
 
         <div class="grid grid-cols-4 gap-2 mb-6">
-            <div class="move-btn" onclick="applyMove('U')">U</div>
-            <div class="move-btn" onclick="applyMove('U\'')">U'</div>
-            <div class="move-btn" onclick="applyMove('D')">D</div>
-            <div class="move-btn" onclick="applyMove('D\'')">D'</div>
-            <div class="move-btn" onclick="applyMove('L')">L</div>
-            <div class="move-btn" onclick="applyMove('L\'')">L'</div>
-            <div class="move-btn" onclick="applyMove('R')">R</div>
-            <div class="move-btn" onclick="applyMove('R\'')">R'</div>
-            <div class="move-btn" onclick="applyMove('F')">F</div>
-            <div class="move-btn" onclick="applyMove('F\'')">F'</div>
-            <div class="move-btn" onclick="applyMove('B')">B</div>
-            <div class="move-btn" onclick="applyMove('B\'')">B'</div>
+            <div class="move-btn" data-move="U">U</div>
+            <div class="move-btn" data-move="U'">U'</div>
+            <div class="move-btn" data-move="D">D</div>
+            <div class="move-btn" data-move="D'">D'</div>
+            <div class="move-btn" data-move="L">L</div>
+            <div class="move-btn" data-move="L'">L'</div>
+            <div class="move-btn" data-move="R">R</div>
+            <div class="move-btn" data-move="R'">R'</div>
+            <div class="move-btn" data-move="F">F</div>
+            <div class="move-btn" data-move="F'">F'</div>
+            <div class="move-btn" data-move="B">B</div>
+            <div class="move-btn" data-move="B'">B'</div>
         </div>
 
         <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <button onclick="copyLink()" id="btn-copy" class="w-full bg-indigo-600 hover:bg-indigo-500 p-3 rounded font-black mb-3 text-xs uppercase transition">Copy Share URL</button>
-            <input type="text" id="hash-io" readonly placeholder="Generating hash...">
+            <button id="btn-copy" class="w-full bg-indigo-600 hover:bg-indigo-500 p-3 rounded font-black mb-3 text-xs uppercase transition">Copy Share URL</button>
+            <input type="text" id="hash-io" readonly placeholder="Initializing...">
         </div>
     </div>
 
     <script type="module">
-        // KociembaLibraryのみモジュールから取得
         import { KociembaLibrary } from "https://cdn.cubing.net/v0/js/cubing/search";
 
         const player = document.getElementById('main-cube');
         const hashIo = document.getElementById('hash-io');
+        const btnCopy = document.getElementById('btn-copy');
 
-        // グローバル関数として定義
-        window.applyMove = (move) => {
-            player.applyMove(move);
-        };
-
-        window.updateHash = async () => {
+        // ハッシュ更新（非同期）
+        async function updateHash() {
             try {
                 const pattern = await player.experimentalGetPattern();
                 const kString = await KociembaLibrary.patternToKociembaString(pattern);
                 const data = { k: kString };
                 hashIo.value = "v1.2:" + btoa(JSON.stringify(data));
             } catch (e) {
-                console.warn("Hash update skipped: Player not ready");
+                console.log("Waiting for pattern...");
             }
-        };
+        }
 
-        window.copyLink = () => {
+        // ボタンのクリックイベントを一括設定
+        document.querySelectorAll('.move-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const move = btn.getAttribute('data-move');
+                // applyMoveが直接呼べない場合を考慮した安全な呼び出し
+                if (player && typeof player.applyMove === 'function') {
+                    player.applyMove(move);
+                    // 回転アニメーション後にハッシュ更新
+                    setTimeout(updateHash, 500);
+                }
+            });
+        });
+
+        // コピー機能
+        btnCopy.onclick = () => {
             const url = window.location.origin + window.location.pathname + "?hash=" + encodeURIComponent(hashIo.value);
             navigator.clipboard.writeText(url).then(() => {
-                const btn = document.getElementById('btn-copy');
-                btn.textContent = "COPIED!";
-                setTimeout(() => btn.textContent = "COPY SHARE URL", 1500);
+                btnCopy.textContent = "COPIED!";
+                setTimeout(() => btnCopy.textContent = "COPY SHARE URL", 1500);
             });
         };
 
-        // 状態の変化を監視
+        // キューブ自体の動き（ドラッグ等）を監視
         player.addEventListener("twisty-player-navigation-change", updateHash);
 
-        // 初期化
-        window.addEventListener('load', () => {
+        // 初期化処理
+        window.addEventListener('load', async () => {
             const params = new URLSearchParams(window.location.search);
             const hash = params.get('hash');
             if (hash && hash.startsWith("v1.2:")) {
                 try {
                     const state = JSON.parse(atob(hash.replace("v1.2:", "")));
-                    player.experimentalSetupAlg = state.k;
-                    hashIo.value = hash;
+                    // プレイヤーの準備が整うのを待ってからセット
+                    setTimeout(() => {
+                        player.experimentalSetupAlg = state.k;
+                        updateHash();
+                    }, 500);
                 } catch(e) { console.error(e); }
+            } else {
+                setTimeout(updateHash, 1000);
             }
-            // 初回ハッシュ生成
-            setTimeout(updateHash, 1500);
         });
     </script>
 </body>
