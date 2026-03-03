@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.2.8 Perfect Setup</title>
+    <title>KAZCUBE Lab - v1.2.9 Final Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        /* スタイルは維持 */
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
@@ -30,7 +29,7 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.2.8</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.2.9</span></h2>
             <div class="lang-switch" id="lang-switch">
                 <div id="lang-jp" class="lang-btn lang-active">JP</div>
                 <div id="lang-en" class="lang-btn">EN</div>
@@ -91,8 +90,7 @@
 
     <script type="module">
         let currentLang = 'jp';
-        let setupAlg = "";    // 背景（崩れた状態）として固定する手順
-        let playbackAlg = []; // スライダーで回す手順
+        let activeMoves = []; 
         let isPlaying = false;
         let playInterval = null;
         const player = document.getElementById('main-cube');
@@ -106,17 +104,16 @@
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
             
-            // 重要：setupAlgでベースの状態を作り、その上にplaybackAlgの指定ステップまでを重ねる
-            player.experimentalSetupAlg = setupAlg;
-            player.alg = playbackAlg.slice(0, step).join(" ");
+            // 全ての手順を表示用のalgに流し込み、スライダー位置で切り取る
+            player.alg = activeMoves.slice(0, step).join(" ");
             
             document.getElementById('step-counter').textContent = step;
-            document.getElementById('move-indicator').textContent = (step > 0 && playbackAlg[step-1]) ? playbackAlg[step-1] : "---";
+            document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
             syncHash();
         };
 
         const syncHash = () => {
-            const state = { s: setupAlg, a: playbackAlg, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
+            const state = { a: activeMoves, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
             document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
         };
 
@@ -126,63 +123,65 @@
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            // SET SETUP: テキストエリアの内容を「背景」に固定し、スライダーは0（その崩れた状態）からスタート
+            // SET SETUP: 入力した手順を「崩し」として読み込み、スライダーは 0 に戻す
             document.getElementById('btn-setup').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
                 if (val) {
-                    setupAlg = val;
-                    playbackAlg = []; // 再生手順は一旦クリア（必要ならここに手順を移すことも可能）
+                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
                     const slider = document.getElementById('move-slider');
-                    slider.max = 0;
-                    slider.value = 0;
+                    slider.max = activeMoves.length; // ★ここを手順数に合わせる
+                    slider.value = 0; // ★0手目（崩れ開始）に戻す
                     updateView();
                 }
             };
 
-            // SCRAMBLE / APPLY: 通常の再生手順として流し込む
+            // SCRAMBLE / APPLY: 最後まで回した状態にする
             document.getElementById('btn-scramble').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
                 if (val) {
-                    playbackAlg = val.split(/\s+/).filter(m => m.length > 0);
+                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
                 } else {
                     const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-                    playbackAlg = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-                    document.getElementById('command-box').value = playbackAlg.join(" ");
+                    activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+                    document.getElementById('command-box').value = activeMoves.join(" ");
                 }
                 const slider = document.getElementById('move-slider');
-                slider.max = playbackAlg.length;
-                slider.value = playbackAlg.length; 
+                slider.max = activeMoves.length;
+                slider.value = activeMoves.length; 
                 updateView();
             };
 
+            // 以降のコントロールは安定版を継承
             document.getElementById('btn-reset').onclick = () => {
-                setupAlg = "";
-                playbackAlg = [];
+                activeMoves = [];
                 document.getElementById('command-box').value = "";
                 const slider = document.getElementById('move-slider');
                 slider.max = 0; slider.value = 0;
                 updateView();
             };
 
-            // 以下、ナビゲーション・再生・コピー等のロジックは安定版を継承
             document.getElementById('nav-first').onclick = () => { document.getElementById('move-slider').value = 0; updateView(); };
-            document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = playbackAlg.length; updateView(); };
+            document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = activeMoves.length; updateView(); };
             document.getElementById('nav-prev').onclick = () => { if(document.getElementById('move-slider').value > 0) { document.getElementById('move-slider').value--; updateView(); } };
-            document.getElementById('nav-next').onclick = () => { if(parseInt(document.getElementById('move-slider').value) < playbackAlg.length) { document.getElementById('move-slider').value++; updateView(); } };
+            document.getElementById('nav-next').onclick = () => { if(parseInt(document.getElementById('move-slider').value) < activeMoves.length) { document.getElementById('move-slider').value++; updateView(); } };
+            
             document.getElementById('btn-play').onclick = () => {
                 if (isPlaying) { clearInterval(playInterval); document.getElementById('btn-play').textContent = "▶"; }
                 else {
                     const slider = document.getElementById('move-slider');
-                    if (parseInt(slider.value) >= playbackAlg.length) slider.value = 0;
+                    if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
                     document.getElementById('btn-play').textContent = "⏸";
                     playInterval = setInterval(() => {
-                        if (parseInt(slider.value) < playbackAlg.length) { slider.value++; updateView(); }
+                        if (parseInt(slider.value) < activeMoves.length) { slider.value++; updateView(); }
                         else { clearInterval(playInterval); isPlaying = false; document.getElementById('btn-play').textContent = "▶"; }
                     }, 800);
                 }
                 isPlaying = !isPlaying;
             };
+
             document.getElementById('move-slider').oninput = updateView;
+            
+            // 言語・タブ生成ロジック
             document.getElementById('lang-switch').onclick = () => {
                 currentLang = currentLang === 'jp' ? 'en' : 'jp';
                 document.getElementById('lang-jp').classList.toggle('lang-active', currentLang === 'jp');
@@ -192,6 +191,7 @@
                 updateBtnLabels();
                 syncHash();
             };
+
             document.getElementById('btn-copy').onclick = () => {
                 const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(document.getElementById('hash-io').value)}`;
                 navigator.clipboard.writeText(url).then(() => {
@@ -200,7 +200,6 @@
                     setTimeout(() => btn.textContent = "COPY LINK", 1500);
                 });
             };
-            document.getElementById('command-box').oninput = updateBtnLabels;
 
             const renderMoves = (type) => {
                 const grid = document.getElementById('move-grid');
@@ -213,11 +212,11 @@
                         b.className = "move-btn"; b.textContent = m;
                         b.onclick = () => {
                             const slider = document.getElementById('move-slider');
-                            playbackAlg = playbackAlg.slice(0, parseInt(slider.value));
-                            playbackAlg.push(m);
-                            slider.max = playbackAlg.length;
-                            slider.value = playbackAlg.length;
-                            document.getElementById('command-box').value = playbackAlg.join(" ");
+                            activeMoves = activeMoves.slice(0, parseInt(slider.value));
+                            activeMoves.push(m);
+                            slider.max = activeMoves.length;
+                            slider.value = activeMoves.length;
+                            document.getElementById('command-box').value = activeMoves.join(" ");
                             updateView();
                         };
                         grid.appendChild(b);
@@ -229,20 +228,21 @@
             document.getElementById('tab-slice').onclick = () => renderMoves('slice');
             renderMoves('basic');
 
+            document.getElementById('command-box').oninput = updateBtnLabels;
+
+            // 初期読み込み
             const params = new URLSearchParams(window.location.search);
             const hash = params.get('hash');
-            if (hash && hash.startsWith("v1.2:")) {
+            if (hash) {
                 try {
                     const state = JSON.parse(atob(hash.replace("v1.2:", "")));
-                    setupAlg = state.s || "";
-                    playbackAlg = state.a || [];
-                    currentLang = state.l || 'jp';
-                    document.getElementById('move-slider').max = playbackAlg.length;
+                    activeMoves = state.a || [];
+                    document.getElementById('move-slider').max = activeMoves.length;
                     document.getElementById('move-slider').value = state.v || 0;
-                    document.getElementById('command-box').value = playbackAlg.join(" ");
-                    updateView();
+                    document.getElementById('command-box').value = activeMoves.join(" ");
                 } catch(e) {}
             }
+            updateView();
         });
     </script>
 </body>
