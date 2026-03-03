@@ -2,59 +2,57 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>KAZCUBE Lab - v1.2.1 EMERGENCY FIX</title>
+    <title>KAZCUBE Lab - v1.2.1 Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        #cube-wrapper { width: 100%; height: 350px; background: #000; border-radius: 1rem; border: 2px solid #475569; overflow: hidden; margin-bottom: 20px; }
-        /* ボタンを最初から表示させるためのスタイル */
-        .move-btn { background: #1e293b; color: white; padding: 15px 0; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid #475569; cursor: pointer; text-align: center; }
-        .move-btn:hover { background: #334155; }
-        #hash-io { width: 100%; background: #000; color: #10b981; font-family: monospace; font-size: 12px; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px; min-height: 40px; }
+        #cube-container { width: 100%; height: 350px; background: #000; border-radius: 1rem; border: 2px solid #475569; overflow: hidden; margin-bottom: 20px; position: relative; }
+        twisty-player { width: 100%; height: 100%; }
+        .move-btn { background: #1e293b; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid #475569; cursor: pointer; text-align: center; transition: 0.2s; }
+        .move-btn:hover { background: #334155; border-color: #10b981; }
+        #hash-io { width: 100%; background: #000; color: #10b981; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 8px; border: 1px solid #334155; min-height: 40px; }
     </style>
 </head>
 <body class="bg-slate-900 text-white p-6">
 
     <div class="max-w-md mx-auto">
-        <h1 class="text-xl font-bold text-emerald-400 mb-4 italic">PHASE 1.2.1 TEST (FIXED)</h1>
+        <h1 class="text-xl font-bold text-emerald-400 mb-4 italic uppercase tracking-tighter">Phase 1.2.1 Stable Test</h1>
 
-        <div id="cube-wrapper">
-            <twisty-player id="main-cube" puzzle="3x3x3" background="none"></twisty-player>
+        <div id="cube-container">
+            <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 mb-6" id="button-container">
-            <div class="move-btn" onclick="handleMove('U')">U</div>
-            <div class="move-btn" onclick="handleMove('U\'')">U'</div>
-            <div class="move-btn" onclick="handleMove('D')">D</div>
-            <div class="move-btn" onclick="handleMove('D\'')">D'</div>
-            <div class="move-btn" onclick="handleMove('L')">L</div>
-            <div class="move-btn" onclick="handleMove('L\'')">L'</div>
-            <div class="move-btn" onclick="handleMove('R')">R</div>
-            <div class="move-btn" onclick="handleMove('R\'')">R'</div>
-            <div class="move-btn" onclick="handleMove('F')">F</div>
-            <div class="move-btn" onclick="handleMove('F\'')">F'</div>
-            <div class="move-btn" onclick="handleMove('B')">B</div>
-            <div class="move-btn" onclick="handleMove('B\'')">B'</div>
+        <div class="grid grid-cols-4 gap-2 mb-6">
+            <div class="move-btn" onclick="applyMove('U')">U</div>
+            <div class="move-btn" onclick="applyMove('U\'')">U'</div>
+            <div class="move-btn" onclick="applyMove('D')">D</div>
+            <div class="move-btn" onclick="applyMove('D\'')">D'</div>
+            <div class="move-btn" onclick="applyMove('L')">L</div>
+            <div class="move-btn" onclick="applyMove('L\'')">L'</div>
+            <div class="move-btn" onclick="applyMove('R')">R</div>
+            <div class="move-btn" onclick="applyMove('R\'')">R'</div>
+            <div class="move-btn" onclick="applyMove('F')">F</div>
+            <div class="move-btn" onclick="applyMove('F\'')">F'</div>
+            <div class="move-btn" onclick="applyMove('B')">B</div>
+            <div class="move-btn" onclick="applyMove('B\'')">B'</div>
         </div>
 
         <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <button id="btn-copy" onclick="copyLink()" class="w-full bg-indigo-600 p-2 rounded font-bold mb-2 text-sm uppercase">Copy Share URL</button>
-            <input type="text" id="hash-io" readonly placeholder="Waiting for player...">
+            <button onclick="copyLink()" id="btn-copy" class="w-full bg-indigo-600 hover:bg-indigo-500 p-3 rounded font-black mb-3 text-xs uppercase transition">Copy Share URL</button>
+            <input type="text" id="hash-io" readonly placeholder="Generating hash...">
         </div>
     </div>
 
     <script type="module">
+        // KociembaLibraryのみモジュールから取得
         import { KociembaLibrary } from "https://cdn.cubing.net/v0/js/cubing/search";
-        import "https://cdn.cubing.net/v0/js/cubing/twisty";
 
         const player = document.getElementById('main-cube');
         const hashIo = document.getElementById('hash-io');
 
-        // グローバルに関数を公開
-        window.handleMove = async (m) => {
-            if (player.applyMove) {
-                await player.applyMove(m);
-                updateHash();
-            }
+        // グローバル関数として定義
+        window.applyMove = (move) => {
+            player.applyMove(move);
         };
 
         window.updateHash = async () => {
@@ -63,7 +61,9 @@
                 const kString = await KociembaLibrary.patternToKociembaString(pattern);
                 const data = { k: kString };
                 hashIo.value = "v1.2:" + btoa(JSON.stringify(data));
-            } catch (e) { console.error("Hash Error:", e); }
+            } catch (e) {
+                console.warn("Hash update skipped: Player not ready");
+            }
         };
 
         window.copyLink = () => {
@@ -75,22 +75,23 @@
             });
         };
 
+        // 状態の変化を監視
+        player.addEventListener("twisty-player-navigation-change", updateHash);
+
         // 初期化
-        const init = async () => {
+        window.addEventListener('load', () => {
             const params = new URLSearchParams(window.location.search);
             const hash = params.get('hash');
             if (hash && hash.startsWith("v1.2:")) {
-                const state = JSON.parse(atob(hash.replace("v1.2:", "")));
-                player.experimentalSetupAlg = state.k;
-                hashIo.value = hash;
-            } else {
-                // 初期状態のハッシュを表示（少し待ってから）
-                setTimeout(updateHash, 1000);
+                try {
+                    const state = JSON.parse(atob(hash.replace("v1.2:", "")));
+                    player.experimentalSetupAlg = state.k;
+                    hashIo.value = hash;
+                } catch(e) { console.error(e); }
             }
-        };
-
-        player.addEventListener("twisty-player-navigation-change", updateHash);
-        init();
+            // 初回ハッシュ生成
+            setTimeout(updateHash, 1500);
+        });
     </script>
 </body>
 </html>
