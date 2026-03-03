@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.3.2 Sync</title>
+    <title>KAZCUBE Lab - v1.3.3 Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
-        #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; position: relative; }
+        #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
-        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; }
+        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; cursor: pointer; }
         .play-btn { background: #059669 !important; color: white !important; width: 56px !important; border: none !important; }
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; border-radius: 0.75rem; }
         .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
+        .status-badge { font-size: 10px; font-weight: 900; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 10px; border: 1px solid #fbbf24; border-radius: 4px; }
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
@@ -25,24 +26,25 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.3.2</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.3.3</span></h2>
+            <div id="setup-status" class="hidden status-badge uppercase italic font-black">Scrambled by Inverse</div>
         </header>
 
         <div class="main-grid">
             <div class="left-col space-y-4">
-                <div id="cube-wrapper" class="shadow-2xl border-4 border-slate-700">
-                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none" tempo-scale="1.8"></twisty-player>
+                <div id="cube-wrapper" class="shadow-2xl">
+                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
                 
                 <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="updateView()">
                     
                     <div class="flex justify-center items-center gap-2">
-                        <button id="nav-first" class="nav-btn">|&lt;</button>
-                        <button id="nav-prev" class="nav-btn">&lt;</button>
-                        <button id="btn-play" class="nav-btn play-btn">▶</button>
-                        <button id="nav-next" class="nav-btn">&gt;</button>
-                        <button id="nav-last" class="nav-btn">&gt;|</button>
+                        <button onclick="navMove('first')" class="nav-btn">&lt;&lt;</button>
+                        <button onclick="navMove('prev')" class="nav-btn">&lt;</button>
+                        <button id="btn-play" onclick="togglePlay()" class="nav-btn play-btn">▶</button>
+                        <button onclick="navMove('next')" class="nav-btn">&gt;</button>
+                        <button onclick="navMove('last')" class="nav-btn">&gt;&gt;</button>
                     </div>
 
                     <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
@@ -54,20 +56,20 @@
 
             <div class="right-col">
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="Enter moves here..."></textarea>
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="R U R' U'"></textarea>
                     
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="action-btn py-4 bg-indigo-600 text-white text-[12px] shadow-lg active:scale-95">Random Scramble</button>
-                        <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px] active:scale-95">Set Setup</button>
-                        <button id="btn-reset" class="action-btn col-span-2 py-4 bg-rose-600 text-white text-[14px] shadow-lg active:scale-95">Reset Cube</button>
+                        <button id="btn-scramble" onclick="handleScramble()" class="action-btn py-4 bg-indigo-600 text-white text-[12px] shadow-lg active:scale-95">Random Scramble</button>
+                        <button id="btn-setup" onclick="applyReverseSetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px] active:scale-95">Set Setup</button>
+                        <button id="btn-reset" onclick="fullReset()" class="action-btn col-span-2 py-4 bg-rose-600 text-white text-[14px] shadow-lg active:scale-95">Reset Cube</button>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
                     <div class="flex gap-1.5 mb-4 bg-black/30 p-1.5 rounded-lg">
-                        <button id="tab-basic" class="tab-btn active">BASIC</button>
-                        <button id="tab-wide" class="tab-btn">WIDE</button>
-                        <button id="tab-slice" class="tab-btn">SLICE</button>
+                        <button id="tab-basic" onclick="renderMoves('basic')" class="tab-btn active">BASIC</button>
+                        <button id="tab-wide" onclick="renderMoves('wide')" class="tab-btn">WIDE</button>
+                        <button id="tab-slice" onclick="renderMoves('slice')" class="tab-btn">SLICE</button>
                     </div>
                     <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
                 </div>
@@ -76,95 +78,98 @@
     </div>
 
     <script type="module">
-        const player = document.getElementById('main-cube');
-        const slider = document.getElementById('move-slider');
-        const playBtn = document.getElementById('btn-play');
-        const cmdBox = document.getElementById('command-box');
+        let setupMoves = [];
+        let activeMoves = [];
+        let isPlaying = false;
+        let playInterval = null;
 
-        // キューブの再生位置が動いたらスライダーと同期させる
-        player.addEventListener('twisty-player:cursor-position-update', (e) => {
-            const step = Math.round(e.detail.cursorPosition);
-            slider.value = step;
+        const getInverseMoves = (moves) => [...moves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
+
+        // v5.44 直系の更新ロジック（もっとも確実な方法）
+        window.updateView = () => {
+            const player = document.querySelector('twisty-player');
+            const slider = document.getElementById('move-slider');
+            const step = parseInt(slider.value) || 0;
+            
+            // 重要：セットアップ手順 ＋ 現在のステップまでの再生手順 を結合
+            const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+            if (player) player.alg = fullAlg;
+            
             document.getElementById('step-counter').textContent = step;
-            const moves = player.alg.split(/\s+/).filter(m => m);
-            document.getElementById('move-indicator').textContent = (step > 0 && moves[step-1]) ? moves[step-1] : "---";
-        });
-
-        // SET SETUP: 入力した手順を「背景」にする
-        document.getElementById('btn-setup').onclick = () => {
-            if (!cmdBox.value.trim()) return;
-            player.experimentalSetupAlg = cmdBox.value;
-            player.alg = ""; // 再生用はクリア
-            syncPlayerWithBox();
+            document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
         };
 
-        // SCRAMBLE: ランダムに崩す
-        document.getElementById('btn-scramble').onclick = () => {
+        // セットアップ：v5.44と同じ「逆手順で崩す」ロジック
+        window.applyReverseSetup = () => {
+            const val = document.getElementById('command-box').value.trim();
+            if (val) {
+                const moves = val.split(/\s+/).filter(m => m.length > 0);
+                setupMoves = getInverseMoves(moves);
+                activeMoves = moves;
+                
+                document.getElementById('setup-status').classList.remove('hidden');
+                const slider = document.getElementById('move-slider');
+                slider.max = activeMoves.length;
+                slider.value = 0; // 0にセット（崩れた状態）
+                updateView();
+            }
+        };
+
+        window.handleScramble = () => {
+            setupMoves = [];
+            document.getElementById('setup-status').classList.add('hidden');
             const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-            const scramble = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]).join(" ");
-            player.experimentalSetupAlg = scramble;
-            player.alg = "";
-            syncPlayerWithBox();
+            activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+            
+            const slider = document.getElementById('move-slider');
+            slider.max = activeMoves.length;
+            slider.value = activeMoves.length; // 崩しきった状態にする
+            document.getElementById('command-box').value = activeMoves.join(" ");
+            updateView();
         };
 
-        const syncPlayerWithBox = () => {
-            player.alg = cmdBox.value;
-            const moves = player.alg.split(/\s+/).filter(m => m);
-            slider.max = moves.length;
-            slider.value = 0;
-            player.cursorPosition = 0;
-        };
-
-        // 再生・一時停止
-        playBtn.onclick = () => {
-            if (playBtn.textContent === "⏸") {
-                player.pause();
-                playBtn.textContent = "▶";
+        window.togglePlay = () => {
+            const btn = document.getElementById('btn-play');
+            const slider = document.getElementById('move-slider');
+            if (isPlaying) {
+                clearInterval(playInterval);
+                btn.textContent = "▶";
             } else {
-                // もし最後まで行っていたら最初から
-                if (parseInt(slider.value) >= parseInt(slider.max)) {
-                    player.cursorPosition = 0;
-                }
-                player.play();
-                playBtn.textContent = "⏸";
+                if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
+                btn.textContent = "⏸";
+                playInterval = setInterval(() => {
+                    if (parseInt(slider.value) < activeMoves.length) {
+                        slider.value++;
+                        updateView();
+                    } else {
+                        clearInterval(playInterval);
+                        isPlaying = false;
+                        btn.textContent = "▶";
+                    }
+                }, 800); // 再生スピード
             }
+            isPlaying = !isPlaying;
         };
 
-        // プレイヤーが自動停止した時の処理
-        player.addEventListener('twisty-player:animator-state-update', (e) => {
-            if (e.detail.type === 'stopped') {
-                playBtn.textContent = "▶";
-            }
-        });
-
-        // スライダーを手動で動かした時
-        slider.oninput = () => {
-            player.pause();
-            playBtn.textContent = "▶";
-            player.cursorPosition = parseInt(slider.value);
+        window.navMove = (type) => {
+            const slider = document.getElementById('move-slider');
+            if (type === 'first') slider.value = 0;
+            else if (type === 'last') slider.value = activeMoves.length;
+            else if (type === 'prev' && slider.value > 0) slider.value--;
+            else if (type === 'next' && parseInt(slider.value) < activeMoves.length) slider.value++;
+            updateView();
         };
 
-        // ナビゲーション
-        document.getElementById('nav-first').onclick = () => { player.cursorPosition = 0; };
-        document.getElementById('nav-last').onclick = () => { player.cursorPosition = slider.max; };
-        document.getElementById('nav-prev').onclick = () => { player.cursorPosition = Math.max(0, player.cursorPosition - 1); };
-        document.getElementById('nav-next').onclick = () => { player.cursorPosition = Math.min(slider.max, player.cursorPosition + 1); };
-
-        // リセット
-        document.getElementById('btn-reset').onclick = () => {
-            player.experimentalSetupAlg = "";
-            player.alg = "";
-            cmdBox.value = "";
+        window.fullReset = () => {
+            setupMoves = []; activeMoves = [];
+            document.getElementById('command-box').value = "";
+            document.getElementById('setup-status').classList.add('hidden');
+            const slider = document.getElementById('move-slider');
             slider.max = 0; slider.value = 0;
-            document.getElementById('step-counter').textContent = "0";
-            document.getElementById('move-indicator').textContent = "---";
+            updateView();
         };
 
-        // コマンドボックスが編集されたら即同期
-        cmdBox.oninput = syncPlayerWithBox;
-
-        // ボタン入力用
-        const renderMoves = (type) => {
+        window.renderMoves = (type) => {
             const grid = document.getElementById('move-grid');
             grid.innerHTML = '';
             const lib = { basic:['U','D','L','R','F','B'], wide:['u','d','l','r','f','b'], slice:['M','E','S','x','y','z'] };
@@ -174,20 +179,23 @@
                     const b = document.createElement('button');
                     b.className = "move-btn"; b.textContent = m;
                     b.onclick = () => {
-                        const moves = cmdBox.value.split(/\s+/).filter(x => x);
-                        moves.push(m);
-                        cmdBox.value = moves.join(" ");
-                        syncPlayerWithBox();
-                        player.cursorPosition = moves.length; // 追加した位置へ移動
+                        const slider = document.getElementById('move-slider');
+                        activeMoves = activeMoves.slice(0, parseInt(slider.value));
+                        activeMoves.push(m);
+                        slider.max = activeMoves.length;
+                        slider.value = activeMoves.length;
+                        document.getElementById('command-box').value = activeMoves.join(" ");
+                        updateView();
                     };
                     grid.appendChild(b);
                 });
             });
         };
-        document.getElementById('tab-basic').onclick = () => renderMoves('basic');
-        document.getElementById('tab-wide').onclick = () => renderMoves('wide');
-        document.getElementById('tab-slice').onclick = () => renderMoves('slice');
-        renderMoves('basic');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMoves('basic');
+            updateView();
+        });
     </script>
 </body>
 </html>
