@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - Phase 1.1.1 (Sharing & Analysis)</title>
+    <title>KAZCUBE Lab - Phase 1.1.2 (Bug Fix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -13,19 +13,15 @@
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
         
-        /* Analysis Panel Style */
         .analysis-panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; }
-        .hash-input { font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #10b981; background: #000; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; width: 100%; outline: none; transition: 0.2s; }
-        .hash-input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
-
+        .hash-input { font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #10b981; background: #000; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; width: 100%; outline: none; }
+        
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; }
-        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; transition: 0.2s; }
-        .nav-btn:hover { background: #334155; color: white; }
+        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; }
         .play-btn { background: #059669 !important; color: white !important; width: 56px !important; }
         .btn-reset-ui { background-color: #e11d48 !important; color: #ffffff !important; border-bottom: 4px solid #9f1239 !important; }
         
-        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; transition: 0.1s; }
-        .move-btn:active { transform: scale(0.9); background-color: #475569; }
+        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
 
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
@@ -36,14 +32,14 @@
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE <span class="text-white">Lab</span></h2>
-                <span class="bg-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-1 rounded border border-indigo-500/50">v1.1.1 PHASE 1</span>
+                <span class="bg-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-1 rounded border border-indigo-500/50">v1.1.2 PHASE 1</span>
             </div>
             <div id="setup-status" class="hidden text-[10px] font-black text-amber-400 bg-amber-400/10 px-3 py-1 border border-amber-400/50 rounded italic uppercase tracking-wider">State Modified</div>
         </header>
 
         <div class="main-grid">
             <div class="left-col space-y-4">
-                <div id="cube-wrapper" class="shadow-2xl shadow-black/50">
+                <div id="cube-wrapper" class="shadow-2xl">
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
                 
@@ -81,11 +77,11 @@
                 </div>
 
                 <div class="space-y-3">
-                    <textarea id="command-box" placeholder="Enter algorithm (e.g. R U R' U')..." class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-indigo-500 transition-all"></textarea>
+                    <textarea id="command-box" placeholder="Enter algorithm..." class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-indigo-500 transition-all"></textarea>
                     
                     <div class="grid grid-cols-3 gap-3">
                         <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[13px] text-white shadow-lg active:scale-95 transition">RANDOM SCRAMBLE</button>
-                        <button id="btn-setup" onclick="applyReverseSetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px] active:scale-95 hover:bg-slate-600 transition">SET SETUP</button>
+                        <button id="btn-setup" onclick="applyReverseSetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px] active:scale-95 hover:bg-slate-600 transition tracking-tighter">SET SETUP</button>
                     </div>
                     
                     <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg active:scale-95 transition">FULL RESET</button>
@@ -106,22 +102,18 @@
 
         const getInverseMoves = (moves) => [...moves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
 
-        // 状態をハッシュ化してInput欄を更新
         window.exportState = () => {
             const slider = document.getElementById('move-slider');
-            const step = parseInt(slider.value);
+            const step = parseInt(slider.value) || 0;
+            // セットアップ手順も含めてハッシュ化
             const currentPath = [...setupMoves, ...activeMoves.slice(0, step)].join(",");
             const stateHash = currentPath ? btoa(currentPath) : "SOLVED_BASE_STATE";
             document.getElementById('hash-io').value = "v1:" + stateHash;
         };
 
-        // ハッシュから状態を復元
         window.importHash = () => {
             const input = document.getElementById('hash-io').value.trim();
-            if (!input.startsWith("v1:")) {
-                alert("Invalid Hash Format (Must start with v1:)");
-                return;
-            }
+            if (!input.startsWith("v1:")) return;
 
             try {
                 const hashData = input.replace("v1:", "");
@@ -129,35 +121,24 @@
                     fullReset();
                     return;
                 }
-
-                setupMoves = atob(hashData).split(",");
+                setupMoves = atob(hashData).split(",").filter(m => m !== "");
                 activeMoves = []; 
-                
-                const slider = document.getElementById('move-slider');
-                slider.max = 0; slider.value = 0;
-                
+                document.getElementById('move-slider').max = 0;
+                document.getElementById('move-slider').value = 0;
                 document.getElementById('setup-status').classList.remove('hidden');
                 document.getElementById('setup-status').textContent = "Imported State";
                 updateView();
-            } catch (e) {
-                alert("Failed to import: Hash is corrupted.");
-            }
+            } catch (e) { console.error("Import error", e); }
         };
 
-        // URL共有リンクをコピー
         window.copyShareLink = () => {
             const hash = document.getElementById('hash-io').value;
             const shareUrl = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
-            
             navigator.clipboard.writeText(shareUrl).then(() => {
                 const btn = document.getElementById('btn-copy-url');
                 const originalText = btn.textContent;
                 btn.textContent = "LINK COPIED!";
-                btn.style.backgroundColor = "#10b981";
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.backgroundColor = "";
-                }, 1500);
+                setTimeout(() => btn.textContent = originalText, 1500);
             });
         };
 
@@ -171,19 +152,24 @@
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
             
-            exportState(); // 常に最新ハッシュを同期
+            exportState();
         };
 
         window.applyReverseSetup = () => {
             const val = document.getElementById('command-box').value.trim();
             if (val) {
-                const moves = val.split(/\s+/);
+                const moves = val.split(/\s+/).filter(m => m !== "");
+                // 1. 逆手順をセットアップとして保持
                 setupMoves = getInverseMoves(moves);
+                // 2. 正手順をアクティブな手順として保持
                 activeMoves = moves;
+                
+                const slider = document.getElementById('move-slider');
+                slider.max = activeMoves.length;
+                slider.value = 0; // 最初はセットアップ完了状態で止める
+                
                 document.getElementById('setup-status').classList.remove('hidden');
                 document.getElementById('setup-status').textContent = "Inverse Scrambled";
-                const slider = document.getElementById('move-slider');
-                slider.max = activeMoves.length; slider.value = 0;
                 updateView();
             }
         };
@@ -192,7 +178,7 @@
             const val = document.getElementById('command-box').value.trim();
             setupMoves = [];
             document.getElementById('setup-status').classList.add('hidden');
-            if (val) activeMoves = val.split(/\s+/);
+            if (val) activeMoves = val.split(/\s+/).filter(m => m !== "");
             else {
                 const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
                 activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
@@ -207,7 +193,7 @@
             if (type === 'first') slider.value = 0;
             else if (type === 'last') slider.value = activeMoves.length;
             else if (type === 'prev' && slider.value > 0) slider.value--;
-            else if (type === 'next' && slider.value < activeMoves.length) slider.value++;
+            else if (type === 'next' && parseInt(slider.value) < activeMoves.length) slider.value++;
             updateView();
         };
 
@@ -257,8 +243,6 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             renderMoves();
-            
-            // URLパラメータからハッシュを取得して自動読み込み
             const urlParams = new URLSearchParams(window.location.search);
             const sharedHash = urlParams.get('hash');
             if (sharedHash) {
