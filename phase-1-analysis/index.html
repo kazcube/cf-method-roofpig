@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.0.0 Phase1 (Analysis)</title>
+    <title>KAZCUBE Lab - Phase 1.1.1 (Sharing & Analysis)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -15,13 +15,18 @@
         
         /* Analysis Panel Style */
         .analysis-panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; }
-        .hash-display { font-family: 'Courier New', Courier, monospace; font-size: 11px; word-break: break-all; color: #10b981; background: #000; padding: 8px; border-radius: 6px; border: 1px solid #064e3b; margin-top: 8px; }
+        .hash-input { font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #10b981; background: #000; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; width: 100%; outline: none; transition: 0.2s; }
+        .hash-input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
 
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; }
-        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; }
+        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; transition: 0.2s; }
+        .nav-btn:hover { background: #334155; color: white; }
         .play-btn { background: #059669 !important; color: white !important; width: 56px !important; }
-        .btn-reset-ui { background-color: #e11d48 !important; color: #ffffff !important; }
+        .btn-reset-ui { background-color: #e11d48 !important; color: #ffffff !important; border-bottom: 4px solid #9f1239 !important; }
         
+        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; transition: 0.1s; }
+        .move-btn:active { transform: scale(0.9); background-color: #475569; }
+
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
@@ -31,14 +36,14 @@
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE <span class="text-white">Lab</span></h2>
-                <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-2 py-1 rounded border border-emerald-500/50">v1.0.0 PHASE 1</span>
+                <span class="bg-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-1 rounded border border-indigo-500/50">v1.1.1 PHASE 1</span>
             </div>
-            <div id="setup-status" class="hidden text-[10px] font-black text-amber-400 bg-amber-400/10 px-3 py-1 border border-amber-400/50 rounded italic uppercase">Inverse Scrambled</div>
+            <div id="setup-status" class="hidden text-[10px] font-black text-amber-400 bg-amber-400/10 px-3 py-1 border border-amber-400/50 rounded italic uppercase tracking-wider">State Modified</div>
         </header>
 
         <div class="main-grid">
             <div class="left-col space-y-4">
-                <div id="cube-wrapper" class="shadow-2xl">
+                <div id="cube-wrapper" class="shadow-2xl shadow-black/50">
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
                 
@@ -55,32 +60,35 @@
 
                     <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
                         <div class="flex flex-col">
-                            <span class="text-slate-500 text-[10px] uppercase font-black">Step</span>
+                            <span class="text-slate-500 text-[10px] uppercase font-black tracking-widest">Step</span>
                             <span id="step-counter" class="text-emerald-400 text-2xl font-black">0</span>
                         </div>
-                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
+                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic min-w-[80px] text-center">---</div>
                     </div>
                 </div>
             </div>
 
             <div class="right-col">
-                <div class="analysis-panel space-y-3 shadow-lg border-l-4 border-emerald-500">
+                <div class="analysis-panel space-y-3 shadow-lg border-l-4 border-indigo-500">
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">State Serializer</span>
-                        <button onclick="exportState()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-2 py-1 rounded font-bold transition">GENERATE HASH</button>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Share / Hash</span>
+                        <div class="flex gap-1">
+                            <button id="btn-copy-url" onclick="copyShareLink()" class="text-[9px] bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded font-bold transition uppercase">Copy Link</button>
+                            <button onclick="importHash()" class="text-[9px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded font-bold transition uppercase">Import</button>
+                        </div>
                     </div>
-                    <div id="hash-output" class="hash-display italic">Hash waiting...</div>
+                    <input type="text" id="hash-io" class="hash-input" value="v1:SOLVED_BASE_STATE" spellcheck="false">
                 </div>
 
                 <div class="space-y-3">
-                    <textarea id="command-box" placeholder="Enter algorithm..." class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all"></textarea>
+                    <textarea id="command-box" placeholder="Enter algorithm (e.g. R U R' U')..." class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-indigo-500 transition-all"></textarea>
                     
                     <div class="grid grid-cols-3 gap-3">
-                        <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 rounded-xl text-[13px] text-white shadow-lg active:scale-95">RANDOM SCRAMBLE</button>
-                        <button id="btn-setup" onclick="applyReverseSetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px] active:scale-95">SET SETUP</button>
+                        <button id="btn-main-action" onclick="handleMainAction()" class="action-btn col-span-2 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[13px] text-white shadow-lg active:scale-95 transition">RANDOM SCRAMBLE</button>
+                        <button id="btn-setup" onclick="applyReverseSetup()" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 rounded-xl text-[13px] active:scale-95 hover:bg-slate-600 transition">SET SETUP</button>
                     </div>
                     
-                    <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg active:scale-95 border-b-4 border-rose-900">FULL RESET</button>
+                    <button id="btn-reset" onclick="fullReset()" class="action-btn w-full py-4 btn-reset-ui rounded-xl text-[14px] shadow-lg active:scale-95 transition">FULL RESET</button>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
@@ -91,7 +99,6 @@
     </div>
 
     <script type="module">
-        // 将来的には js/analyzer.js に分離するロジック
         let setupMoves = [];
         let activeMoves = [];
         let isPlaying = false;
@@ -99,13 +106,59 @@
 
         const getInverseMoves = (moves) => [...moves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
 
-        // Phase 1: State Serializer
-        window.exportState = async () => {
-            const player = document.querySelector('twisty-player');
-            // twisty-playerの内部状態（stickering情報など）を取得する試み
-            // 簡易版として、現在適用されているアルゴリズムからハッシュを生成
-            const stateHash = btoa([...setupMoves, ...activeMoves.slice(0, parseInt(document.getElementById('move-slider').value))].join(","));
-            document.getElementById('hash-output').textContent = "v1:" + (stateHash || "SOLVED_BASE_STATE");
+        // 状態をハッシュ化してInput欄を更新
+        window.exportState = () => {
+            const slider = document.getElementById('move-slider');
+            const step = parseInt(slider.value);
+            const currentPath = [...setupMoves, ...activeMoves.slice(0, step)].join(",");
+            const stateHash = currentPath ? btoa(currentPath) : "SOLVED_BASE_STATE";
+            document.getElementById('hash-io').value = "v1:" + stateHash;
+        };
+
+        // ハッシュから状態を復元
+        window.importHash = () => {
+            const input = document.getElementById('hash-io').value.trim();
+            if (!input.startsWith("v1:")) {
+                alert("Invalid Hash Format (Must start with v1:)");
+                return;
+            }
+
+            try {
+                const hashData = input.replace("v1:", "");
+                if (hashData === "SOLVED_BASE_STATE") {
+                    fullReset();
+                    return;
+                }
+
+                setupMoves = atob(hashData).split(",");
+                activeMoves = []; 
+                
+                const slider = document.getElementById('move-slider');
+                slider.max = 0; slider.value = 0;
+                
+                document.getElementById('setup-status').classList.remove('hidden');
+                document.getElementById('setup-status').textContent = "Imported State";
+                updateView();
+            } catch (e) {
+                alert("Failed to import: Hash is corrupted.");
+            }
+        };
+
+        // URL共有リンクをコピー
+        window.copyShareLink = () => {
+            const hash = document.getElementById('hash-io').value;
+            const shareUrl = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
+            
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                const btn = document.getElementById('btn-copy-url');
+                const originalText = btn.textContent;
+                btn.textContent = "LINK COPIED!";
+                btn.style.backgroundColor = "#10b981";
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.backgroundColor = "";
+                }, 1500);
+            });
         };
 
         window.updateView = () => {
@@ -113,11 +166,12 @@
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
             const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+            
             if (player) player.alg = fullAlg;
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-            // 状態が変わるたびにハッシュを更新
-            exportState();
+            
+            exportState(); // 常に最新ハッシュを同期
         };
 
         window.applyReverseSetup = () => {
@@ -127,6 +181,7 @@
                 setupMoves = getInverseMoves(moves);
                 activeMoves = moves;
                 document.getElementById('setup-status').classList.remove('hidden');
+                document.getElementById('setup-status').textContent = "Inverse Scrambled";
                 const slider = document.getElementById('move-slider');
                 slider.max = activeMoves.length; slider.value = 0;
                 updateView();
@@ -200,7 +255,19 @@
             });
         };
 
-        window.addEventListener('DOMContentLoaded', () => { renderMoves(); updateView(); });
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMoves();
+            
+            // URLパラメータからハッシュを取得して自動読み込み
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedHash = urlParams.get('hash');
+            if (sharedHash) {
+                document.getElementById('hash-io').value = sharedHash;
+                importHash();
+            } else {
+                updateView();
+            }
+        });
     </script>
 </body>
 </html>
