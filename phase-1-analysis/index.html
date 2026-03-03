@@ -3,84 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.2.1 Stable</title>
+    <title>KAZCUBE Lab - v1.2.2 Full UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        #cube-wrapper { width: 100%; height: 350px; background: #000; border-radius: 1rem; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
+        .left-col { flex: 1; min-width: 300px; }
+        .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
+        #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
-        .move-btn { background: #1e293b; color: white; padding: 12px 0; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid #475569; text-align: center; cursor: pointer; }
-        .move-btn:active { background: #3b82f6; transform: scale(0.95); }
-        .hash-io { width: 100%; background: #000; color: #10b981; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 8px; border: 1px solid #334155; }
+        .lang-switch { display: inline-flex; background: #1e293b; border: 1px solid #475569; border-radius: 999px; padding: 2px; cursor: pointer; }
+        .lang-btn { padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; }
+        .lang-active { background: #3b82f6; color: white; }
+        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
+        .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
+        .tab-btn.active { background-color: #475569; color: white; }
+        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; }
+        .play-btn { background: #059669 !important; color: white !important; border: none !important; width: 56px !important; }
+        .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
+        @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
-<body class="bg-slate-900 text-white p-4">
+<body class="min-h-screen bg-slate-900 text-slate-100 p-4">
 
-    <div class="max-w-md mx-auto space-y-4">
-        <h1 class="text-xl font-black text-emerald-400 italic">KAZCUBE Lab v1.2.1</h1>
+    <div class="max-w-[1200px] mx-auto">
+        <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase">v1.2.2 Full UI</span></h2>
+            <div class="lang-switch" onclick="window.toggleLang()">
+                <div id="lang-jp" class="lang-btn lang-active">JP</div>
+                <div id="lang-en" class="lang-btn">EN</div>
+            </div>
+        </header>
 
-        <div id="cube-wrapper">
-            <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
-        </div>
-
-        <div class="grid grid-cols-4 gap-2">
-            <button class="move-btn" onclick="applyMove('U')">U</button>
-            <button class="move-btn" onclick="applyMove('U\'')">U'</button>
-            <button class="move-btn" onclick="applyMove('D')">D</button>
-            <button class="move-btn" onclick="applyMove('D\'')">D'</button>
-            <button class="move-btn" onclick="applyMove('L')">L</button>
-            <button class="move-btn" onclick="applyMove('L\'')">L'</button>
-            <button class="move-btn" onclick="applyMove('R')">R</button>
-            <button class="move-btn" onclick="applyMove('R\'')">R'</button>
-            <button class="move-btn" onclick="applyMove('F')">F</button>
-            <button class="move-btn" onclick="applyMove('F\'')">F'</button>
-            <button class="move-btn" onclick="applyMove('B')">B</button>
-            <button class="move-btn" onclick="applyMove('B\'')">B'</button>
-        </div>
-
-        <div class="p-4 bg-slate-800 rounded-xl border border-slate-700 space-y-3">
+        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6 shadow-lg">
+            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Hash</span>
             <input type="text" id="hash-io" class="hash-io" readonly>
-            <button onclick="copyURL()" class="w-full bg-indigo-600 p-3 rounded font-black text-xs uppercase">Copy Share URL</button>
+            <button onclick="window.copyLink()" id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-3 py-1.5 rounded uppercase transition">Copy Link</button>
+        </div>
+
+        <div class="main-grid">
+            <div class="left-col space-y-4">
+                <div id="cube-wrapper">
+                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
+                </div>
+                
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5">
+                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="window.updateView()">
+                    
+                    <div class="flex justify-center items-center gap-2">
+                        <button onclick="window.navMove('first')" class="nav-btn">&lt;&lt;</button>
+                        <button onclick="window.navMove('prev')" class="nav-btn">&lt;</button>
+                        <button id="btn-play" onclick="window.togglePlay()" class="nav-btn play-btn">▶</button>
+                        <button onclick="window.navMove('next')" class="nav-btn">&gt;</button>
+                        <button onclick="window.navMove('last')" class="nav-btn">&gt;&gt;</button>
+                    </div>
+
+                    <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
+                        <div class="flex flex-col">
+                            <span id="label-step" class="text-slate-500 text-[10px] uppercase font-black">Step</span>
+                            <span id="step-counter" class="text-emerald-500 text-2xl font-black">0</span>
+                        </div>
+                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic">---</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="space-y-3">
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" oninput="window.updateBtnLabel()"></textarea>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="btn-main-action" onclick="window.handleMainAction()" class="py-4 bg-indigo-600 rounded-xl text-[13px] font-black shadow-lg">RANDOM SCRAMBLE</button>
+                        <button id="btn-reset" onclick="window.fullReset()" class="py-4 bg-rose-600 rounded-xl text-[13px] font-black shadow-lg">RESET</button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
+                    <div class="flex gap-1.5 mb-4 bg-black/30 p-1.5 rounded-lg">
+                        <button onclick="window.renderMoves('basic')" id="tab-basic" class="tab-btn active">BASIC</button>
+                        <button onclick="window.renderMoves('wide')" id="tab-wide" class="tab-btn">WIDE</button>
+                        <button onclick="window.renderMoves('slice')" id="tab-slice" class="tab-btn">SLICE</button>
+                    </div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
+        let currentLang = 'jp';
+        let activeMoves = []; 
+        let isPlaying = false;
+        let playInterval = null;
         const player = document.getElementById('main-cube');
-        const hashIo = document.getElementById('hash-io');
-        let moveHistory = [];
 
-        // グローバルに関数を公開（HTMLのonclickから呼べるようにする）
-        window.applyMove = (m) => {
-            moveHistory.push(m);
-            // v5.44で実績のある .alg 直接代入方式
-            player.alg = moveHistory.join(" ");
-            updateHash();
+        const i18n = {
+            jp: { scramble: "ランダムスクランブル", scrambleInput: "適用", reset: "リセット", step: "ステップ", placeholder: "手順を入力..." },
+            en: { scramble: "RANDOM SCRAMBLE", scrambleInput: "APPLY", reset: "RESET", step: "STEP", placeholder: "Enter algorithm..." }
         };
 
-        const updateHash = () => {
-            const data = { a: moveHistory };
-            hashIo.value = "v1.2:" + btoa(JSON.stringify(data));
+        // --- コア機能 ---
+        window.updateView = () => {
+            const slider = document.getElementById('move-slider');
+            const step = parseInt(slider.value) || 0;
+            player.alg = activeMoves.slice(0, step).join(" ");
+            document.getElementById('step-counter').textContent = step;
+            document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+            syncHash();
         };
 
-        window.copyURL = () => {
-            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hashIo.value)}`;
-            navigator.clipboard.writeText(url).then(() => alert("Copied!"));
+        const syncHash = () => {
+            const state = { a: activeMoves, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
+            document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
         };
 
-        // 初期ロード処理
-        window.addEventListener('load', () => {
+        // --- ナビゲーション ---
+        window.navMove = (type) => {
+            const slider = document.getElementById('move-slider');
+            if (type === 'first') slider.value = 0;
+            else if (type === 'last') slider.value = activeMoves.length;
+            else if (type === 'prev' && slider.value > 0) slider.value--;
+            else if (type === 'next' && parseInt(slider.value) < activeMoves.length) slider.value++;
+            window.updateView();
+        };
+
+        window.togglePlay = () => {
+            const btn = document.getElementById('btn-play');
+            const slider = document.getElementById('move-slider');
+            if (isPlaying) { clearInterval(playInterval); btn.textContent = "▶"; }
+            else {
+                if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
+                btn.textContent = "⏸";
+                playInterval = setInterval(() => {
+                    if (parseInt(slider.value) < activeMoves.length) { slider.value++; window.updateView(); }
+                    else window.togglePlay();
+                }, 800);
+            }
+            isPlaying = !isPlaying;
+        };
+
+        // --- 操作・入力 ---
+        window.handleMainAction = () => {
+            const val = document.getElementById('command-box').value.trim();
+            if (val) {
+                activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+            } else {
+                const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
+                activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+                document.getElementById('command-box').value = activeMoves.join(" ");
+            }
+            const slider = document.getElementById('move-slider');
+            slider.max = activeMoves.length; slider.value = activeMoves.length;
+            window.updateView();
+        };
+
+        window.renderMoves = (type) => {
+            const grid = document.getElementById('move-grid');
+            grid.innerHTML = '';
+            const lib = { basic:['U','D','L','R','F','B'], wide:['u','d','l','r','f','b'], slice:['M','E','S','x','y','z'] };
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.id === 'tab-'+type));
+            lib[type].forEach(f => {
+                [f, f+"'", f+"2"].forEach(m => {
+                    const b = document.createElement('button');
+                    b.className = "move-btn"; b.textContent = m;
+                    b.onclick = () => {
+                        const slider = document.getElementById('move-slider');
+                        activeMoves = activeMoves.slice(0, parseInt(slider.value));
+                        activeMoves.push(m);
+                        slider.max = activeMoves.length; slider.value = activeMoves.length;
+                        document.getElementById('command-box').value = activeMoves.join(" ");
+                        window.updateView();
+                    };
+                    grid.appendChild(b);
+                });
+            });
+        };
+
+        // --- ユーティリティ ---
+        window.toggleLang = () => {
+            currentLang = (currentLang === 'jp') ? 'en' : 'jp';
+            document.getElementById('lang-jp').classList.toggle('lang-active', currentLang === 'jp');
+            document.getElementById('lang-en').classList.toggle('lang-active', currentLang === 'en');
+            const t = i18n[currentLang];
+            document.getElementById('label-step').textContent = t.step;
+            document.getElementById('btn-reset').textContent = t.reset;
+            document.getElementById('command-box').placeholder = t.placeholder;
+            window.updateBtnLabel();
+            syncHash();
+        };
+
+        window.updateBtnLabel = () => {
+            const box = document.getElementById('command-box');
+            document.getElementById('btn-main-action').textContent = box.value.trim().length > 0 ? i18n[currentLang].scrambleInput : i18n[currentLang].scramble;
+        };
+
+        window.fullReset = () => {
+            activeMoves = [];
+            document.getElementById('command-box').value = "";
+            const slider = document.getElementById('move-slider');
+            slider.max = 0; slider.value = 0;
+            window.updateView();
+        };
+
+        window.copyLink = () => {
+            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(document.getElementById('hash-io').value)}`;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('btn-copy');
+                btn.textContent = "COPIED!";
+                setTimeout(() => btn.textContent = "COPY LINK", 1500);
+            });
+        };
+
+        // --- 初期化 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            window.renderMoves('basic');
             const params = new URLSearchParams(window.location.search);
             const hash = params.get('hash');
             if (hash && hash.startsWith("v1.2:")) {
-                try {
-                    const state = JSON.parse(atob(hash.replace("v1.2:", "")));
-                    if (state.a) {
-                        moveHistory = state.a;
-                        player.alg = moveHistory.join(" ");
-                    }
-                } catch(e) {}
+                const state = JSON.parse(atob(hash.replace("v1.2:", "")));
+                activeMoves = state.a || [];
+                currentLang = state.l || 'jp';
+                if (currentLang === 'en') window.toggleLang();
+                const slider = document.getElementById('move-slider');
+                slider.max = activeMoves.length;
+                slider.value = state.v || 0;
+                document.getElementById('command-box').value = activeMoves.join(" ");
             }
-            updateHash();
+            window.updateView();
         });
     </script>
 </body>
