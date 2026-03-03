@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.2.3 FULL SOURCE</title>
+    <title>KAZCUBE Lab - v1.2.4 Full UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -13,22 +13,19 @@
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
         
-        /* UIパーツ */
         .lang-switch { display: inline-flex; background: #1e293b; border: 1px solid #475569; border-radius: 999px; padding: 2px; cursor: pointer; }
         .lang-btn { padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; }
         .lang-active { background: #3b82f6; color: white; }
         
-        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; transition: 0.1s; }
-        .move-btn:active { background-color: #3b82f6; transform: scale(0.9); }
-        
+        .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; border-radius: 0.75rem; }
+        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
         .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
         .tab-btn.active { background-color: #475569; color: white; }
         
-        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; cursor: pointer; }
+        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; }
         .play-btn { background: #059669 !important; color: white !important; border: none !important; width: 56px !important; }
-        
         .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
-        
+
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
@@ -36,8 +33,8 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 tracking-widest text-white">v1.2.3</span></h2>
-            <div class="lang-switch" onclick="window.toggleLang()">
+            <h2 class="text-2xl font-black text-emerald-400 italic">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 uppercase tracking-widest text-white">v1.2.4 Integrated</span></h2>
+            <div class="lang-switch" id="lang-switch">
                 <div id="lang-jp" class="lang-btn lang-active">JP</div>
                 <div id="lang-en" class="lang-btn">EN</div>
             </div>
@@ -46,7 +43,7 @@
         <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6 shadow-lg">
             <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Hash</span>
             <input type="text" id="hash-io" class="hash-io" readonly>
-            <button onclick="window.copyLink()" id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-3 py-1.5 rounded uppercase transition">Copy Link</button>
+            <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-3 py-1.5 rounded uppercase transition">Copy Link</button>
         </div>
 
         <div class="main-grid">
@@ -55,15 +52,15 @@
                      <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
                 
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="window.updateView()">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5 shadow-xl">
+                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                     
                     <div class="flex justify-center items-center gap-2">
-                        <button onclick="window.navMove('first')" class="nav-btn">&lt;&lt;</button>
-                        <button onclick="window.navMove('prev')" class="nav-btn">&lt;</button>
-                        <button id="btn-play" onclick="window.togglePlay()" class="nav-btn play-btn">▶</button>
-                        <button onclick="window.navMove('next')" class="nav-btn">&gt;</button>
-                        <button onclick="window.navMove('last')" class="nav-btn">&gt;&gt;</button>
+                        <button id="nav-first" class="nav-btn">&lt;&lt;</button>
+                        <button id="nav-prev" class="nav-btn">&lt;</button>
+                        <button id="btn-play" class="nav-btn play-btn">▶</button>
+                        <button id="nav-next" class="nav-btn">&gt;</button>
+                        <button id="nav-last" class="nav-btn">&gt;&gt;</button>
                     </div>
 
                     <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
@@ -78,23 +75,22 @@
 
             <div class="right-col">
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="Enter moves (e.g. R U R' U')"></textarea>
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all"></textarea>
                     
-                    <div class="grid grid-cols-3 gap-2">
-                        <button id="btn-setup" onclick="window.applySetup()" class="py-4 bg-indigo-600 rounded-xl text-[11px] font-black shadow-lg uppercase">Setup</button>
-                        <button id="btn-scramble" onclick="window.generateScramble()" class="py-4 bg-slate-700 rounded-xl text-[11px] font-black shadow-lg uppercase">Scramble</button>
-                        <button id="btn-reset" onclick="window.fullReset()" class="py-4 bg-rose-600 rounded-xl text-[11px] font-black shadow-lg uppercase">Reset</button>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button id="btn-scramble" class="action-btn col-span-2 py-4 bg-indigo-600 text-white text-[13px] shadow-lg active:scale-95">RANDOM SCRAMBLE</button>
+                        <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[13px] active:scale-95">SET SETUP</button>
                     </div>
+                    <button id="btn-reset" class="action-btn w-full py-4 bg-rose-600 text-white text-[14px] shadow-lg active:scale-95">RESET</button>
                 </div>
 
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
                     <div class="flex gap-1.5 mb-4 bg-black/30 p-1.5 rounded-lg">
-                        <button onclick="window.renderMoves('basic')" id="tab-basic" class="tab-btn active uppercase">Basic</button>
-                        <button onclick="window.renderMoves('wide')" id="tab-wide" class="tab-btn uppercase">Wide</button>
-                        <button onclick="window.renderMoves('slice')" id="tab-slice" class="tab-btn uppercase">Slice</button>
+                        <button id="tab-basic" class="tab-btn active">BASIC</button>
+                        <button id="tab-wide" class="tab-btn">WIDE</button>
+                        <button id="tab-slice" class="tab-btn">SLICE</button>
                     </div>
-                    <div id="move-grid" class="grid grid-cols-6 gap-2">
-                        </div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
                 </div>
             </div>
         </div>
@@ -108,17 +104,15 @@
         const player = document.getElementById('main-cube');
 
         const i18n = {
-            jp: { step: "ステップ", placeholder: "手順を入力...", copied: "コピー完了！" },
-            en: { step: "STEP", placeholder: "Enter algorithm...", copied: "COPIED!" }
+            jp: { scramble: "ランダムスクランブル", apply: "適用", step: "ステップ", placeholder: "手順を入力..." },
+            en: { scramble: "RANDOM SCRAMBLE", apply: "APPLY", step: "STEP", placeholder: "Enter algorithm..." }
         };
 
-        // --- View & Logic ---
-        window.updateView = () => {
+        // UI更新
+        const updateView = () => {
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
-            // キューブの状態を手順の累積で表現（安定性重視）
             player.alg = activeMoves.slice(0, step).join(" ");
-            
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
             syncHash();
@@ -129,110 +123,130 @@
             document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
         };
 
-        // --- Navigation ---
-        window.navMove = (type) => {
-            const slider = document.getElementById('move-slider');
-            if (type === 'first') slider.value = 0;
-            else if (type === 'last') slider.value = activeMoves.length;
-            else if (type === 'prev' && slider.value > 0) slider.value--;
-            else if (type === 'next' && parseInt(slider.value) < activeMoves.length) slider.value++;
-            window.updateView();
+        const updateBtnLabels = () => {
+            const isInput = document.getElementById('command-box').value.trim().length > 0;
+            document.getElementById('btn-scramble').textContent = isInput ? i18n[currentLang].apply : i18n[currentLang].scramble;
         };
 
-        window.togglePlay = () => {
-            const btn = document.getElementById('btn-play');
-            const slider = document.getElementById('move-slider');
-            if (isPlaying) { clearInterval(playInterval); btn.textContent = "▶"; }
-            else {
-                if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
-                btn.textContent = "⏸";
-                playInterval = setInterval(() => {
-                    if (parseInt(slider.value) < activeMoves.length) { slider.value++; window.updateView(); }
-                    else window.togglePlay();
-                }, 800);
-            }
-            isPlaying = !isPlaying;
-        };
+        // 初期化・イベント紐付け
+        window.addEventListener('DOMContentLoaded', () => {
+            // Setupボタンのロジック
+            document.getElementById('btn-setup').onclick = () => {
+                const val = document.getElementById('command-box').value.trim();
+                if (val) {
+                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+                    const slider = document.getElementById('move-slider');
+                    slider.max = activeMoves.length;
+                    slider.value = activeMoves.length;
+                    updateView();
+                }
+            };
 
-        // --- Panel Actions ---
-        window.applySetup = () => {
-            const val = document.getElementById('command-box').value.trim();
-            if (val) {
-                activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+            // Scrambleボタンのロジック
+            document.getElementById('btn-scramble').onclick = () => {
+                const val = document.getElementById('command-box').value.trim();
+                if (val) {
+                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+                } else {
+                    const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
+                    activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+                    document.getElementById('command-box').value = activeMoves.join(" ");
+                }
                 const slider = document.getElementById('move-slider');
                 slider.max = activeMoves.length;
                 slider.value = activeMoves.length;
-                window.updateView();
-            }
-        };
-
-        window.generateScramble = () => {
-            const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-            const scramble = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-            document.getElementById('command-box').value = scramble.join(" ");
-            window.applySetup();
-        };
-
-        window.fullReset = () => {
-            activeMoves = [];
-            document.getElementById('command-box').value = "";
-            const slider = document.getElementById('move-slider');
-            slider.max = 0; slider.value = 0;
-            window.updateView();
-        };
-
-        window.renderMoves = (type) => {
-            const grid = document.getElementById('move-grid');
-            grid.innerHTML = '';
-            const lib = { 
-                basic:['U','D','L','R','F','B'], 
-                wide:['u','d','l','r','f','b'], 
-                slice:['M','E','S','x','y','z'] 
+                updateView();
             };
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.id === 'tab-'+type));
-            lib[type].forEach(f => {
-                [f, f+"'", f+"2"].forEach(m => {
-                    const b = document.createElement('button');
-                    b.className = "move-btn"; b.textContent = m;
-                    b.onclick = () => {
-                        const slider = document.getElementById('move-slider');
-                        // 現在のスライダー位置より後の手順は上書き
-                        activeMoves = activeMoves.slice(0, parseInt(slider.value));
-                        activeMoves.push(m);
-                        slider.max = activeMoves.length;
-                        slider.value = activeMoves.length;
-                        document.getElementById('command-box').value = activeMoves.join(" ");
-                        window.updateView();
-                    };
-                    grid.appendChild(b);
+
+            // Reset
+            document.getElementById('btn-reset').onclick = () => {
+                activeMoves = [];
+                document.getElementById('command-box').value = "";
+                const slider = document.getElementById('move-slider');
+                slider.max = 0; slider.value = 0;
+                updateView();
+            };
+
+            // ナビゲーション
+            document.getElementById('nav-first').onclick = () => { document.getElementById('move-slider').value = 0; updateView(); };
+            document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = activeMoves.length; updateView(); };
+            document.getElementById('nav-prev').onclick = () => { if(document.getElementById('move-slider').value > 0) { document.getElementById('move-slider').value--; updateView(); } };
+            document.getElementById('nav-next').onclick = () => { if(parseInt(document.getElementById('move-slider').value) < activeMoves.length) { document.getElementById('move-slider').value++; updateView(); } };
+
+            // 再生
+            document.getElementById('btn-play').onclick = () => {
+                if (isPlaying) { clearInterval(playInterval); document.getElementById('btn-play').textContent = "▶"; }
+                else {
+                    const slider = document.getElementById('move-slider');
+                    if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
+                    document.getElementById('btn-play').textContent = "⏸";
+                    playInterval = setInterval(() => {
+                        if (parseInt(slider.value) < activeMoves.length) { slider.value++; updateView(); }
+                        else { clearInterval(playInterval); isPlaying = false; document.getElementById('btn-play').textContent = "▶"; }
+                    }, 800);
+                }
+                isPlaying = !isPlaying;
+            };
+
+            // スライダー直接操作
+            document.getElementById('move-slider').oninput = updateView;
+
+            // 言語・コピー
+            document.getElementById('lang-switch').onclick = () => {
+                currentLang = currentLang === 'jp' ? 'en' : 'jp';
+                document.getElementById('lang-jp').classList.toggle('lang-active', currentLang === 'jp');
+                document.getElementById('lang-en').classList.toggle('lang-active', currentLang === 'en');
+                document.getElementById('label-step').textContent = i18n[currentLang].step;
+                document.getElementById('command-box').placeholder = i18n[currentLang].placeholder;
+                updateBtnLabels();
+                syncHash();
+            };
+
+            document.getElementById('btn-copy').onclick = () => {
+                const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(document.getElementById('hash-io').value)}`;
+                navigator.clipboard.writeText(url).then(() => {
+                    const btn = document.getElementById('btn-copy');
+                    btn.textContent = "COPIED!";
+                    setTimeout(() => btn.textContent = "COPY LINK", 1500);
                 });
-            });
-        };
+            };
 
-        // --- Localization & Copy ---
-        window.toggleLang = () => {
-            currentLang = (currentLang === 'jp') ? 'en' : 'jp';
-            document.getElementById('lang-jp').classList.toggle('lang-active', currentLang === 'jp');
-            document.getElementById('lang-en').classList.toggle('lang-active', currentLang === 'en');
-            const t = i18n[currentLang];
-            document.getElementById('label-step').textContent = t.step;
-            document.getElementById('command-box').placeholder = t.placeholder;
-            syncHash();
-        };
+            // コマンド入力監視
+            document.getElementById('command-box').oninput = updateBtnLabels;
 
-        window.copyLink = () => {
-            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(document.getElementById('hash-io').value)}`;
-            navigator.clipboard.writeText(url).then(() => {
-                const btn = document.getElementById('btn-copy');
-                const old = btn.textContent;
-                btn.textContent = i18n[currentLang].copied;
-                setTimeout(() => btn.textContent = old, 1500);
-            });
-        };
+            // タブ・ボタン生成
+            const renderMoves = (type) => {
+                const grid = document.getElementById('move-grid');
+                grid.innerHTML = '';
+                const lib = { 
+                    basic:['U','D','L','R','F','B'], 
+                    wide:['u','d','l','r','f','b'], 
+                    slice:['M','E','S','x','y','z'] 
+                };
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.id === 'tab-'+type));
+                lib[type].forEach(f => {
+                    [f, f+"'", f+"2"].forEach(m => {
+                        const b = document.createElement('button');
+                        b.className = "move-btn"; b.textContent = m;
+                        b.onclick = () => {
+                            const slider = document.getElementById('move-slider');
+                            activeMoves = activeMoves.slice(0, parseInt(slider.value));
+                            activeMoves.push(m);
+                            slider.max = activeMoves.length;
+                            slider.value = activeMoves.length;
+                            document.getElementById('command-box').value = activeMoves.join(" ");
+                            updateView();
+                        };
+                        grid.appendChild(b);
+                    });
+                });
+            };
+            document.getElementById('tab-basic').onclick = () => renderMoves('basic');
+            document.getElementById('tab-wide').onclick = () => renderMoves('wide');
+            document.getElementById('tab-slice').onclick = () => renderMoves('slice');
+            renderMoves('basic');
 
-        // --- Init ---
-        window.addEventListener('DOMContentLoaded', () => {
-            window.renderMoves('basic');
+            // URLからの復元
             const params = new URLSearchParams(window.location.search);
             const hash = params.get('hash');
             if (hash && hash.startsWith("v1.2:")) {
@@ -240,14 +254,12 @@
                     const state = JSON.parse(atob(hash.replace("v1.2:", "")));
                     activeMoves = state.a || [];
                     currentLang = state.l || 'jp';
-                    if (currentLang === 'en') window.toggleLang();
-                    const slider = document.getElementById('move-slider');
-                    slider.max = activeMoves.length;
-                    slider.value = state.v || 0;
+                    document.getElementById('move-slider').max = activeMoves.length;
+                    document.getElementById('move-slider').value = state.v || 0;
                     document.getElementById('command-box').value = activeMoves.join(" ");
-                } catch(e) { console.error("Hash Error", e); }
+                    updateView();
+                } catch(e) {}
             }
-            window.updateView();
         });
     </script>
 </body>
