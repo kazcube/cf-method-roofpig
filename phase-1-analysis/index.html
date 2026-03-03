@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.2.6 Setup Fix</title>
+    <title>KAZCUBE Lab - v1.2.7 Playback Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -29,17 +29,16 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-slate-500 not-italic ml-2 tracking-widest text-white">v1.2.6</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic uppercase text-white">KAZCUBE Lab <span class="text-xs text-emerald-400 not-italic ml-2 tracking-widest">v1.2.7</span></h2>
             <div class="lang-switch" id="lang-switch">
                 <div id="lang-jp" class="lang-btn lang-active">JP</div>
                 <div id="lang-en" class="lang-btn">EN</div>
             </div>
         </header>
 
-        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6 shadow-lg">
-            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Hash</span>
+        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex gap-3 items-center mb-6">
             <input type="text" id="hash-io" class="hash-io" readonly>
-            <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-3 py-1.5 rounded uppercase transition">Copy Link</button>
+            <button id="btn-copy" class="bg-indigo-600 text-[10px] font-black px-3 py-1.5 rounded uppercase">Copy Link</button>
         </div>
 
         <div class="main-grid">
@@ -69,7 +68,7 @@
 
             <div class="right-col">
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="Enter moves (e.g. R U R' U')"></textarea>
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500 transition-all" placeholder="R U R' U'"></textarea>
                     <div class="grid grid-cols-3 gap-3">
                         <button id="btn-scramble" class="action-btn col-span-2 py-4 bg-indigo-600 text-white text-[13px] shadow-lg active:scale-95">RANDOM SCRAMBLE</button>
                         <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px] active:scale-95">SET SETUP</button>
@@ -91,23 +90,21 @@
 
     <script type="module">
         let currentLang = 'jp';
-        let setupMoves = []; // セットアップ（初期状態）用の履歴
-        let activeMoves = []; // 操作・練習用の履歴
+        let activeMoves = []; 
         let isPlaying = false;
         let playInterval = null;
         const player = document.getElementById('main-cube');
 
         const i18n = {
-            jp: { scramble: "ランダムスクランブル", apply: "適用", step: "ステップ", placeholder: "手順を入力..." },
-            en: { scramble: "RANDOM SCRAMBLE", apply: "APPLY", step: "STEP", placeholder: "Enter algorithm..." }
+            jp: { scramble: "ランダムスクランブル", apply: "適用", step: "ステップ", placeholder: "R U R' U'..." },
+            en: { scramble: "RANDOM SCRAMBLE", apply: "APPLY", step: "STEP", placeholder: "R U R' U'..." }
         };
 
         const updateView = () => {
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
             
-            // 重要：setupMovesを初期状態として固定し、activeMovesをスライダーで動かす
-            player.experimentalSetupAlg = setupMoves.join(" ");
+            // 全てをalg（再生手順）として扱う
             player.alg = activeMoves.slice(0, step).join(" ");
             
             document.getElementById('step-counter').textContent = step;
@@ -116,7 +113,7 @@
         };
 
         const syncHash = () => {
-            const state = { s: setupMoves, a: activeMoves, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
+            const state = { a: activeMoves, v: parseInt(document.getElementById('move-slider').value) || 0, l: currentLang };
             document.getElementById('hash-io').value = "v1.2:" + btoa(JSON.stringify(state));
         };
 
@@ -126,39 +123,35 @@
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            // SET SETUP: テキストエリアの手順を「初期状態」として固定する
+            // SET SETUP: 手順を読み込み、スライダーを 0 にして「再生待ち」にする
             document.getElementById('btn-setup').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
                 if (val) {
-                    setupMoves = val.split(/\s+/).filter(m => m.length > 0);
-                    activeMoves = []; // 練習用手順はクリア
+                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
                     const slider = document.getElementById('move-slider');
-                    slider.max = 0;
-                    slider.value = 0;
+                    slider.max = activeMoves.length;
+                    slider.value = 0; // 0手目（完成状態）に戻す
                     updateView();
                 }
             };
 
-            // SCRAMBLE / APPLY: 通常の手順として追加
+            // SCRAMBLE / APPLY: 手順を読み込み、最後の手（崩れた状態）にする
             document.getElementById('btn-scramble').onclick = () => {
                 const val = document.getElementById('command-box').value.trim();
-                let newMoves = [];
                 if (val) {
-                    newMoves = val.split(/\s+/).filter(m => m.length > 0);
+                    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
                 } else {
                     const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-                    newMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-                    document.getElementById('command-box').value = newMoves.join(" ");
+                    activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+                    document.getElementById('command-box').value = activeMoves.join(" ");
                 }
-                activeMoves = newMoves;
                 const slider = document.getElementById('move-slider');
                 slider.max = activeMoves.length;
-                slider.value = activeMoves.length;
+                slider.value = activeMoves.length; // 最後まで回した状態にする
                 updateView();
             };
 
             document.getElementById('btn-reset').onclick = () => {
-                setupMoves = [];
                 activeMoves = [];
                 document.getElementById('command-box').value = "";
                 const slider = document.getElementById('move-slider');
@@ -166,7 +159,7 @@
                 updateView();
             };
 
-            // スライダー・ナビゲーション・再生ロジックは維持
+            // ナビゲーション・再生・タブ生成は安定版を維持
             document.getElementById('nav-first').onclick = () => { document.getElementById('move-slider').value = 0; updateView(); };
             document.getElementById('nav-last').onclick = () => { document.getElementById('move-slider').value = activeMoves.length; updateView(); };
             document.getElementById('nav-prev').onclick = () => { if(document.getElementById('move-slider').value > 0) { document.getElementById('move-slider').value--; updateView(); } };
@@ -185,8 +178,6 @@
                 isPlaying = !isPlaying;
             };
             document.getElementById('move-slider').oninput = updateView;
-
-            // 言語・コピー・タブ生成ロジックは維持
             document.getElementById('lang-switch').onclick = () => {
                 currentLang = currentLang === 'jp' ? 'en' : 'jp';
                 document.getElementById('lang-jp').classList.toggle('lang-active', currentLang === 'jp');
@@ -238,7 +229,6 @@
             if (hash && hash.startsWith("v1.2:")) {
                 try {
                     const state = JSON.parse(atob(hash.replace("v1.2:", "")));
-                    setupMoves = state.s || [];
                     activeMoves = state.a || [];
                     currentLang = state.l || 'jp';
                     document.getElementById('move-slider').max = activeMoves.length;
