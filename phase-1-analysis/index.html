@@ -7,23 +7,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
+        /* レイアウト設定：メイン画面とサイドバーの構成 */
         .main-grid { display: flex; gap: 24px; align-items: start; justify-content: center; }
         .left-col { flex: 1; min-width: 300px; }
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
         
-        /* 共有パネルのスタイル */
+        /* 共有パネル：ハッシュ表示エリア */
         .share-panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 8px 12px; display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
         .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
         
-        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; cursor: pointer; }
+        /* ボタン・パーツのデザイン */
+        .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.2s; }
         .play-btn { background: #059669 !important; color: white !important; width: 56px !important; border: none !important; }
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; border-radius: 0.75rem; }
-        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
-        .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; }
+        .move-btn { background-color: #334155; color: white; padding: 10px 0; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #475569; cursor: pointer; }
+        .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 6px; color: #94a3b8; cursor: pointer; }
         .tab-btn.active { background-color: #475569; color: white; }
         .status-badge { font-size: 10px; font-weight: 900; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 10px; border: 1px solid #fbbf24; border-radius: 4px; }
+        
+        /* レスポンシブ：画面が狭い時は縦並びに */
         @media (max-width: 850px) { .main-grid { flex-direction: column; } .right-col { width: 100%; } }
     </style>
 </head>
@@ -90,23 +94,33 @@
     </div>
 
     <script type="module">
-        let setupMoves = [];
-        let activeMoves = [];
-        let isPlaying = false;
+        /* グローバル状態管理 */
+        let setupMoves = [];   // 逆手順（セットアップ）を保持
+        let activeMoves = [];  // 解析・再生したいメインの手順を保持
+        let isPlaying = false; // 再生中フラグ
         let playInterval = null;
 
+        /**
+         * 手順の反転処理：例 R -> R', U' -> U, R2 -> R2
+         */
         const getInverseMoves = (moves) => [...moves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
 
-        // ハッシュ同期ロジック
+        /**
+         * 現在の状態をハッシュ化して画面に表示
+         */
         const syncHash = () => {
             const state = {
                 s: setupMoves,
                 a: activeMoves,
                 v: parseInt(document.getElementById('move-slider').value) || 0
             };
+            // v5 プレフィックスを付けてBase64化
             document.getElementById('hash-io').value = "v5:" + btoa(JSON.stringify(state));
         };
 
+        /**
+         * 共有リンクをクリップボードにコピー
+         */
         window.copyLink = () => {
             const hash = document.getElementById('hash-io').value;
             const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
@@ -117,22 +131,25 @@
             });
         };
 
+        /**
+         * 入力欄のハッシュを直接インポート
+         */
         window.importFromInput = () => {
             const val = document.getElementById('hash-io').value;
             if(val.startsWith("v5:")) loadState(val);
         };
 
+        /**
+         * ハッシュ文字列から状態を復元
+         */
         const loadState = (hashStr) => {
             try {
                 const state = JSON.parse(atob(hashStr.replace("v5:", "")));
                 setupMoves = state.s || [];
                 activeMoves = state.a || [];
                 
-                if(setupMoves.length > 0) {
-                    document.getElementById('setup-status').classList.remove('hidden');
-                } else {
-                    document.getElementById('setup-status').classList.add('hidden');
-                }
+                // バッジの表示切り替え
+                document.getElementById('setup-status').classList.toggle('hidden', setupMoves.length === 0);
 
                 document.getElementById('command-box').value = activeMoves.join(" ");
                 const slider = document.getElementById('move-slider');
@@ -142,56 +159,86 @@
             } catch(e) { console.error("Import failed", e); }
         };
 
+        /**
+         * 最重要：キューブの表示更新
+         * セットアップ ＋ メイン手順の現在位置 までをplayer.algにセットする
+         */
         window.updateView = () => {
             const player = document.querySelector('twisty-player');
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
+            
+            // 内部配列を文字列結合して一括適用
             const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
             if (player) player.alg = fullAlg;
+            
+            // UI表示更新
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-            syncHash(); // ハッシュを更新
+            syncHash(); 
         };
 
+        /**
+         * 逆手順セットアップの実行
+         */
         window.applyReverseSetup = () => {
             const val = document.getElementById('command-box').value.trim();
             if (val) {
                 const moves = val.split(/\s+/).filter(m => m.length > 0);
-                setupMoves = getInverseMoves(moves);
-                activeMoves = moves;
+                setupMoves = getInverseMoves(moves); // 入力手順を逆転させてセットアップに
+                activeMoves = moves;                 // 入力手順そのものを解析対象に
                 document.getElementById('setup-status').classList.remove('hidden');
                 const slider = document.getElementById('move-slider');
-                slider.max = activeMoves.length; slider.value = 0;
+                slider.max = activeMoves.length; 
+                slider.value = 0; // 崩れた状態（0歩目）からスタート
                 updateView();
             }
         };
 
+        /**
+         * ランダムスクランブル生成
+         */
         window.handleScramble = () => {
-            setupMoves = [];
+            setupMoves = []; // ランダム時はセットアップなし
             document.getElementById('setup-status').classList.add('hidden');
             const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
             activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
             const slider = document.getElementById('move-slider');
-            slider.max = activeMoves.length; slider.value = activeMoves.length;
+            slider.max = activeMoves.length; 
+            slider.value = activeMoves.length; // 生成時は完成状態（最後）を見せる
             document.getElementById('command-box').value = activeMoves.join(" ");
             updateView();
         };
 
+        /**
+         * 再生/停止のトグル
+         */
         window.togglePlay = () => {
             const btn = document.getElementById('btn-play');
             const slider = document.getElementById('move-slider');
-            if (isPlaying) { clearInterval(playInterval); btn.textContent = "▶"; }
-            else {
+            if (isPlaying) { 
+                clearInterval(playInterval); 
+                btn.textContent = "▶"; 
+            } else {
                 if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
                 btn.textContent = "⏸";
                 playInterval = setInterval(() => {
-                    if (parseInt(slider.value) < activeMoves.length) { slider.value++; updateView(); }
-                    else { clearInterval(playInterval); isPlaying = false; btn.textContent = "▶"; }
+                    if (parseInt(slider.value) < activeMoves.length) { 
+                        slider.value++; 
+                        updateView(); 
+                    } else { 
+                        clearInterval(playInterval); 
+                        isPlaying = false; 
+                        btn.textContent = "▶"; 
+                    }
                 }, 800);
             }
             isPlaying = !isPlaying;
         };
 
+        /**
+         * 手動送りボタン
+         */
         window.navMove = (type) => {
             const slider = document.getElementById('move-slider');
             if (type === 'first') slider.value = 0;
@@ -201,6 +248,9 @@
             updateView();
         };
 
+        /**
+         * 完全初期化
+         */
         window.fullReset = () => {
             setupMoves = []; activeMoves = [];
             document.getElementById('command-box').value = "";
@@ -210,6 +260,9 @@
             updateView();
         };
 
+        /**
+         * 回転記号ボタンの生成
+         */
         window.renderMoves = (type) => {
             const grid = document.getElementById('move-grid');
             grid.innerHTML = '';
@@ -221,9 +274,11 @@
                     b.className = "move-btn"; b.textContent = m;
                     b.onclick = () => {
                         const slider = document.getElementById('move-slider');
+                        // 途中のステップでボタンが押されたら、そこから先を上書き
                         activeMoves = activeMoves.slice(0, parseInt(slider.value));
                         activeMoves.push(m);
-                        slider.max = activeMoves.length; slider.value = activeMoves.length;
+                        slider.max = activeMoves.length; 
+                        slider.value = activeMoves.length;
                         document.getElementById('command-box').value = activeMoves.join(" ");
                         updateView();
                     };
@@ -232,11 +287,12 @@
             });
         };
 
+        /* ページ読み込み時の初期化 */
         window.addEventListener('DOMContentLoaded', () => {
             renderMoves('basic');
             const urlParams = new URLSearchParams(window.location.search);
             const hash = urlParams.get('hash');
-            if(hash) loadState(hash);
+            if(hash) loadState(hash); // URLにハッシュがあれば復元
             else updateView();
         });
     </script>
