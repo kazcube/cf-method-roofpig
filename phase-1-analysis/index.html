@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.3.3 Fixed</title>
+    <title>KAZCUBE Lab - v1.3.4 Shared</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -12,6 +12,11 @@
         .right-col { width: 380px; min-width: 380px; display: flex; flex-direction: column; gap: 16px; }
         #cube-wrapper { width: 100%; height: 380px; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         twisty-player { width: 100%; height: 100%; }
+        
+        /* 共有パネルのスタイル */
+        .share-panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 8px 12px; display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+        .hash-io { background: #000; color: #10b981; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; flex: 1; outline: none; }
+        
         .nav-btn { background: #1e293b; border: 1px solid #475569; color: #94a3b8; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; cursor: pointer; }
         .play-btn { background: #059669 !important; color: white !important; width: 56px !important; border: none !important; }
         .action-btn { font-weight: 900; letter-spacing: 0.05em; transition: 0.2s; text-transform: uppercase; border-radius: 0.75rem; }
@@ -26,9 +31,16 @@
 
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.3.3</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.3.4</span></h2>
             <div id="setup-status" class="hidden status-badge uppercase italic font-black">Scrambled by Inverse</div>
         </header>
+
+        <div class="share-panel shadow-lg">
+            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Hash</span>
+            <input type="text" id="hash-io" class="hash-io" readonly>
+            <button onclick="copyLink()" id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black px-3 py-1.5 rounded uppercase transition">Copy Link</button>
+            <button onclick="importFromInput()" class="bg-slate-700 hover:bg-slate-600 text-[10px] font-black px-3 py-1.5 rounded uppercase transition">Import</button>
+        </div>
 
         <div class="main-grid">
             <div class="left-col space-y-4">
@@ -85,32 +97,71 @@
 
         const getInverseMoves = (moves) => [...moves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
 
-        // v5.44 直系の更新ロジック（もっとも確実な方法）
+        // ハッシュ同期ロジック
+        const syncHash = () => {
+            const state = {
+                s: setupMoves,
+                a: activeMoves,
+                v: parseInt(document.getElementById('move-slider').value) || 0
+            };
+            document.getElementById('hash-io').value = "v5:" + btoa(JSON.stringify(state));
+        };
+
+        window.copyLink = () => {
+            const hash = document.getElementById('hash-io').value;
+            const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('btn-copy');
+                btn.textContent = "COPIED!";
+                setTimeout(() => btn.textContent = "COPY LINK", 1500);
+            });
+        };
+
+        window.importFromInput = () => {
+            const val = document.getElementById('hash-io').value;
+            if(val.startsWith("v5:")) loadState(val);
+        };
+
+        const loadState = (hashStr) => {
+            try {
+                const state = JSON.parse(atob(hashStr.replace("v5:", "")));
+                setupMoves = state.s || [];
+                activeMoves = state.a || [];
+                
+                if(setupMoves.length > 0) {
+                    document.getElementById('setup-status').classList.remove('hidden');
+                } else {
+                    document.getElementById('setup-status').classList.add('hidden');
+                }
+
+                document.getElementById('command-box').value = activeMoves.join(" ");
+                const slider = document.getElementById('move-slider');
+                slider.max = activeMoves.length;
+                slider.value = state.v || 0;
+                updateView();
+            } catch(e) { console.error("Import failed", e); }
+        };
+
         window.updateView = () => {
             const player = document.querySelector('twisty-player');
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
-            
-            // 重要：セットアップ手順 ＋ 現在のステップまでの再生手順 を結合
             const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
             if (player) player.alg = fullAlg;
-            
             document.getElementById('step-counter').textContent = step;
             document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+            syncHash(); // ハッシュを更新
         };
 
-        // セットアップ：v5.44と同じ「逆手順で崩す」ロジック
         window.applyReverseSetup = () => {
             const val = document.getElementById('command-box').value.trim();
             if (val) {
                 const moves = val.split(/\s+/).filter(m => m.length > 0);
                 setupMoves = getInverseMoves(moves);
                 activeMoves = moves;
-                
                 document.getElementById('setup-status').classList.remove('hidden');
                 const slider = document.getElementById('move-slider');
-                slider.max = activeMoves.length;
-                slider.value = 0; // 0にセット（崩れた状態）
+                slider.max = activeMoves.length; slider.value = 0;
                 updateView();
             }
         };
@@ -120,10 +171,8 @@
             document.getElementById('setup-status').classList.add('hidden');
             const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
             activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-            
             const slider = document.getElementById('move-slider');
-            slider.max = activeMoves.length;
-            slider.value = activeMoves.length; // 崩しきった状態にする
+            slider.max = activeMoves.length; slider.value = activeMoves.length;
             document.getElementById('command-box').value = activeMoves.join(" ");
             updateView();
         };
@@ -131,22 +180,14 @@
         window.togglePlay = () => {
             const btn = document.getElementById('btn-play');
             const slider = document.getElementById('move-slider');
-            if (isPlaying) {
-                clearInterval(playInterval);
-                btn.textContent = "▶";
-            } else {
+            if (isPlaying) { clearInterval(playInterval); btn.textContent = "▶"; }
+            else {
                 if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
                 btn.textContent = "⏸";
                 playInterval = setInterval(() => {
-                    if (parseInt(slider.value) < activeMoves.length) {
-                        slider.value++;
-                        updateView();
-                    } else {
-                        clearInterval(playInterval);
-                        isPlaying = false;
-                        btn.textContent = "▶";
-                    }
-                }, 800); // 再生スピード
+                    if (parseInt(slider.value) < activeMoves.length) { slider.value++; updateView(); }
+                    else { clearInterval(playInterval); isPlaying = false; btn.textContent = "▶"; }
+                }, 800);
             }
             isPlaying = !isPlaying;
         };
@@ -182,8 +223,7 @@
                         const slider = document.getElementById('move-slider');
                         activeMoves = activeMoves.slice(0, parseInt(slider.value));
                         activeMoves.push(m);
-                        slider.max = activeMoves.length;
-                        slider.value = activeMoves.length;
+                        slider.max = activeMoves.length; slider.value = activeMoves.length;
                         document.getElementById('command-box').value = activeMoves.join(" ");
                         updateView();
                     };
@@ -194,7 +234,10 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             renderMoves('basic');
-            updateView();
+            const urlParams = new URLSearchParams(window.location.search);
+            const hash = urlParams.get('hash');
+            if(hash) loadState(hash);
+            else updateView();
         });
     </script>
 </body>
