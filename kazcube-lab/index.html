@@ -3,116 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab v1.8.0</title>
+    <title>KAZCUBE Lab v1.9.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
+    <script type="module" src="https://cdn.cubing.net/js/cubing/twisty"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #050a18; color: #f8fafc; font-family: sans-serif; }
-        #cube-wrapper { width: 100%; max-width: 310px; margin: 0 auto; aspect-ratio: 1; background: #000; border-radius: 20px; border: 1px solid #1e293b; overflow: hidden; }
-        twisty-player { width: 100%; height: 100%; }
-
-        /* きちんとしたタブページUI */
-        .tab-wrapper { display: flex; gap: 4px; padding: 0 8px; }
-        .tab-btn { 
-            @apply py-2 px-6 text-[10px] font-black uppercase transition-all;
-            background: #1e293b;
-            color: #64748b;
-            border-radius: 12px 12px 0 0 !important; /* 上側だけ丸く */
-            border: 1px solid #1e293b;
-            border-bottom: none;
-            margin-bottom: -1px; /* 下のパネルと重ねる */
-            z-index: 1;
-        }
-        .tab-btn.active { 
-            background: #0f172a !important; /* パネルと同じ色に */
-            color: #3b82f6 !important;
-            border-color: #1e293b !important;
-            z-index: 10;
-            padding-bottom: 10px; /* 少し高くして重なりを強調 */
-        }
-
-        .tab-content-panel { 
-            background: #0f172a; 
-            border: 1px solid #1e293b; 
-            border-radius: 0 15px 15px 15px; /* 左上以外を丸く */
-            padding: 1.25rem;
-            position: relative;
-            z-index: 5;
-        }
-
-        /* 共通ボタン設定 */
-        button:not(.tab-btn) { border-radius: 10px !important; }
-        .hash-container { background: #000; border: 1px solid #1e293b; border-radius: 12px; display: flex; align-items: center; padding: 4px; }
-        .hash-input { background: transparent; color: #10b981; font-family: monospace; font-size: 10px; flex: 1; border: none; outline: none; padding-left: 10px; }
-        .panel-card { background: #0f172a88; border: 1px solid #1e293b; border-radius: 20px; padding: 1.25rem; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        twisty-player { width: 100%; height: 100%; --background: none; }
+        input:focus { outline: none; border-color: #3b82f6; }
+        .tab-btn { transition: all 0.2s; }
     </style>
 </head>
-<body class="p-4">
-    <div class="max-w-[1000px] mx-auto space-y-4">
-        <header class="flex justify-between items-center">
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-5xl mx-auto space-y-6">
+        
+        <header class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-baseline gap-2">
-                <h1 class="text-xl font-black text-emerald-500 italic">KAZCUBE Lab</h1>
-                <span class="text-[9px] text-slate-600 font-bold">v1.8.0</span>
+                <h1 class="text-3xl font-black italic tracking-tighter text-emerald-400">KAZCUBE Lab</h1>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">v1.9.5</span>
             </div>
-            <div class="flex gap-4 items-center">
-                <div class="flex bg-slate-900 p-1 rounded-full border border-slate-800">
-                    <button class="px-3 py-1 text-[9px] font-bold rounded-full bg-blue-600">JP</button>
-                    <button class="px-3 py-1 text-[9px] font-bold rounded-full ml-1">EN</button>
+            
+            <div class="flex items-center gap-3 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                <div class="flex bg-slate-800 rounded-lg overflow-hidden p-1 gap-1">
+                    <button id="lang-jp" class="px-3 py-1 text-[10px] font-bold bg-blue-600 rounded-md">JP</button>
+                    <button id="lang-en" class="px-3 py-1 text-[10px] font-bold text-slate-400 hover:text-white">EN</button>
                 </div>
-                <div class="flex gap-2">
-                    <button id="mode-rotate" class="px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg">Rotate</button>
-                    <button id="mode-paint" class="px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg">Paint</button>
+                <div class="flex gap-1 pr-1">
+                    <button id="mode-rotate" class="px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white transition">Rotate</button>
+                    <button id="mode-paint" class="px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg transition">Paint</button>
                 </div>
             </div>
         </header>
 
-        <div class="hash-container">
-            <span class="text-[9px] font-black text-slate-500 px-2">HASH</span>
-            <input id="hash-display" class="hash-input" readonly value="v5:ready...">
-            <div class="flex gap-1">
-                <button id="btn-copy" class="bg-indigo-600 text-[9px] font-black px-3 py-2 uppercase">Copy Link</button>
-                <button id="btn-import" class="bg-slate-700 text-[9px] font-black px-3 py-2 uppercase">Import</button>
-            </div>
+        <div class="glass rounded-xl p-2 flex items-center gap-3">
+            <div class="px-3 py-1 bg-black rounded text-[9px] font-black text-slate-500 uppercase">Hash</div>
+            <input id="hash-display" type="text" readonly value="v5:ready..." 
+                   class="bg-transparent text-xs font-mono text-emerald-500 flex-1 truncate">
+            <button class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition shrink-0">Copy Link</button>
+            <button id="import-btn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition shrink-0">Import</button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                <div id="cube-wrapper">
-                    <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <div class="lg:col-span-5 space-y-4">
+                <div class="aspect-square glass rounded-3xl overflow-hidden relative group">
+                    <twisty-player id="main-cube" visualization="3D" control-panel="none" background="none"></twisty-player>
                 </div>
-                <div class="panel-card space-y-4">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg accent-emerald-500">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500">STEP <span id="step-counter" class="text-emerald-500 text-lg ml-1">0</span></span>
-                        <div id="move-indicator" class="bg-black border border-slate-800 px-6 py-2 rounded-xl font-mono text-emerald-400 font-bold italic">---</div>
+                
+                <div class="glass rounded-2xl p-6 space-y-4">
+                    <input id="move-slider" type="range" min="0" max="0" value="0" 
+                           class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-[9px] font-black text-slate-500 uppercase">Step</span>
+                            <span id="step-counter" class="text-xl font-black text-emerald-400">0</span>
+                        </div>
+                        <div id="move-indicator" class="px-4 py-2 bg-black/50 rounded-lg font-mono text-sm font-bold text-emerald-500 min-w-[60px] text-center border border-emerald-500/20">
+                            ---
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="space-y-4">
-                <div class="panel-card space-y-4">
-                    <textarea id="command-box" class="w-full h-24 bg-black/40 text-emerald-400 p-4 rounded-xl font-mono text-xs border border-slate-800 outline-none resize-none" placeholder="手順を入力..."></textarea>
+            <div class="lg:col-span-7 space-y-6">
+                
+                <div class="glass rounded-3xl p-6 space-y-4">
+                    <textarea id="command-box" placeholder="手順を入力..." 
+                              class="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-4 text-sm font-mono focus:ring-2 focus:ring-emerald-500/50 transition resize-none"></textarea>
+                    
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="bg-indigo-600 py-3 font-black text-[11px] uppercase">Scramble</button>
-                        <button id="btn-setup" class="bg-slate-800 border border-amber-500/30 text-amber-500 py-3 font-black text-[11px] uppercase">Set Setup</button>
+                        <button id="scramble-btn" class="bg-indigo-600 hover:bg-indigo-500 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition">Scramble</button>
+                        <button id="setup-btn" class="border-2 border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition">Set Setup</button>
                     </div>
-                    <button id="btn-reset" class="w-full bg-rose-600 py-3 font-black text-[11px] uppercase">Reset All Data</button>
+
+                    <button id="reset-btn" class="w-full bg-rose-600/20 hover:bg-rose-600 text-rose-500 hover:text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition border border-rose-600/30">Reset All Data</button>
                 </div>
 
-                <div>
-                    <div class="tab-wrapper">
-                        <button class="tab-btn active" data-tab="basic">Basic</button>
-                        <button class="tab-btn" data-tab="wide">Wide</button>
-                        <button class="tab-btn" data-tab="slice">Slice</button>
-                    </div>
-                    <div class="tab-content-panel">
-                        <div id="move-grid" class="grid grid-cols-6 gap-2">
-                            </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="js/app.js" type="module"></script>
-</body>
-</html>
+                <div id="move-grid-container" class="space-y-4">
+                    <div class="flex gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
+                        <button class="tab-btn px-4 py-2 text-[10px] font-black uppercase text-blue-500 border-b-2 border-blue-500" data-tab="basic">Basic</button>
+                        <button class="tab-btn px
