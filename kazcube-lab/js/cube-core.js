@@ -1,10 +1,11 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.10: Reverted setup logic to v1.4.2 style (Reverse setup moves).
+ * v2.0.10: Reverted setup logic to v1.4.2 style.
+ * v2.0.11: Fixed render logic to ensure 'alg' property updates trigger correctly.
  */
 
-export const JS_VERSION = "v2.0.10";
+export const JS_VERSION = "v2.0.11";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -55,10 +56,12 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.10] */
+/* [FIXED: v2.0.11] 即時反映を保証するための修正 */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
+
+    // マスク設定
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
     const slider = document.getElementById('move-slider');
@@ -67,14 +70,18 @@ export function render() {
         slider.max = activeMoves.length;
         const step = parseInt(slider.value) || 0;
         
-        // v1.4.2 方式: セットアップ（逆手順） + アクティブ（正手順の進捗）
-        player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+        // v1.4.2 方式のアルゴリズム構築
+        const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+        
+        // twisty-player の更新を強制するために属性を直接操作
+        player.setAttribute("alg", fullAlg);
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
         if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
     }
     
+    // ハッシュ更新
     const rawData = `${stickerStates.join("")}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
     const hashValue = `v5:${btoa(rawData)}`;
     
@@ -125,7 +132,7 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.10] 成功していた v1.4.2 の逆手順ロジックを完全再現 */
+/* [FIXED: v2.0.11] 逆手順ロジックをより確実に適用 */
 export function applySetup() {
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -133,21 +140,25 @@ export function applySetup() {
     const val = cb.value.trim();
     if (!val) return;
 
+    // 手順のパース
     const moves = val.split(/\s+/).filter(m => m.length > 0);
     
-    // 逆手順を生成してセットアップに格納
+    // 逆手順（セットアップ）の作成
     setupMoves = [...moves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    // 元の手順をメイン手順に格納
+    // 正手順（実行手順）をセット
     activeMoves = moves;
 
+    // スライダーの初期化
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; // 開始状態（バラバラの状態）にする
+        slider.value = 0; 
     }
+    
+    // 描画実行
     render();
 }
