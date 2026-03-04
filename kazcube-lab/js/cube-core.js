@@ -1,12 +1,12 @@
 /**
  * KAZCUBE Lab Core Module
- * [v2.0.4] 2026-03-04
- * [Added] nav-first, nav-last, nav-prev, nav-next 連携ロジック
- * [Updated] render() 内での Step 数値取得の厳密化
- * [Updated] handleScramble() でスライダーを末尾に同期する処理を追加
+ * [v2.0.5] 2026-03-04
+ * [Updated] loadFromHash() を外部入力(Import)に対応
+ * [Updated] resetAll() から確認メッセージを削除
+ * [Updated] render() 時のハッシュ表示同期を確実に修正
  */
 
-export const JS_VERSION = "v2.0.4";
+export const JS_VERSION = "v2.0.5";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1); 
@@ -27,19 +27,28 @@ export function setAllStickers(state) {
     stickerStates.fill(state);
 }
 
-export function loadFromHash() {
-    const hash = window.location.hash.replace(/^#/, "");
-    if (!hash.startsWith("v5:")) return;
+// ハッシュから状態をロード（引数があればそれを使用、なければURLから）
+export function loadFromHash(targetHash = null) {
+    const hash = targetHash || window.location.hash.replace(/^#/, "");
+    if (!hash || !hash.startsWith("v5:")) return;
     try {
         const decoded = atob(hash.substring(3));
         const [mask, moves] = decoded.split("|");
         if (mask && mask.length === 54) stickerStates = mask.split("").map(Number);
-        if (moves) {
-            activeMoves = moves.split(",").filter(m => m !== "");
+        if (moves !== undefined) {
+            activeMoves = moves ? moves.split(",").filter(m => m !== "") : [];
             const cb = document.getElementById('command-box');
             if (cb) cb.value = activeMoves.join(" ");
         }
-    } catch (e) { console.error("Hash Error", e); }
+        
+        // スライダーを最後に同期
+        const slider = document.getElementById('move-slider');
+        if (slider) {
+            slider.max = activeMoves.length;
+            slider.value = activeMoves.length;
+        }
+        render();
+    } catch (e) { console.error("Hash Import Error", e); }
 }
 
 function generateOrbitMask() {
@@ -53,21 +62,30 @@ function generateOrbitMask() {
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
+
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
+    
     const slider = document.getElementById('move-slider');
     const hashDisp = document.getElementById('hash-display');
+    
     if (slider) {
         slider.max = activeMoves.length;
         const step = parseInt(slider.value) || 0;
         player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+        
         const counter = document.getElementById('step-counter');
         if (counter) counter.textContent = step;
+        
         const indicator = document.getElementById('move-indicator');
         if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
     }
+
+    // ハッシュ生成とURL同期
     const rawData = `${stickerStates.join("")}|${activeMoves.join(",")}`;
     const hashValue = `v5:${btoa(rawData)}`;
     window.history.replaceState(null, "", "#" + hashValue);
+    
+    // 表示用のテキストボックスも更新
     if (hashDisp) hashDisp.value = hashValue;
 }
 
@@ -88,6 +106,9 @@ export function applySetup() {
     const val = cb.value.trim();
     activeMoves = val ? val.split(/\s+/).filter(m => m.length > 0) : [];
     const slider = document.getElementById('move-slider');
-    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = activeMoves.length; // 状態をスライダー末尾に反映
+    }
     render();
 }

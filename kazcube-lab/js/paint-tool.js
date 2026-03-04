@@ -1,4 +1,10 @@
-import * as Core from './cube-core.js?v=2.0.2';
+/**
+ * KAZCUBE Lab Paint Tool Module
+ * [v2.0.5] 2026-03-04
+ * [Updated] setPaintMode 呼び出し時に確実に ensurePaintPanel を実行するように修正
+ */
+
+import * as Core from './cube-core.js?v=2.0.5';
 
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
@@ -55,8 +61,8 @@ export function setPaintMode(mode) {
 
     const pb = document.getElementById('mode-paint');
     const rb = document.getElementById('mode-rotate');
-    if (pb) pb.className = isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg";
-    if (rb) rb.className = !isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg";
+    if (pb) pb.className = isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg transition";
+    if (rb) rb.className = !isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg transition";
     
     Core.render();
 }
