@@ -2,7 +2,7 @@ import * as Core from './cube-core.js';
 import * as Analyzer from './analyzer.js';
 import * as Paint from './paint-tool.js';
 
-const JS_VERSION = "v1.5.6 (Mask-Retry)"; 
+const JS_VERSION = "v1.5.7 (Viz-Fix)"; 
 
 document.addEventListener('DOMContentLoaded', () => {
     const versionDisplay = document.getElementById('version-display');

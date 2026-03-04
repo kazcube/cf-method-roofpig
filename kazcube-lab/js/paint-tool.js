@@ -2,26 +2,8 @@
 export let selectedColor = 'white';
 
 /**
- * 命令を繰り返し送るヘルパー関数
+ * グレーアウト(dim)や各種マスクを適用する
  */
-function applyWithRetry(player, value, retryCount = 0) {
-    if (!player || retryCount > 10) return;
-
-    // プロパティと属性の両方をセット
-    player.stickering = value;
-    player.setAttribute('stickering', value);
-
-    // 100ms ごとにリトライして、レンダリング完了を待つ
-    setTimeout(() => {
-        // 反映が不十分な場合を想定して再送（ログは初回のみ）
-        player.stickering = value;
-        player.setAttribute('stickering', value);
-        if(retryCount === 0) console.log(`[PaintTool] Applying mask: ${value}`);
-        
-        applyWithRetry(player, value, retryCount + 1);
-    }, 100);
-}
-
 export function applyPreset(type) {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -33,9 +15,24 @@ export function applyPreset(type) {
         'full': 'full'
     };
 
-    applyWithRetry(player, maskMap[type] || 'full');
+    const value = maskMap[type] || 'full';
+
+    // 複数の方法で命令を送り、確実に反映させる
+    try {
+        // 1. 標準プロパティ
+        player.stickering = value;
+        // 2. HTML属性（リアクティブな反映を期待）
+        player.setAttribute('stickering', value);
+        
+        console.log(`[PaintTool] Preset requested: ${type} -> ${value}`);
+    } catch (e) {
+        console.warn("[PaintTool] Stickering update failed, retrying...", e);
+    }
 }
 
+/**
+ * モード切替
+ */
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
     const rotatePanel = document.getElementById('rotate-controls');
@@ -44,8 +41,8 @@ export function setPaintMode(mode) {
     if (isPaint) {
         rotatePanel.classList.add('hidden');
         paintPanel.classList.remove('hidden');
-        // PAINT切り替え時にグレーにする
-        applyPreset('gray');
+        // 少し長めに待ってから適用
+        setTimeout(() => applyPreset('gray'), 200);
     } else {
         rotatePanel.classList.remove('hidden');
         paintPanel.classList.add('hidden');
