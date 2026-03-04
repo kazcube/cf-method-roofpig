@@ -1,11 +1,13 @@
 // js/paint-tool.js
 export let selectedColor = 'white';
-// 現在のマスク状態を保持
 export let currentMask = 'full'; 
 
 export function applyPreset(type) {
     const player = document.getElementById('main-cube');
-    if (!player) return;
+    if (!player) {
+        console.error("[DEBUG-Paint] main-cube not found in DOM");
+        return;
+    }
 
     const maskMap = {
         'gray': 'dim',
@@ -16,12 +18,18 @@ export function applyPreset(type) {
 
     currentMask = maskMap[type] || 'full';
     
-    // 属性を直接セット
+    console.log(`[DEBUG-Paint] Attempting to set stickering to: ${currentMask}`);
+    
+    // プロパティと属性の両方を更新
+    player.stickering = currentMask;
     player.setAttribute('stickering', currentMask);
-    console.log("Applied mask:", currentMask);
+    
+    // 反映後の値を確認
+    console.log(`[DEBUG-Paint] Current player.stickering is now: ${player.stickering}`);
 }
 
 export function setPaintMode(mode) {
+    console.log(`[DEBUG-Paint] Mode changed to: ${mode}`);
     const isPaint = (mode === 'paint');
     const rotatePanel = document.getElementById('rotate-controls');
     const paintPanel = document.getElementById('paint-controls');
