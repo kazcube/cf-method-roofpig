@@ -1,4 +1,4 @@
-export const JS_VERSION = "v1.9.6";
+export const JS_VERSION = "v1.9.7";
 
 export let setupMoves = [];
 export let activeMoves = [];
@@ -40,18 +40,19 @@ export function render() {
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
     const slider = document.getElementById('move-slider');
-    const step = parseInt(slider?.value || 0);
-    player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+    if (slider) {
+        slider.max = activeMoves.length;
+        const step = parseInt(slider.value);
+        player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+        
+        const counter = document.getElementById('step-counter');
+        if (counter) counter.textContent = step;
+        
+        const indicator = document.getElementById('move-indicator');
+        if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+    }
 
-    // UI更新
-    const counter = document.getElementById('step-counter');
-    if (counter) counter.textContent = step;
-    
-    const indicator = document.getElementById('move-indicator');
-    if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-
-    // ハッシュ更新
-    const rawData = `v5:${stickerStates.join("")}|${activeMoves.join(",")}`;
+    const rawData = `${stickerStates.join("")}|${activeMoves.join(",")}`;
     const hashValue = btoa(rawData);
     const display = document.getElementById('hash-display');
     if (display) display.value = `v5:${hashValue.substring(0, 16)}...`;

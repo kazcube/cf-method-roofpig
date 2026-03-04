@@ -1,4 +1,4 @@
-import * as Core from './cube-core.js';
+import * as Core from './cube-core.js?v=1.9.7';
 
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
@@ -69,7 +69,7 @@ export function setPaintMode(mode) {
     if (pb) pb.className = isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg";
     if (rb) rb.className = !isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg";
     
-    // 重要な修正：現在の状態（ハッシュ復元含む）を維持し、新規切替時のみ適用
+    // 現在の状態を尊重
     if (isPaint && !Core.stickerStates.includes(0)) applyOrbit('gray');
     else if (!isPaint && !Core.stickerStates.includes(0)) applyOrbit('full');
     

@@ -1,5 +1,5 @@
-import * as Core from './cube-core.js';
-import { initPaintTool, setPaintMode } from './paint-tool.js';
+import * as Core from './cube-core.js?v=1.9.7';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=1.9.7';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -17,11 +17,10 @@ function updateMoveGrid(tab = "basic") {
             const move = m + mod;
             const btn = document.createElement('button');
             btn.textContent = move;
-            btn.className = "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold text-xs transition active:scale-95";
+            btn.className = "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold text-xs text-white transition active:scale-95";
             btn.onclick = () => {
                 const player = document.getElementById('main-cube');
                 if (player) player.addAlg(move);
-                // 手順をactiveMovesに追加
                 Core.activeMoves.push(move);
                 Core.render();
             };
@@ -29,7 +28,6 @@ function updateMoveGrid(tab = "basic") {
         });
     });
 
-    // タブの見た目更新
     document.querySelectorAll('.tab-btn').forEach(btn => {
         const isActive = btn.dataset.tab === tab;
         btn.className = isActive 
@@ -45,20 +43,15 @@ function init() {
     initPaintTool();
 
     // イベント登録
-    const rotateBtn = document.getElementById('mode-rotate');
-    const paintBtn = document.getElementById('mode-paint');
-    if (rotateBtn) rotateBtn.onclick = () => setPaintMode('rotate');
-    if (paintBtn) paintBtn.onclick = () => setPaintMode('paint');
-
+    document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
+    document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
     document.getElementById('scramble-btn').onclick = Core.handleScramble;
     document.getElementById('setup-btn').onclick = Core.applySetup;
     
-    // タブ切り替え
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = () => updateMoveGrid(btn.dataset.tab);
     });
 
-    // スライダー連動
     const slider = document.getElementById('move-slider');
     if (slider) {
         slider.oninput = () => Core.render();
