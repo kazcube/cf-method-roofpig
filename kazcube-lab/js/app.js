@@ -2,33 +2,51 @@
 import * as Core from './cube-core.js';
 import * as Paint from './paint-tool.js';
 
+const JS_VERSION = "v1.6.5 (Orbit-Logic)";
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. モードボタン
-    document.getElementById('mode-rotate').onclick = () => {
-        document.getElementById('mode-rotate').classList.add('active');
-        document.getElementById('mode-paint').classList.remove('active');
+    const versionDisplay = document.getElementById('version-display');
+    if (versionDisplay) versionDisplay.textContent = JS_VERSION;
+
+    // --- モード切替 ---
+    const btnRotate = document.getElementById('mode-rotate');
+    const btnPaint = document.getElementById('mode-paint');
+
+    btnRotate.onclick = () => {
+        btnRotate.classList.add('bg-emerald-600', 'text-white');
+        btnRotate.classList.remove('text-slate-500');
+        btnPaint.classList.remove('bg-orange-600', 'text-white');
+        btnPaint.classList.add('text-slate-500');
         Paint.setPaintMode('rotate');
     };
-    document.getElementById('mode-paint').onclick = () => {
-        document.getElementById('mode-paint').classList.add('active');
-        document.getElementById('mode-rotate').classList.remove('active');
+
+    btnPaint.onclick = () => {
+        btnPaint.classList.add('bg-orange-600', 'text-white');
+        btnPaint.classList.remove('text-slate-500');
+        btnRotate.classList.remove('bg-emerald-600', 'text-white');
+        btnRotate.classList.add('text-slate-500');
         Paint.setPaintMode('paint');
     };
 
-    // 2. コア機能
+    // --- ボタン操作 ---
     document.getElementById('btn-scramble').onclick = Core.handleScramble;
     document.getElementById('btn-setup').onclick = Core.applyReverseSetup;
-    document.getElementById('btn-reset-alg').onclick = () => { location.reload(); };
+    document.getElementById('btn-reset-alg').onclick = () => {
+        location.reload(); // 確実に初期化
+    };
 
-    // 3. スライダー
-    document.getElementById('move-slider').oninput = Core.updateView;
+    // --- スライダー ---
+    const slider = document.getElementById('move-slider');
+    slider.oninput = Core.updateView;
+    document.getElementById('nav-first').onclick = () => { slider.value = 0; Core.updateView(); };
+    document.getElementById('nav-last').onclick = () => { slider.value = Core.activeMoves.length; Core.updateView(); };
 
-    // 4. プリセット
+    // --- プリセット ---
     document.getElementById('preset-gray').onclick = () => Paint.applyPreset('gray');
     document.getElementById('preset-cc').onclick = () => Paint.applyPreset('corner-center');
     document.getElementById('preset-co').onclick = () => Paint.applyPreset('corner-only');
 
     // 初期化
-    Core.renderMoves();
+    Core.renderMoves('basic');
     Core.updateView();
 });
