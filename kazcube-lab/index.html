@@ -3,36 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab v1.7.8</title>
+    <title>KAZCUBE Lab v1.7.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
         body { background-color: #050a18; color: #f8fafc; font-family: sans-serif; }
-        #cube-wrapper { width: 100%; max-width: 320px; margin: 0 auto; aspect-ratio: 1; background: #000; border-radius: 1.5rem; border: 1px solid #1e293b; overflow: hidden; }
+        #cube-wrapper { width: 100%; max-width: 320px; margin: 0 auto; aspect-ratio: 1; background: #000; border-radius: 20px; border: 1px solid #1e293b; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
         
-        /* タブをはっきりとしたボタンデザインに */
+        /* ボタンの角丸を一括強制 */
+        button, .action-btn, .util-btn, .tab-btn, .mode-select-btn { 
+            border-radius: 10px !important; 
+        }
+
+        /* タブのデザインを強化 */
         .tab-btn { 
-            @apply flex-1 py-2 text-[10px] font-black uppercase transition-all rounded-lg mx-1;
+            @apply flex-1 py-2 text-[10px] font-black uppercase transition-all mx-1;
             color: #64748b;
             background: #1e293b;
+            border: 1px solid transparent;
         }
         .tab-btn.active { 
-            @apply bg-slate-700 text-blue-400 border border-blue-500/50;
+            background: #334155 !important;
+            color: #3b82f6 !important;
+            border: 1px solid #3b82f6 !important;
         }
 
-        /* すべてのボタンを角丸に */
-        .action-btn { @apply rounded-lg font-black text-[11px] uppercase transition-all py-3; }
-        .mode-select-btn { @apply px-5 py-2 rounded-lg font-black text-[10px] uppercase transition-all; }
-        .active-rotate { background: #10b981; color: white; }
-        .active-paint { background: #f97316; color: white; }
+        /* モード切替ボタン */
+        .mode-select-btn { @apply px-5 py-2 font-black text-[10px] uppercase transition-all; }
+        .active-rotate { background: #10b981 !important; color: white !important; }
+        .active-paint { background: #f97316 !important; color: white !important; }
         .inactive-mode { background: #1e293b; color: #475569; }
 
-        .hash-container { background: #000; border: 1px solid #1e293b; border-radius: 0.75rem; display: flex; align-items: center; padding-right: 4px; }
-        .panel-card { background: #0f172a88; border: 1px solid #1e293b; border-radius: 1.25rem; padding: 1.25rem; }
+        /* ハッシュエリアのレイアウト修正 */
+        .hash-container { background: #000; border: 1px solid #1e293b; border-radius: 12px; display: flex; align-items: center; padding: 4px; }
+        .hash-input { background: transparent; color: #10b981; font-family: monospace; font-size: 10px; flex: 1; border: none; outline: none; padding-left: 10px; }
         
-        /* Import, Copyボタン専用 */
-        .util-btn { @apply text-[9px] font-black px-3 py-2 uppercase rounded-lg transition-all ml-1; }
+        .panel-card { background: #0f172a88; border: 1px solid #1e293b; border-radius: 20px; padding: 1.25rem; }
     </style>
 </head>
 <body class="p-4">
@@ -40,12 +47,12 @@
         <header class="flex justify-between items-center">
             <div class="flex items-baseline gap-2">
                 <h1 class="text-xl font-black text-emerald-500 italic">KAZCUBE Lab</h1>
-                <span class="text-[9px] text-slate-600 font-bold">v1.7.8</span>
+                <span class="text-[9px] text-slate-600 font-bold">v1.7.9</span>
             </div>
             <div class="flex gap-4 items-center">
                 <div class="flex bg-slate-900 p-1 rounded-full border border-slate-800">
                     <button class="px-3 py-1 text-[9px] font-bold rounded-full bg-blue-600">JP</button>
-                    <button class="px-3 py-1 text-[9px] font-bold rounded-full">EN</button>
+                    <button class="px-3 py-1 text-[9px] font-bold rounded-full ml-1">EN</button>
                 </div>
                 <div class="flex gap-2">
                     <button id="mode-rotate" class="mode-select-btn active-rotate">Rotate</button>
@@ -55,10 +62,12 @@
         </header>
 
         <div class="hash-container">
-            <span class="text-[9px] font-black text-slate-500 px-4">HASH</span>
-            <input id="hash-display" class="bg-transparent text-emerald-500 font-mono text-[10px] flex-1 border-none outline-none" readonly value="v5:ready...">
-            <button id="btn-copy" class="util-btn bg-indigo-600 hover:bg-indigo-500">Copy Link</button>
-            <button id="btn-import" class="util-btn bg-slate-700 hover:bg-slate-600">Import</button>
+            <span class="text-[9px] font-black text-slate-500 px-2">HASH</span>
+            <input id="hash-display" class="hash-input" readonly value="v5:ready...">
+            <div class="flex gap-1">
+                <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[9px] font-black px-3 py-2 uppercase rounded-lg">Copy Link</button>
+                <button id="btn-import" class="bg-slate-700 hover:bg-slate-600 text-[9px] font-black px-3 py-2 uppercase rounded-lg">Import</button>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -69,7 +78,7 @@
                 <div class="panel-card space-y-4">
                     <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg accent-emerald-500">
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500">STEP <span id="step-counter" class="text-emerald-500 text-lg ml-1">0</span></span>
+                        <span class="text-[10px] font-black text-slate-500 uppercase">Step <span id="step-counter" class="text-emerald-500 text-lg ml-1">0</span></span>
                         <div id="move-indicator" class="bg-black border border-slate-800 px-6 py-2 rounded-xl font-mono text-emerald-400 font-bold italic">---</div>
                     </div>
                 </div>
@@ -79,14 +88,14 @@
                 <div class="panel-card space-y-4">
                     <textarea id="command-box" class="w-full h-24 bg-black/40 text-emerald-400 p-4 rounded-xl font-mono text-xs border border-slate-800 outline-none resize-none" placeholder="手順を入力..."></textarea>
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="action-btn bg-indigo-600">Scramble</button>
-                        <button id="btn-setup" class="action-btn bg-slate-800 border border-amber-500/30 text-amber-500">Set Setup</button>
+                        <button id="btn-scramble" class="bg-indigo-600 py-3 font-black text-[11px] uppercase rounded-lg">Scramble</button>
+                        <button id="btn-setup" class="bg-slate-800 border border-amber-500/30 text-amber-500 py-3 font-black text-[11px] uppercase rounded-lg">Set Setup</button>
                     </div>
-                    <button id="btn-reset" class="action-btn w-full bg-rose-600">Reset All Data</button>
+                    <button id="btn-reset" class="w-full bg-rose-600 py-3 font-black text-[11px] uppercase rounded-lg">Reset All Data</button>
                 </div>
 
                 <div class="panel-card p-2">
-                    <div class="flex p-1 bg-slate-950 rounded-xl mb-3">
+                    <div class="flex p-1 bg-black rounded-xl mb-3 border border-slate-800">
                         <button class="tab-btn active" data-tab="basic">Basic</button>
                         <button class="tab-btn" data-tab="wide">Wide</button>
                         <button class="tab-btn" data-tab="slice">Slice</button>
