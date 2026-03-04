@@ -1,4 +1,4 @@
-export const JS_VERSION = "v1.9.5";
+export const JS_VERSION = "v1.9.6";
 
 export let setupMoves = [];
 export let activeMoves = [];
