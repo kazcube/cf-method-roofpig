@@ -15,9 +15,9 @@ export function initPaintTool() {
         if (!paintBtn || !paintBtn.classList.contains('bg-emerald-500')) return;
 
         const idx = e.stickerIndex;
+        console.log(`[Click] Sticker Index: ${idx}`);
         if (idx === undefined) return;
 
-        // 現在の状態をコピーしてトグル
         const nextSet = new Set(Core.visibleStickers);
         if (nextSet.has(idx)) {
             nextSet.delete(idx);
@@ -31,6 +31,7 @@ export function initPaintTool() {
 }
 
 export function applyOrbit(type) {
+    console.log(`[Orbit] Applying: ${type}`);
     let nextSet;
     if (type === 'full') {
         nextSet = new Set(Array.from({length: 54}, (_, i) => i));
@@ -48,6 +49,7 @@ export function applyOrbit(type) {
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
+    console.log(`[Mode] Switch to: ${mode}`);
     const paintBtn = document.getElementById('mode-paint');
     const rotateBtn = document.getElementById('mode-rotate');
 

@@ -1,14 +1,10 @@
-export const JS_VERSION = "v1.8.1";
+export const JS_VERSION = "v1.8.2";
 
 export let setupMoves = [];
 export let activeMoves = [];
 // 表示するステッカーのインデックス
 export let visibleStickers = new Set(Array.from({length: 54}, (_, i) => i));
 
-/**
- * ステッカーの表示状態を安全に更新する(Setter)
- * モジュール外からの直接代入エラーを回避します
- */
 export function updateVisibleStickers(newSet) {
     visibleStickers = newSet;
 }
@@ -25,10 +21,16 @@ export function render() {
     if (!player || !slider) return;
 
     const step = parseInt(slider.value) || 0;
-    player.alg = getCurrentAlgString();
+    const alg = getCurrentAlgString();
     
-    // ステッカーマスクの適用
-    player.experimentalStickeringMask = Array.from(visibleStickers).join(',');
+    // デバッグログ: 現在の状態を出力
+    const maskString = Array.from(visibleStickers).join(',');
+    console.log(`[Render] Step: ${step}, Visible Stickers: ${visibleStickers.size}`);
+    console.log(`[Mask] "${maskString.substring(0, 50)}${maskString.length > 50 ? '...' : ''}"`);
+
+    // 再描画を確実にするため、一旦プロパティを更新
+    player.experimentalStickeringMask = maskString;
+    player.alg = alg;
     
     const counter = document.getElementById('step-counter');
     if (counter) counter.textContent = step;
