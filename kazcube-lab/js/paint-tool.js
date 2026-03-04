@@ -1,4 +1,3 @@
-// js/paint-tool.js
 import * as Core from './cube-core.js';
 
 export const orbitMasks = {
@@ -11,24 +10,16 @@ export function applyOrbit(type) {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    const mask = orbitMasks[type] || orbitMasks.full;
-    player.experimentalStickeringMaskOrbits = mask;
+    player.experimentalStickeringMaskOrbits = orbitMasks[type] || orbitMasks.full;
 
-    // 現在のセットアップ状態を維持したまま描画をリフレッシュ
     const currentAlg = Core.getCurrentAlgString();
     player.alg = ""; 
-    setTimeout(() => {
-        player.alg = currentAlg;
-    }, 15);
+    setTimeout(() => { player.alg = currentAlg; }, 15);
 }
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
-    const rotatePanel = document.getElementById('rotate-panel');
     const paintPanel = document.getElementById('paint-panel');
-    
-    if (rotatePanel) rotatePanel.classList.toggle('hidden', isPaint);
     if (paintPanel) paintPanel.classList.toggle('hidden', !isPaint);
-    
     applyOrbit(isPaint ? 'gray' : 'full');
 }

@@ -1,4 +1,3 @@
-// js/cube-core.js
 export let setupMoves = [];
 export let activeMoves = [];
 
@@ -18,23 +17,28 @@ export function render() {
     
     document.getElementById('step-counter').textContent = step;
     document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+    
+    // ハッシュ表示の更新（簡易版）
+    updateHashDisplay();
+}
+
+function updateHashDisplay() {
+    const hash = document.getElementById('hash-display');
+    if (hash && activeMoves.length > 0) {
+        // 本来はbtoaなどでシリアライズしますが、今は形式のみ
+        hash.value = "v5:" + btoa(activeMoves.join(",")).substring(0, 20);
+    }
 }
 
 export function applySetup() {
     let val = document.getElementById('command-box').value.trim();
     if (!val) return;
-
-    // ハッシュ記号の除去とパース
     const cleanVal = val.replace(/^#\s*/, "");
     const movesArr = cleanVal.split(/\s+/).filter(m => m.length > 0);
-
-    // 逆手順をセットアップとして格納
     setupMoves = [...movesArr].reverse().map(m => 
         m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'")
     );
-    
     activeMoves = movesArr;
-    
     const slider = document.getElementById('move-slider');
     slider.max = activeMoves.length;
     slider.value = activeMoves.length;
@@ -45,7 +49,6 @@ export function handleScramble() {
     setupMoves = [];
     const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
     activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-    
     document.getElementById('command-box').value = activeMoves.join(" ");
     const slider = document.getElementById('move-slider');
     slider.max = activeMoves.length;
