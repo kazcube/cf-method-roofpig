@@ -3,73 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab v1.7.4 Final</title>
+    <title>KAZCUBE Lab v5.44 INTEGRATED (Orbit Mode)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        #cube-wrapper { width: 100%; max-width: 360px; margin: 0 auto; aspect-ratio: 1; background: #000; border-radius: 1.5rem; border: 4px solid #334155; overflow: hidden; position: relative; }
+        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
+        #cube-wrapper { width: 100%; max-width: 500px; margin: 0 auto; aspect-ratio: 1; background: #000; border-radius: 1rem; border: 2px solid #1e293b; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
-        .mode-btn { flex: 1; padding: 10px 0; font-size: 11px; font-weight: 900; border-radius: 10px; cursor: pointer; border: none; }
+        
+        /* v5.44風のハッシュエリア */
+        .hash-container { background: #020617; border: 1px solid #1e293b; padding: 4px; border-radius: 0.5rem; display: flex; align-items: center; gap: 8px; }
+        .hash-input { background: #000; color: #10b981; font-family: monospace; font-size: 11px; flex: 1; border: none; outline: none; padding: 4px 8px; border-radius: 0.25rem; }
+        
+        /* 言語スイッチ */
+        .lang-switch { display: flex; background: #1e293b; border-radius: 0.5rem; padding: 2px; }
+        .lang-btn { padding: 2px 8px; font-size: 10px; font-weight: bold; border-radius: 0.4rem; cursor: pointer; }
+        .lang-btn.active { background: #3b82f6; color: white; }
+
+        /* モード切替 */
+        .mode-btn { flex: 1; padding: 8px 0; font-size: 12px; font-weight: 900; border-radius: 8px; cursor: pointer; border: none; transition: 0.2s; }
         .active-rotate { background-color: #10b981 !important; color: white !important; }
         .active-paint { background-color: #f97316 !important; color: white !important; }
         .inactive { background-color: #1e293b !important; color: #64748b !important; }
-        .preset-btn { background: #1e293b; border: 1px solid #475569; padding: 8px; border-radius: 6px; font-size: 9px; font-weight: bold; color: #94a3b8; cursor: pointer; }
-        /* ユーティリティボタン用 */
-        .util-btn { @apply bg-slate-800 hover:bg-slate-700 text-slate-400 text-[9px] px-2 py-1 rounded border border-slate-700 transition-all; }
+
+        /* 操作パネル用 */
+        .panel-card { background: #1e293b66; border: 1px solid #334155; border-radius: 1rem; padding: 1.25rem; }
+        .action-btn { font-weight: 800; font-size: 12px; border-radius: 0.75rem; transition: all 0.2s; padding: 12px 0; }
     </style>
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100 p-4">
-    <div class="max-w-[900px] mx-auto">
-        <header class="mb-6 flex justify-between items-center border-b border-slate-800 pb-4">
-            <h1 class="text-xl font-black text-emerald-400 italic">KAZCUBE Lab</h1>
-            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 w-56">
-                <button id="mode-rotate" class="mode-btn active-rotate">ROTATE</button>
-                <button id="mode-paint" class="mode-btn inactive">PAINT</button>
+<body class="p-4">
+    <div class="max-w-[1100px] mx-auto space-y-4">
+        
+        <header class="flex justify-between items-center">
+            <div class="flex items-baseline gap-3">
+                <h1 class="text-2xl font-black text-emerald-500 italic">KAZCUBE Lab</h1>
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">v5.44 INTEGRATED</span>
+            </div>
+            <div class="flex gap-4 items-center">
+                <div class="lang-switch">
+                    <button class="lang-btn active">JP</button>
+                    <button class="lang-btn">EN</button>
+                </div>
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 w-48">
+                    <button id="mode-rotate" class="mode-btn active-rotate">ROTATE</button>
+                    <button id="mode-paint" class="mode-btn inactive">PAINT</button>
+                </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-4">
+        <div class="hash-container">
+            <span class="text-[9px] font-bold text-slate-500 px-2">HASH</span>
+            <input id="hash-display" class="hash-input" readonly value="v5:eyJz...">
+            <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold px-3 py-1.5 rounded-md uppercase">Copy Link</button>
+            <button id="btn-import" class="bg-slate-700 hover:bg-slate-600 text-[10px] font-bold px-3 py-1.5 rounded-md uppercase">Import</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-7 space-y-4">
                 <div id="cube-wrapper">
                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
-                <div id="paint-panel" class="hidden bg-slate-800/60 p-5 rounded-2xl border border-orange-500/30 space-y-3">
+                <div class="panel-card space-y-4">
+                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="text-[10px] text-slate-500 font-bold">ステップ <span id="step-counter" class="text-emerald-500 text-lg ml-2">0</span></div>
+                        <div id="move-indicator" class="bg-slate-900 border border-slate-800 px-6 py-2 rounded-lg font-mono text-emerald-400 font-bold min-w-[80px] text-center italic">---</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 space-y-4">
+                <div class="panel-card space-y-4">
+                    <textarea id="command-box" class="w-full h-32 bg-black/40 text-emerald-400 p-4 rounded-xl font-mono text-sm border border-slate-700 outline-none resize-none" placeholder="手順を入力してください..."></textarea>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="btn-scramble" class="action-btn bg-indigo-600 hover:bg-indigo-500">ランダムスクランブル</button>
+                        <button id="btn-setup" class="action-btn bg-slate-700 border border-amber-500/50 text-amber-500 hover:bg-amber-500/10">セットアップ</button>
+                    </div>
+                    
+                    <button id="btn-reset" class="action-btn w-full bg-rose-600 hover:bg-rose-500">リセット</button>
+                </div>
+
+                <div class="panel-card">
+                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
+                </div>
+                
+                <div id="paint-panel" class="hidden panel-card border-orange-500/30">
                     <div class="grid grid-cols-3 gap-2">
                         <button id="btn-mask-gray" class="preset-btn">ALL GRAY</button>
                         <button id="btn-mask-cc" class="preset-btn">C+CORNER</button>
                         <button id="btn-mask-full" class="preset-btn">FULL</button>
                     </div>
                 </div>
-                <div id="rotate-panel" class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                    <div class="flex justify-between font-mono text-xs mt-3">
-                        <span class="text-slate-500 uppercase">Step <span id="step-counter" class="text-emerald-500 font-bold">0</span></span>
-                        <span id="move-indicator" class="text-emerald-400 italic font-bold">---</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-4">
-                <div class="flex justify-between items-center px-1">
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Algorithm / Setup (#)</label>
-                    <div class="flex gap-1">
-                        <button id="btn-copy" class="util-btn">COPY</button>
-                        <button id="btn-paste" class="util-btn">PASTE</button>
-                        <button id="btn-clear" class="util-btn">CLEAR</button>
-                    </div>
-                </div>
-                <textarea id="command-box" class="w-full h-28 bg-black/60 text-emerald-400 p-4 rounded-xl font-mono text-xs border border-slate-700 outline-none resize-none shadow-inner" placeholder="R U R' U' ... (Prefix with # for Setup)"></textarea>
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <button id="btn-scramble" class="bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-black text-xs uppercase transition">Scramble</button>
-                    <button id="btn-setup" class="bg-amber-600 hover:bg-amber-500 py-3 rounded-xl font-black text-xs uppercase transition text-white">Set Setup (#)</button>
-                </div>
-                
-                <button id="btn-reset" class="w-full bg-slate-800 hover:bg-rose-900/40 py-2 rounded-xl font-black text-[10px] uppercase text-slate-500 hover:text-rose-400 border border-slate-700 transition">
-                    Reset All Data & Reload
-                </button>
-                
-                <div id="move-grid" class="grid grid-cols-6 gap-2 pt-2"></div>
             </div>
         </div>
     </div>
