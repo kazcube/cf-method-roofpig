@@ -11,7 +11,6 @@ export function applyPreset(type) {
         case 'corner-only': stickerValue = "corners-only"; break;
     }
 
-    // 両方の手法で確実に適用させる
     player.stickering = stickerValue;
     player.setAttribute("stickering", stickerValue);
 }
@@ -22,13 +21,12 @@ export function setPaintMode(mode) {
     const paintPanel = document.getElementById('paint-controls');
 
     if (isPaint) {
-        if (rotatePanel) rotatePanel.classList.add('hidden');
-        if (paintPanel) paintPanel.classList.remove('hidden');
-        // ブラウザのレンダリングを待ってからグレーアウトを適用
+        rotatePanel?.classList.add('hidden');
+        paintPanel?.classList.remove('hidden');
         setTimeout(() => applyPreset('gray'), 50);
     } else {
-        if (rotatePanel) rotatePanel.classList.remove('hidden');
-        if (paintPanel) paintPanel.classList.add('hidden');
+        rotatePanel?.classList.remove('hidden');
+        paintPanel?.classList.add('hidden');
         applyPreset('full');
     }
 }

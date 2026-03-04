@@ -2,7 +2,7 @@ import * as Core from './cube-core.js';
 import * as Analyzer from './analyzer.js';
 import * as Paint from './paint-tool.js';
 
-const JS_VERSION = "v1.5.8 (Fix-Final)"; 
+const JS_VERSION = "v1.5.8 (Final)"; 
 
 document.addEventListener('DOMContentLoaded', () => {
     const versionDisplay = document.getElementById('version-display');
@@ -11,25 +11,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const slider = document.getElementById('move-slider');
     if (!slider) return;
 
-    // --- モード切替 ---
-    const modeRotateBtn = document.getElementById('mode-rotate');
-    const modePaintBtn = document.getElementById('mode-paint');
+    // モード切替
+    document.getElementById('mode-rotate')?.addEventListener('click', (e) => {
+        document.getElementById('mode-rotate').classList.add('active');
+        document.getElementById('mode-paint').classList.remove('active');
+        Paint.setPaintMode('rotate');
+    });
 
-    if (modeRotateBtn && modePaintBtn) {
-        modeRotateBtn.addEventListener('click', () => {
-            modeRotateBtn.classList.add('active');
-            modePaintBtn.classList.remove('active');
-            Paint.setPaintMode('rotate');
-        });
+    document.getElementById('mode-paint')?.addEventListener('click', (e) => {
+        document.getElementById('mode-paint').classList.add('active');
+        document.getElementById('mode-rotate').classList.remove('active');
+        Paint.setPaintMode('paint');
+    });
 
-        modePaintBtn.addEventListener('click', () => {
-            modePaintBtn.classList.add('active');
-            modeRotateBtn.classList.remove('active');
-            Paint.setPaintMode('paint');
-        });
-    }
-
-    // --- 各種ボタンバインド ---
+    // 各種ボタン
     document.getElementById('btn-scramble')?.addEventListener('click', Core.handleScramble);
     document.getElementById('btn-setup')?.addEventListener('click', Core.applyReverseSetup);
     document.getElementById('btn-reset-alg')?.addEventListener('click', () => {
@@ -63,11 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
         Analyzer.syncHash();
     });
 
-    // --- 初期化 ---
+    // 初期起動処理
     Core.renderMoves('basic');
     Core.updateView();
-    
-    // 起動直後はハッシュ欄を強制クリア
     const hashIo = document.getElementById('hash-io');
     if (hashIo) hashIo.value = "";
 });
