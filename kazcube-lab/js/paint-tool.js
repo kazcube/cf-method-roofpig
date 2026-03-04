@@ -9,13 +9,11 @@ export function initPaintTool() {
         const idx = e.stickerIndex;
         if (idx === undefined) return;
 
-        // 状態反転 (1 <-> 0)
-        const currentState = Core.stickerStates[idx];
-        Core.updateStickerState(idx, currentState ? 0 : 1);
+        Core.updateStickerState(idx, Core.stickerStates[idx] ? 0 : 1);
         Core.render();
     });
 
-    // ボタンにイベント再接続
+    // Orbitボタン群のイベント接続
     const binds = { 'orbit-full': 'full', 'orbit-gray': 'gray', 'orbit-cc': 'cc' };
     Object.entries(binds).forEach(([id, type]) => {
         const el = document.getElementById(id);
@@ -28,7 +26,7 @@ export function applyOrbit(type) {
     else if (type === 'gray') Core.setAllStickers(0);
     else if (type === 'cc') {
         Core.setAllStickers(0);
-        // エッジ(12本)とセンター(6個)を表示
+        // エッジとセンターを表示
         [1,3,5,7,10,12,14,16,19,21,23,25,28,30,32,34,37,39,41,43,46,48,50,52,4,13,22,31,40,49]
             .forEach(i => Core.updateStickerState(i, 1));
     }
@@ -37,11 +35,23 @@ export function applyOrbit(type) {
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
-    const panel = document.getElementById('paint-panel');
-    if (panel) panel.style.display = isPaint ? 'flex' : 'none';
+    const paintPanel = document.getElementById('paint-panel');
+    const moveGrid = document.getElementById('move-grid');
+    const tabWrapper = document.querySelector('.flex.gap-1.mb-2'); // タブボタンの親
 
-    document.getElementById('mode-paint').classList.toggle('bg-emerald-500', isPaint);
-    document.getElementById('mode-rotate').classList.toggle('bg-emerald-500', !isPaint);
+    // UIの切り替え
+    if (paintPanel) paintPanel.style.display = isPaint ? 'flex' : 'none';
+    if (moveGrid) moveGrid.style.display = isPaint ? 'none' : 'grid';
+    if (tabWrapper) tabWrapper.style.display = isPaint ? 'none' : 'flex';
+
+    // ボタンの色
+    document.getElementById('mode-paint').className = isPaint 
+        ? "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white"
+        : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
+    
+    document.getElementById('mode-rotate').className = !isPaint 
+        ? "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white"
+        : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
     
     applyOrbit(isPaint ? 'gray' : 'full');
 }

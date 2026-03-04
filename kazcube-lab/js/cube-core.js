@@ -1,8 +1,8 @@
-export const JS_VERSION = "v1.8.5";
+export const JS_VERSION = "v1.8.6";
 
 export let setupMoves = [];
 export let activeMoves = [];
-// 各インデックスが「表示(1)」か「非表示(0)」かを保持する配列 (54要素)
+// 54枚のステッカー状態 (1:表示, 0:非表示)
 export let stickerStates = Array(54).fill(1); 
 
 export function updateStickerState(idx, state) {
@@ -13,44 +13,38 @@ export function setAllStickers(state) {
     stickerStates.fill(state);
 }
 
-// 5.44ベースのMaskOrbits形式に変換
+// v0.5.44ベースのMaskOrbits生成
 function generateOrbitMask() {
     const getMask = (indices) => indices.map(i => stickerStates[i] ? '-' : 'I').join('');
     
-    // インデックス定義
-    const idx = {
-        U: [0,1,2,3,4,5,6,7,8], R: [9,10,11,12,13,14,15,16,17],
-        F: [18,19,20,21,22,23,24,25,26], D: [27,28,29,30,31,32,33,34,35],
-        L: [36,37,38,39,40,41,42,43,44], B: [45,46,47,48,49,50,51,52,53]
-    };
+    // パーツごとのインデックス（3x3x3の標準的な並び）
+    const edges = [1,3,5,7,10,12,14,16,19,21,23,25,28,30,32,34,37,39,41,43,46,48,50,52].slice(0, 12);
+    const corners = [0,2,6,8,9,11,15,17,18,20,24,26,27,29,33,35,36,38,42,44,45,47,51,53].slice(0, 8);
+    const centers = [4,13,22,31,40,49];
 
-    // EDGES(12), CORNERS(8), CENTERS(6) の順
-    // ※ 簡略化のため、すべてのパーツを個別の「-」か「I」で表現する
-    return `EDGES:${getMask(Array.from({length:12}, (_,i)=>i))},CORNERS:${getMask(Array.from({length:8}, (_,i)=>i))},CENTERS:${getMask(Array.from({length:6}, (_,i)=>i))}`;
+    return `EDGES:${getMask(edges)},CORNERS:${getMask(corners)},CENTERS:${getMask(centers)}`;
 }
 
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    // 5.44方式のMask適用
+    // マスク適用
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
-    // .alg 直接取得を避けるため、内部変数からセット
+    // 手順の反映
     const step = parseInt(document.getElementById('move-slider')?.value || 0);
     player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
 
-    document.getElementById('step-counter').textContent = step;
-    document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+    // テキスト更新
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = step;
     
-    updateHashDisplay();
+    const indicator = document.getElementById('move-indicator');
+    if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
 }
 
-// ...以下 updateHashDisplay, applySetup, handleScramble は維持
-export function updateHashDisplay() {
-    const hash = document.getElementById('hash-display');
-    if (hash && activeMoves.length > 0) hash.value = "v5:" + btoa(activeMoves.join(",")).substring(0, 20);
-}
+// 他の関数は維持
 export function applySetup() {
     let val = document.getElementById('command-box').value.trim().replace(/^#\s*/, "");
     if (!val) return;
@@ -61,6 +55,7 @@ export function applySetup() {
     if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
     render();
 }
+
 export function handleScramble() {
     setupMoves = [];
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
