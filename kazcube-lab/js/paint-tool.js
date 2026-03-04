@@ -1,65 +1,47 @@
 import * as Core from './cube-core.js';
 
-const ORBIT_INDICES = {
-    CENTERS: [4, 13, 22, 31, 40, 49],
-    CORNERS: [0, 2, 6, 8, 9, 11, 15, 17, 18, 20, 24, 26, 27, 29, 33, 35, 36, 38, 42, 44, 45, 47, 51, 53],
-    EDGES: [1, 3, 5, 7, 10, 12, 14, 16, 19, 21, 23, 25, 28, 30, 32, 34, 37, 39, 41, 43, 46, 48, 50, 52]
-};
-
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
     player.addEventListener('pointerdown', (e) => {
-        const paintBtn = document.getElementById('mode-paint');
-        if (!paintBtn || !paintBtn.classList.contains('bg-emerald-500')) return;
-
+        if (!document.getElementById('mode-paint').classList.contains('bg-emerald-500')) return;
         const idx = e.stickerIndex;
-        console.log(`[Click] Sticker Index: ${idx}`);
         if (idx === undefined) return;
 
-        const nextSet = new Set(Core.visibleStickers);
-        if (nextSet.has(idx)) {
-            nextSet.delete(idx);
-        } else {
-            nextSet.add(idx);
-        }
-        
-        Core.updateVisibleStickers(nextSet);
+        // 状態反転 (1 <-> 0)
+        const currentState = Core.stickerStates[idx];
+        Core.updateStickerState(idx, currentState ? 0 : 1);
         Core.render();
+    });
+
+    // ボタンにイベント再接続
+    const binds = { 'orbit-full': 'full', 'orbit-gray': 'gray', 'orbit-cc': 'cc' };
+    Object.entries(binds).forEach(([id, type]) => {
+        const el = document.getElementById(id);
+        if (el) el.onclick = () => applyOrbit(type);
     });
 }
 
 export function applyOrbit(type) {
-    console.log(`[Orbit] Applying: ${type}`);
-    let nextSet;
-    if (type === 'full') {
-        nextSet = new Set(Array.from({length: 54}, (_, i) => i));
-    } else if (type === 'gray') {
-        nextSet = new Set();
-    } else if (type === 'cc') {
-        nextSet = new Set([...ORBIT_INDICES.EDGES, ...ORBIT_INDICES.CENTERS]);
+    if (type === 'full') Core.setAllStickers(1);
+    else if (type === 'gray') Core.setAllStickers(0);
+    else if (type === 'cc') {
+        Core.setAllStickers(0);
+        // エッジ(12本)とセンター(6個)を表示
+        [1,3,5,7,10,12,14,16,19,21,23,25,28,30,32,34,37,39,41,43,46,48,50,52,4,13,22,31,40,49]
+            .forEach(i => Core.updateStickerState(i, 1));
     }
-    
-    if (nextSet) {
-        Core.updateVisibleStickers(nextSet);
-        Core.render();
-    }
+    Core.render();
 }
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
-    console.log(`[Mode] Switch to: ${mode}`);
-    const paintBtn = document.getElementById('mode-paint');
-    const rotateBtn = document.getElementById('mode-rotate');
+    const panel = document.getElementById('paint-panel');
+    if (panel) panel.style.display = isPaint ? 'flex' : 'none';
 
-    if (isPaint) {
-        if (paintBtn) paintBtn.className = "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white";
-        if (rotateBtn) rotateBtn.className = "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
-        applyOrbit('gray');
-    } else {
-        if (rotateBtn) rotateBtn.className = "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white";
-        if (paintBtn) paintBtn.className = "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
-        applyOrbit('full');
-    }
+    document.getElementById('mode-paint').classList.toggle('bg-emerald-500', isPaint);
+    document.getElementById('mode-rotate').classList.toggle('bg-emerald-500', !isPaint);
+    
+    applyOrbit(isPaint ? 'gray' : 'full');
 }
