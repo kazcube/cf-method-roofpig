@@ -4,7 +4,6 @@ export function applyPreset(type) {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    // twisty-playerのAPI仕様に合わせた文字列指定
     switch(type) {
         case 'gray': player.stickering = "dim"; break;
         case 'corner-center': player.stickering = "centers-corners"; break;

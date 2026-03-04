@@ -16,8 +16,8 @@ export function copyLink() {
     const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
     navigator.clipboard.writeText(url).then(() => {
         const btn = document.getElementById('btn-copy');
-        const old = btn.textContent;
+        const oldText = btn.textContent;
         btn.textContent = "COPIED!";
-        setTimeout(() => btn.textContent = old, 1500);
+        setTimeout(() => btn.textContent = oldText, 1500);
     });
 }

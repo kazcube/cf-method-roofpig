@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.5 Structured</title>
+    <title>KAZCUBE Lab - v1.5.2 Structured</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
@@ -11,7 +11,10 @@
 <body class="min-h-screen bg-slate-900 text-slate-100 p-4">
     <div class="max-w-[1200px] mx-auto">
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
-            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">KAZCUBE Lab <span class="text-xs text-white not-italic ml-2 tracking-widest">v1.5</span></h2>
+            <h2 class="text-2xl font-black text-emerald-400 italic uppercase">
+                KAZCUBE Lab 
+                <span id="version-display" class="text-xs text-white not-italic ml-2 tracking-widest">Loading...</span>
+            </h2>
             <div class="mode-switch w-48">
                 <button id="mode-rotate" class="mode-btn active">ROTATE</button>
                 <button id="mode-paint" class="mode-btn">PAINT</button>
@@ -56,12 +59,16 @@
                         <button id="nav-next" class="nav-btn">&gt;</button>
                         <button id="nav-last" class="nav-btn">&gt;&gt;</button>
                     </div>
+                    <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
+                        <div class="flex flex-col"><span class="text-slate-500 text-[10px] uppercase font-black">Step</span><span id="step-counter" class="text-emerald-500 text-2xl font-black">0</span></div>
+                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic min-w-[80px] text-center">---</div>
+                    </div>
                 </div>
             </div>
 
             <div class="right-col">
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none" placeholder="Enter algorithm..."></textarea>
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500" placeholder="Enter algorithm..."></textarea>
                     <div class="grid grid-cols-2 gap-3">
                         <button id="btn-scramble" class="action-btn py-4 bg-indigo-600 text-white text-[12px]">Random Scramble</button>
                         <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px]">Set Setup</button>
@@ -78,7 +85,6 @@
             </div>
         </div>
     </div>
-
     <script src="js/app.js" type="module"></script>
 </body>
 </html>

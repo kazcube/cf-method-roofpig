@@ -2,7 +2,14 @@ import * as Core from './cube-core.js';
 import * as Analyzer from './analyzer.js';
 import * as Paint from './paint-tool.js';
 
+// JavaScriptのバージョン管理
+const JS_VERSION = "v1.5.2 (JS)"; 
+
 document.addEventListener('DOMContentLoaded', () => {
+    // 起動時にバージョンを表示
+    const versionDisplay = document.getElementById('version-display');
+    if (versionDisplay) versionDisplay.textContent = JS_VERSION;
+
     const slider = document.getElementById('move-slider');
 
     // --- モード切替 ---
@@ -30,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('nav-last').addEventListener('click', () => { slider.value = Core.activeMoves.length; Core.updateView(); });
     document.getElementById('nav-prev').addEventListener('click', () => { if(slider.value > 0) { slider.value--; Core.updateView(); }});
     document.getElementById('nav-next').addEventListener('click', () => { if(parseInt(slider.value) < Core.activeMoves.length) { slider.value++; Core.updateView(); }});
+    slider.addEventListener('input', Core.updateView);
 
     // --- タブ切り替え ---
     document.getElementById('tab-basic').addEventListener('click', () => Core.renderMoves('basic'));
@@ -44,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 共有機能 ---
     document.getElementById('btn-copy').addEventListener('click', Analyzer.copyLink);
 
-    // キューブ更新イベントの購読
+    // キューブ更新イベントの購読（ハッシュ同期）
     window.addEventListener('cubeUpdate', () => {
         Analyzer.syncHash();
     });
@@ -52,6 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 初期ロード ---
     Core.renderMoves('basic');
     Core.updateView();
-    // 初期状態はROTATEコントロールを表示しておく
+    // 初期はROTATEパネルを表示
     document.getElementById('rotate-controls').classList.remove('hidden');
 });
