@@ -1,12 +1,20 @@
-// js/cube-core.js
 export let moves = [];
+
+// Paint側で再描画するために現在のアルゴリズムを文字列で返す
+export function getCurrentAlgString() {
+    const slider = document.getElementById('move-slider');
+    const step = slider ? parseInt(slider.value) : 0;
+    return moves.slice(0, step).join(" ");
+}
 
 export function render() {
     const player = document.getElementById('main-cube');
     const slider = document.getElementById('move-slider');
-    const step = parseInt(slider.value) || 0;
+    if (!player || !slider) return;
 
-    player.alg = moves.slice(0, step).join(" ");
+    const step = parseInt(slider.value) || 0;
+    player.alg = getCurrentAlgString();
+    
     document.getElementById('step-counter').textContent = step;
     document.getElementById('move-indicator').textContent = (step > 0) ? moves[step-1] : "---";
 }
