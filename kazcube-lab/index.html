@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab v1.9.6</title>
+    <title>KAZCUBE Lab v1.9.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://cdn.cubing.net/js/cubing/twisty"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,7 +24,7 @@
         <header class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-baseline gap-2">
                 <h1 class="text-3xl font-black italic tracking-tighter text-emerald-400">KAZCUBE Lab</h1>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">v1.9.5</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">v1.9.7</span>
             </div>
             
             <div class="flex items-center gap-3 bg-slate-900 p-1 rounded-xl border border-slate-800">
@@ -73,7 +73,7 @@
                 
                 <div class="glass rounded-3xl p-6 space-y-4">
                     <textarea id="command-box" placeholder="手順を入力..." 
-                              class="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-4 text-sm font-mono focus:ring-2 focus:ring-emerald-500/50 transition resize-none"></textarea>
+                              class="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-4 text-sm font-mono focus:ring-2 focus:ring-emerald-500/50 transition resize-none text-white"></textarea>
                     
                     <div class="grid grid-cols-2 gap-3">
                         <button id="scramble-btn" class="bg-indigo-600 hover:bg-indigo-500 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition">Scramble</button>
@@ -86,4 +86,18 @@
                 <div id="move-grid-container" class="space-y-4">
                     <div class="flex gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
                         <button class="tab-btn px-4 py-2 text-[10px] font-black uppercase text-blue-500 border-b-2 border-blue-500" data-tab="basic">Basic</button>
-                        <button class="tab-btn px
+                        <button class="tab-btn px-4 py-2 text-[10px] font-black uppercase text-slate-500 hover:text-white" data-tab="wide">Wide</button>
+                        <button class="tab-btn px-4 py-2 text-[10px] font-black uppercase text-slate-500 hover:text-white" data-tab="slice">Slice</button>
+                    </div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-2">
+                        </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/app.js?v=1.9.7"></script>
+
+</body>
+</html>
