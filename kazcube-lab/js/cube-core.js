@@ -1,14 +1,31 @@
-export const JS_VERSION = "v2.0.3";
+/**
+ * KAZCUBE Lab Core Module
+ * [v2.0.4] 2026-03-04
+ * [Added] nav-first, nav-last, nav-prev, nav-next 連携ロジック
+ * [Updated] render() 内での Step 数値取得の厳密化
+ * [Updated] handleScramble() でスライダーを末尾に同期する処理を追加
+ */
+
+export const JS_VERSION = "v2.0.4";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1); 
 
 export function resetAll() {
-    setupMoves = []; activeMoves = []; stickerStates.fill(1);
+    setupMoves = [];
+    activeMoves = [];
+    stickerStates.fill(1);
+    const cb = document.getElementById('command-box');
+    if (cb) cb.value = "";
 }
 
-export function updateStickerState(idx, state) { stickerStates[idx] = state; }
-export function setAllStickers(state) { stickerStates.fill(state); }
+export function updateStickerState(idx, state) {
+    stickerStates[idx] = state;
+}
+
+export function setAllStickers(state) {
+    stickerStates.fill(state);
+}
 
 export function loadFromHash() {
     const hash = window.location.hash.replace(/^#/, "");
@@ -17,7 +34,11 @@ export function loadFromHash() {
         const decoded = atob(hash.substring(3));
         const [mask, moves] = decoded.split("|");
         if (mask && mask.length === 54) stickerStates = mask.split("").map(Number);
-        if (moves) activeMoves = moves.split(",").filter(m => m !== "");
+        if (moves) {
+            activeMoves = moves.split(",").filter(m => m !== "");
+            const cb = document.getElementById('command-box');
+            if (cb) cb.value = activeMoves.join(" ");
+        }
     } catch (e) { console.error("Hash Error", e); }
 }
 
@@ -32,52 +53,41 @@ function generateOrbitMask() {
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
-
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
-    
     const slider = document.getElementById('move-slider');
+    const hashDisp = document.getElementById('hash-display');
     if (slider) {
         slider.max = activeMoves.length;
         const step = parseInt(slider.value) || 0;
-        // twisty-player の alg プロパティを直接更新してキューブを動かす
         player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
-        
         const counter = document.getElementById('step-counter');
         if (counter) counter.textContent = step;
+        const indicator = document.getElementById('move-indicator');
+        if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
     }
-
     const rawData = `${stickerStates.join("")}|${activeMoves.join(",")}`;
-    window.history.replaceState(null, "", "#v5:" + btoa(rawData));
+    const hashValue = `v5:${btoa(rawData)}`;
+    window.history.replaceState(null, "", "#" + hashValue);
+    if (hashDisp) hashDisp.value = hashValue;
 }
 
-// スクランブル処理の修正
 export function handleScramble() {
     setupMoves = [];
-    const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
-    activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
-    
-    // UI反映
+    const faces = ['U', 'D', 'L', 'R', 'F', 'B'], mods = ['', "'", '2'];
+    activeMoves = Array.from({ length: 20 }, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
     const cb = document.getElementById('command-box');
     if (cb) cb.value = activeMoves.join(" ");
-    
     const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.max = activeMoves.length;
-        slider.value = activeMoves.length; // スライダーを最後まで持っていく
-    }
-    
-    // 描画実行（これでキューブが崩れます）
+    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
     render();
 }
 
 export function applySetup() {
-    let val = document.getElementById('command-box').value.trim();
-    if (!val) return;
-    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+    const cb = document.getElementById('command-box');
+    if (!cb) return;
+    const val = cb.value.trim();
+    activeMoves = val ? val.split(/\s+/).filter(m => m.length > 0) : [];
     const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.max = activeMoves.length;
-        slider.value = activeMoves.length;
-    }
+    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
     render();
 }

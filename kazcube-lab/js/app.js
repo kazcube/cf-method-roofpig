@@ -1,5 +1,13 @@
-import * as Core from './cube-core.js?v=2.0.3';
-import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.3';
+/**
+ * KAZCUBE Lab Application Module
+ * [v2.0.4] 2026-03-04
+ * [Added] 言語切り替え (JP/EN) ロジック
+ * [Added] ナビゲーションボタン (first/last/prev/next) のイベント登録
+ * [Added] Copy Link ボタンのフィードバック処理
+ */
+
+import * as Core from './cube-core.js?v=2.0.4';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.4';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -7,11 +15,26 @@ const moveSets = {
     slice: ["E", "M", "S", "x", "y", "z"]
 };
 
+const i18n = {
+    jp: { scramble: "スクランブル", setup: "セットアップ設定", reset: "全データリセット", placeholder: "手順を入力..." },
+    en: { scramble: "SCRAMBLE", setup: "SET SETUP", reset: "RESET ALL DATA", placeholder: "Enter algorithm..." }
+};
+
+function setLanguage(lang) {
+    const texts = i18n[lang];
+    document.getElementById('scramble-btn').textContent = texts.scramble;
+    document.getElementById('setup-btn').textContent = texts.setup;
+    document.getElementById('reset-btn').textContent = texts.reset;
+    document.getElementById('command-box').placeholder = texts.placeholder;
+    const btnJp = document.getElementById('lang-jp'), btnEn = document.getElementById('lang-en');
+    btnJp.className = `px-3 py-1 text-[10px] font-bold ${lang === 'jp' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'} rounded-md transition`;
+    btnEn.className = `px-3 py-1 text-[10px] font-bold ${lang === 'en' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'} rounded-md transition`;
+}
+
 function updateMoveGrid(tab = "basic") {
     const grid = document.getElementById('move-grid');
     if (!grid) return;
     grid.innerHTML = "";
-    
     moveSets[tab].forEach(m => {
         ["", "'", "2"].forEach(mod => {
             const move = m + mod;
@@ -21,16 +44,12 @@ function updateMoveGrid(tab = "basic") {
             btn.onclick = () => { 
                 Core.activeMoves.push(move); 
                 const slider = document.getElementById('move-slider');
-                if (slider) {
-                    slider.max = Core.activeMoves.length;
-                    slider.value = Core.activeMoves.length; // 常に最新の動きまで表示
-                }
+                if (slider) { slider.max = Core.activeMoves.length; slider.value = Core.activeMoves.length; }
                 Core.render(); 
             };
             grid.appendChild(btn);
         });
     });
-
     document.querySelectorAll('.tab-btn').forEach(btn => {
         const isActive = btn.dataset.tab === tab;
         btn.className = isActive 
@@ -40,33 +59,36 @@ function updateMoveGrid(tab = "basic") {
 }
 
 window.onload = () => {
-    console.log(`KAZCUBE Lab: Initializing ${Core.JS_VERSION}...`);
     Core.loadFromHash();
     initPaintTool();
-
+    document.getElementById('lang-jp').onclick = () => setLanguage('jp');
+    document.getElementById('lang-en').onclick = () => setLanguage('en');
+    const slider = document.getElementById('move-slider');
+    const updateAndRender = (val) => { if (slider) { slider.value = val; Core.render(); } };
+    document.getElementById('nav-first').onclick = () => updateAndRender(0);
+    document.getElementById('nav-last').onclick = () => updateAndRender(Core.activeMoves.length);
+    document.getElementById('nav-prev').onclick = () => updateAndRender(Math.max(0, parseInt(slider.value) - 1));
+    document.getElementById('nav-next').onclick = () => updateAndRender(Math.min(Core.activeMoves.length, parseInt(slider.value) + 1));
     document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
     document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
-    
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.onclick = () => updateMoveGrid(btn.dataset.tab);
-    });
-
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.onclick = () => updateMoveGrid(btn.dataset.tab));
     document.getElementById('scramble-btn').onclick = Core.handleScramble;
     document.getElementById('setup-btn').onclick = Core.applySetup;
-    
-    const resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) {
-        resetBtn.onclick = () => {
-            if (confirm("Reset everything?")) { Core.resetAll(); location.hash=""; location.reload(); }
+    document.getElementById('reset-btn').onclick = () => {
+        if (confirm("Reset all?")) { Core.resetAll(); window.location.hash = ""; window.location.reload(); }
+    };
+    const copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) {
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(window.location.href);
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = "COPIED!";
+            setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
         };
     }
-
-    const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.oninput = () => Core.render();
-    }
-
+    if (slider) slider.oninput = () => Core.render();
     updateMoveGrid('basic');
+    setLanguage('jp');
     setPaintMode(Core.stickerStates.includes(0) ? 'paint' : 'rotate');
     Core.render();
 };
