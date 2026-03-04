@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.5.2 Structured</title>
+    <title>KAZCUBE Lab - v1.5.4 Structured</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
@@ -68,11 +68,12 @@
 
             <div class="right-col">
                 <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none focus:border-emerald-500" placeholder="Enter algorithm..."></textarea>
+                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none" placeholder="Enter algorithm..."></textarea>
                     <div class="grid grid-cols-2 gap-3">
                         <button id="btn-scramble" class="action-btn py-4 bg-indigo-600 text-white text-[12px]">Random Scramble</button>
                         <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px]">Set Setup</button>
                     </div>
+                    <button id="btn-reset-alg" class="w-full action-btn py-2 bg-rose-900/30 text-rose-400 border border-rose-500/30 text-[11px]">Reset Algorithm</button>
                 </div>
                 <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
                     <div class="flex gap-1.5 mb-4 bg-black/30 p-1.5 rounded-lg">

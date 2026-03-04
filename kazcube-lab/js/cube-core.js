@@ -9,13 +9,10 @@ export function updateView() {
     const slider = document.getElementById('move-slider');
     const step = parseInt(slider.value) || 0;
     
-    // スライダーの最大値を同期
     slider.max = activeMoves.length;
-
     const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
     if (player) player.alg = fullAlg;
     
-    // UI側のカウンター等も更新
     const stepCounter = document.getElementById('step-counter');
     if (stepCounter) stepCounter.textContent = step;
 
@@ -29,7 +26,6 @@ export function applyReverseSetup() {
     const val = document.getElementById('command-box').value.trim();
     if (!val) return;
     const moves = val.split(/\s+/).filter(m => m.length > 0);
-    // 逆手順（Inverse）を生成してセットアップに格納
     setSetupMoves([...moves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'")));
     setActiveMoves(moves);
     
@@ -71,7 +67,8 @@ export function renderMoves(type) {
             b.textContent = m;
             b.onclick = () => {
                 const slider = document.getElementById('move-slider');
-                activeMoves = activeMoves.slice(0, parseInt(slider.value));
+                const currentStep = parseInt(slider.value);
+                activeMoves = activeMoves.slice(0, currentStep);
                 activeMoves.push(m);
                 slider.max = activeMoves.length;
                 slider.value = activeMoves.length;
