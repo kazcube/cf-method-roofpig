@@ -1,18 +1,10 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.0: Initial release with basic 3D cube.
- * v2.0.1: Added URL hash sync.
- * v2.0.2: Implemented sticker masking (Paint mode).
- * v2.0.4: Navigation buttons added.
- * v2.0.5: Added Hash Import logic and bug fixes.
- * v2.0.6: Added Auto-play (togglePlay) and fixed Setup sync bug.
- * v2.0.7: Fixed applySetup to correctly set setupMoves.
- * v2.0.8: Use setupAlg for reliable setup moves reflection.
- * v2.0.9: Fixed property name to 'setup-alg' and updated hash to include setupMoves.
+ * v2.0.10: Reverted setup logic to v1.4.2 style (Reverse setup moves).
  */
 
-export const JS_VERSION = "v2.0.9";
+export const JS_VERSION = "v2.0.10";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -33,26 +25,18 @@ export function updateStickerState(idx, state) { stickerStates[idx] = state; }
 /* [LOCKED: NO-REMOVE] */
 export function setAllStickers(state) { stickerStates.fill(state); }
 
-/* [FIXED: v2.0.9] */
+/* [FIXED: v2.0.10] */
 export function loadFromHash(targetHash = null) {
     const hash = targetHash || window.location.hash.replace(/^#/, "");
     if (!hash || !hash.startsWith("v5:")) return;
     try {
         const decoded = atob(hash.substring(3));
-        // 形式: mask|setupMoves|activeMoves
         const [mask, setup, active] = decoded.split("|");
-        
         if (mask && mask.length === 54) stickerStates = mask.split("").map(Number);
-        
-        // セットアップ手順の復元
         setupMoves = (setup && setup !== "") ? setup.split(",") : [];
-        
-        // メイン手順の復元
         activeMoves = (active && active !== "") ? active.split(",") : [];
-        
         const cb = document.getElementById('command-box');
         if (cb) cb.value = activeMoves.join(" ");
-        
         const slider = document.getElementById('move-slider');
         if (slider) { 
             slider.max = activeMoves.length; 
@@ -71,14 +55,11 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.9] */
+/* [FIXED: v2.0.10] */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
-    
-    // セットアップ手順を属性として設定 (プロパティ経由ではなくsetAttributeが確実)
-    player.setAttribute('setup-alg', setupMoves.join(" "));
     
     const slider = document.getElementById('move-slider');
     const hashDisp = document.getElementById('hash-display');
@@ -86,19 +67,17 @@ export function render() {
         slider.max = activeMoves.length;
         const step = parseInt(slider.value) || 0;
         
-        // メイン手順のアニメーション設定
-        player.alg = activeMoves.slice(0, step).join(" ");
+        // v1.4.2 方式: セットアップ（逆手順） + アクティブ（正手順の進捗）
+        player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
         if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
     }
     
-    // URLハッシュにsetupMovesも含めるように変更
     const rawData = `${stickerStates.join("")}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
     const hashValue = `v5:${btoa(rawData)}`;
     
-    // 再生中でない場合のみハッシュと表示を更新
     if (!isPlaying) {
         window.history.replaceState(null, "", "#" + hashValue);
         if (hashDisp) hashDisp.value = hashValue;
@@ -146,24 +125,29 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.9] */
+/* [FIXED: v2.0.10] 成功していた v1.4.2 の逆手順ロジックを完全再現 */
 export function applySetup() {
     stopPlay();
     const cb = document.getElementById('command-box');
     if (!cb) return;
     const val = cb.value.trim();
+    if (!val) return;
+
+    const moves = val.split(/\s+/).filter(m => m.length > 0);
     
-    // セットアップとして保存
-    setupMoves = val ? val.split(/\s+/).filter(m => m.length > 0) : [];
-    
-    // セットアップ適用時はメイン手順をクリア
-    activeMoves = [];
+    // 逆手順を生成してセットアップに格納
+    setupMoves = [...moves].reverse().map(m => {
+        if (m.endsWith("2")) return m;
+        return m.endsWith("'") ? m.slice(0, -1) : m + "'";
+    });
+
+    // 元の手順をメイン手順に格納
+    activeMoves = moves;
+
     const slider = document.getElementById('move-slider');
     if (slider) { 
-        slider.max = 0; 
-        slider.value = 0; 
+        slider.max = activeMoves.length; 
+        slider.value = 0; // 開始状態（バラバラの状態）にする
     }
-    // テキストエリアをクリア
-    cb.value = ""; 
     render();
 }
