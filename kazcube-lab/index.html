@@ -3,63 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab v1.7.5</title>
+    <title>KAZCUBE Lab v1.7.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
-        /* キューブを少し小さめに固定 */
-        #cube-wrapper { 
-            width: 100%; 
-            max-width: 320px; 
-            margin: 0 auto; 
-            aspect-ratio: 1; 
-            background: #000; 
-            border-radius: 1.25rem; 
-            border: 2px solid #334155; 
-            overflow: hidden; 
-        }
+        body { background-color: #050a18; color: #f8fafc; font-family: sans-serif; }
+        /* キューブを適正サイズに調整 */
+        #cube-wrapper { width: 100%; max-width: 340px; margin: 0 auto; aspect-ratio: 1; background: #000; border-radius: 1rem; border: 1px solid #1e293b; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
         
-        /* v5.44風ハッシュエリア */
-        .hash-container { background: #020617; border: 1px solid #1e293b; padding: 4px; border-radius: 0.5rem; display: flex; align-items: center; gap: 8px; }
-        .hash-input { background: #000; color: #10b981; font-family: monospace; font-size: 10px; flex: 1; border: none; outline: none; padding: 4px 8px; }
+        /* v5.44風 UIパーツ */
+        .hash-container { background: #000; border: 1px solid #1e293b; padding: 2px; border-radius: 0.5rem; display: flex; align-items: center; }
+        .hash-input { background: transparent; color: #10b981; font-family: monospace; font-size: 10px; flex: 1; border: none; outline: none; padding: 6px 10px; }
         
-        .lang-switch { display: flex; background: #1e293b; border-radius: 0.5rem; padding: 2px; }
-        .lang-btn { padding: 2px 8px; font-size: 10px; font-weight: bold; border-radius: 0.4rem; cursor: pointer; }
+        .lang-switch { display: flex; background: #1e293b; border-radius: 9999px; padding: 2px; }
+        .lang-btn { padding: 2px 10px; font-size: 10px; font-weight: bold; border-radius: 9999px; }
         .lang-btn.active { background: #3b82f6; color: white; }
 
-        .mode-btn { flex: 1; padding: 8px 0; font-size: 11px; font-weight: 900; border-radius: 8px; cursor: pointer; border: none; }
-        .active-rotate { background-color: #10b981 !important; color: white !important; }
-        .active-paint { background-color: #f97316 !important; color: white !important; }
-        .inactive { background-color: #1e293b !important; color: #64748b !important; }
+        .tab-btn { @apply flex-1 py-2 text-[10px] font-bold uppercase transition-all border-b-2; border-color: transparent; color: #64748b; }
+        .tab-btn.active { border-color: #3b82f6; color: #f8fafc; background: #1e293b66; }
 
-        .panel-card { background: #1e293b66; border: 1px solid #334155; border-radius: 1rem; padding: 1rem; }
+        .mode-select-btn { @apply px-6 py-2 rounded-lg font-black text-xs uppercase transition-all; }
+        .active-rotate { background: #10b981; color: white; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+        .active-paint { background: #f97316; color: white; box-shadow: 0 0 15px rgba(249, 115, 22, 0.3); }
+        .inactive-mode { background: #1e293b; color: #475569; }
+
+        .action-btn { @apply py-3 rounded-xl font-black text-[11px] uppercase transition-all; }
+        .panel-card { background: #0f172a88; border: 1px solid #1e293b; border-radius: 1rem; padding: 1rem; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 p-4">
+<body class="p-4">
     <div class="max-w-[1000px] mx-auto space-y-4">
         
-        <header class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <header class="flex justify-between items-center">
             <div class="flex items-baseline gap-2">
                 <h1 class="text-xl font-black text-emerald-500 italic">KAZCUBE Lab</h1>
-                <span class="text-[9px] text-slate-500 font-bold uppercase">v1.7.5</span>
+                <span class="text-[9px] text-slate-600 font-bold uppercase">v1.7.6</span>
             </div>
-            <div class="flex gap-3 items-center">
+            <div class="flex gap-4 items-center">
                 <div class="lang-switch">
                     <button class="lang-btn active">JP</button>
                     <button class="lang-btn">EN</button>
                 </div>
-                <div class="flex bg-slate-900 p-1 rounded-xl w-44">
-                    <button id="mode-rotate" class="mode-btn active-rotate">ROTATE</button>
-                    <button id="mode-paint" class="mode-btn inactive">PAINT</button>
+                <div class="flex gap-2">
+                    <button id="mode-rotate" class="mode-select-btn active-rotate">Rotate</button>
+                    <button id="mode-paint" class="mode-select-btn inactive-mode">Paint</button>
                 </div>
             </div>
         </header>
 
         <div class="hash-container">
-            <span class="text-[9px] font-bold text-slate-500 px-2 uppercase">Hash</span>
-            <input id="hash-display" class="hash-input" readonly value="">
-            <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold px-3 py-1.5 rounded uppercase">Copy</button>
+            <span class="text-[9px] font-bold text-slate-500 px-3 uppercase tracking-widest border-r border-slate-800">Hash</span>
+            <input id="hash-display" class="hash-input" readonly value="v5:ey...">
+            <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold px-4 py-2 rounded uppercase mr-1">Copy</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -67,35 +63,41 @@
                 <div id="cube-wrapper">
                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none"></twisty-player>
                 </div>
-                <div class="panel-card space-y-3">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-1.5 bg-slate-700 rounded-lg accent-emerald-500">
+                <div class="panel-card space-y-4">
+                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg accent-emerald-500">
                     <div class="flex justify-between items-center px-1">
-                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Step <span id="step-counter" class="text-emerald-500 text-base ml-2">0</span></div>
-                        <div id="move-indicator" class="bg-black border border-slate-800 px-6 py-1.5 rounded font-mono text-emerald-400 font-bold text-sm italic min-w-[60px] text-center">---</div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase">Step <span id="step-counter" class="text-emerald-500 text-lg ml-2">0</span></div>
+                        <div id="move-indicator" class="bg-black border border-slate-800 px-6 py-2 rounded-lg font-mono text-emerald-400 font-bold text-sm italic min-w-[70px] text-center">---</div>
                     </div>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <div class="panel-card space-y-4">
-                    <textarea id="command-box" class="w-full h-24 bg-black/40 text-emerald-400 p-3 rounded-xl font-mono text-xs border border-slate-700 outline-none resize-none" placeholder="Enter Algorithm..."></textarea>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-scramble" class="bg-indigo-600 py-3 rounded-xl font-black text-[10px] uppercase">Scramble</button>
-                        <button id="btn-setup" class="bg-slate-800 border border-amber-500/50 text-amber-500 py-3 rounded-xl font-black text-[10px] uppercase">Set Setup</button>
+                    <textarea id="command-box" class="w-full h-24 bg-black/40 text-emerald-400 p-4 rounded-xl font-mono text-xs border border-slate-800 outline-none resize-none" placeholder="手順を入力..."></textarea>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="btn-scramble" class="action-btn bg-indigo-600 hover:bg-indigo-500">Scramble</button>
+                        <button id="btn-setup" class="action-btn bg-slate-800 border border-amber-600/40 text-amber-500 hover:bg-amber-600/10">Set Setup</button>
                     </div>
-                    <button id="btn-reset" class="w-full bg-rose-600 py-2 rounded-xl font-black text-[10px] uppercase">Reset All</button>
+                    <button id="btn-reset" class="action-btn w-full bg-rose-600 hover:bg-rose-500">Reset All</button>
                 </div>
 
-                <div class="panel-card">
-                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
+                <div class="panel-card p-0 overflow-hidden">
+                    <div class="flex border-b border-slate-800">
+                        <button class="tab-btn active" data-tab="basic">Basic</button>
+                        <button class="tab-btn" data-tab="wide">Wide</button>
+                        <button class="tab-btn" data-tab="slice">Slice</button>
+                    </div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-2 p-4">
+                        </div>
                 </div>
                 
-                <div id="paint-panel" class="hidden panel-card space-y-2">
-                    <div class="text-[10px] font-bold text-orange-500 uppercase px-1">Mask Presets</div>
+                <div id="paint-panel" class="hidden panel-card space-y-3 border-orange-500/20">
+                    <div class="text-[10px] font-black text-orange-500 uppercase tracking-widest">Orbit Masking</div>
                     <div class="grid grid-cols-3 gap-2">
-                        <button id="btn-mask-gray" class="preset-btn">ALL GRAY</button>
-                        <button id="btn-mask-cc" class="preset-btn">C+CORNER</button>
-                        <button id="btn-mask-full" class="preset-btn">FULL</button>
+                        <button id="btn-mask-gray" class="preset-btn bg-slate-800 py-2 rounded text-[10px] font-bold">ALL GRAY</button>
+                        <button id="btn-mask-cc" class="preset-btn bg-slate-800 py-2 rounded text-[10px] font-bold">C+CORNER</button>
+                        <button id="btn-mask-full" class="preset-btn bg-slate-800 py-2 rounded text-[10px] font-bold">FULL</button>
                     </div>
                 </div>
             </div>
