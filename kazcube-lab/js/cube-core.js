@@ -1,10 +1,10 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.15: Fixed setup logic using 'setup-alg' attribute to properly separate scrambling from playback.
+ * v2.0.16: Added debug logs and improved setup-alg synchronization.
  */
 
-export const JS_VERSION = "v2.0.15";
+export const JS_VERSION = "v2.0.16";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -13,6 +13,7 @@ let playTimer = null;
 
 /* [LOCKED: NO-REMOVE] */
 export function resetAll() {
+    console.log("DEBUG: resetAll called");
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -40,7 +41,7 @@ export function loadFromHash(targetHash = null) {
         const slider = document.getElementById('move-slider');
         if (slider) { 
             slider.max = activeMoves.length; 
-            slider.value = 0; // Hash読込時はリセット状態
+            slider.value = 0; 
         }
         render();
     } catch (e) { console.error("Import Error", e); }
@@ -55,7 +56,7 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.15] セットアップと実行手順を分離して描画 */
+/* [FIXED: v2.0.16] デバッグログの追加と描画ロジックの再確認 */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -67,26 +68,33 @@ export function render() {
     
     if (slider) {
         const step = parseInt(slider.value) || 0;
-        
-        // 1. 逆手順（崩す用）を初期状態として設定
         const setupStr = setupMoves.join(" ");
+        const activeStr = activeMoves.slice(0, step).join(" ");
+
+        // デバッグログ: 現在の設定値をコンソールに出力
+        console.log(`DEBUG render: step=${step}, setupAlg="${setupStr}", currentAlg="${activeStr}"`);
+
+        // 1. setup-alg (逆手順) の設定
+        // twisty-player が属性の変更を検知しやすいよう明示的にセット
         if (player.getAttribute('setup-alg') !== setupStr) {
             player.setAttribute('setup-alg', setupStr);
         }
 
-        // 2. 正手順（再生用）をセット
-        const activeStr = activeMoves.slice(0, step).join(" ");
-        
-        // アニメーション速度の設定（スライダー操作時は即時反映）
+        // 2. alg (正手順の進捗) の設定
         player.tempoScale = isPlaying ? 1 : 0;
-        
-        // セットアップ状態からの相対的な手順として適用
         player.alg = activeStr;
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
         if (indicator) {
-            indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+            // 画面上にもデバッグ情報を表示
+            const currentMove = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+            indicator.textContent = `Move: ${currentMove} (Total: ${activeMoves.length})`;
+            
+            // setupMoves が空でない場合、デバッグ用にヒントを表示（必要ならコンソールを確認してください）
+            if (setupMoves.length > 0 && step === 0) {
+                console.log("DEBUG: Cube should be scrambled by setup-alg now.");
+            }
         }
     }
     
@@ -130,8 +138,9 @@ export function stopPlay() {
 
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
+    console.log("DEBUG: handleScramble called");
     stopPlay();
-    setupMoves = []; // スクランブル時は純粋なランダムなのでセットアップは空
+    setupMoves = [];
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
     
@@ -141,37 +150,43 @@ export function handleScramble() {
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = activeMoves.length; // スクランブルは完了状態で表示
+        slider.value = activeMoves.length; 
     }
     render();
 }
 
-/* [FIXED: v2.0.15] 逆手順で崩し、スライダーを0にする */
+/* [FIXED: v2.0.16] applySetup 実行時の変数確定プロセスをログ出力 */
 export function applySetup() {
+    console.log("DEBUG: applySetup START");
     stopPlay();
     const cb = document.getElementById('command-box');
     if (!cb) return;
     const val = cb.value.trim();
-    if (!val) return;
+    if (!val) {
+        console.log("DEBUG: applySetup - No input moves");
+        return;
+    }
 
     const moves = val.split(/\s+/).filter(m => m.length > 0);
+    console.log("DEBUG: Parsed moves:", moves);
     
-    // 逆手順を生成（コピーを使用）
-    // これを setup-alg に入れることで、キューブが最初から「崩れた状態」になる
+    // 逆手順生成
     setupMoves = [...moves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
+    console.log("DEBUG: Generated setupMoves (Reverse):", setupMoves);
 
-    // 正の手順を保持
-    // スライダーを動かすと、この手順が実行されて完成に向かう
+    // 正手順保持
     activeMoves = moves;
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; // 崩れた直後の状態を表示
+        slider.value = 0; 
+        console.log(`DEBUG: Slider set to 0/${activeMoves.length}`);
     }
     
     render();
+    console.log("DEBUG: applySetup END");
 }
