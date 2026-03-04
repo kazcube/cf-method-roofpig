@@ -1,13 +1,12 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.19: Fixed setup logic. SetupMoves (reverse of input) should scramble the cube 
- * so that applying activeMoves (input) results in a solved state.
+ * v2.0.21: Finalized setup logic (sequence reversal) and ensured array isolation.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.19");
+console.log("LOG: cube-core.js loaded. Version: v2.0.21");
 
-export const JS_VERSION = "v2.0.19";
+export const JS_VERSION = "v2.0.21";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -58,7 +57,7 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.19] algプロパティによる確実な描画 */
+/* [FIXED: v2.0.21] */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -71,20 +70,18 @@ export function render() {
     if (slider) {
         const step = parseInt(slider.value) || 0;
         
-        // [逆手順(すべて)] + [正手順(進捗分)]
+        // [崩し用の逆順手順] + [実行手順の0からstepまで] を結合
         const fullMoves = [...setupMoves, ...activeMoves.slice(0, step)];
         const algStr = fullMoves.join(" ");
 
         player.tempoScale = isPlaying ? 1 : 0;
-        
-        // algに連結した手順を渡す
         player.alg = algStr;
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
         if (indicator) {
             const currentMove = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-            indicator.textContent = `Move: ${currentMove} (${step}/${activeMoves.length})`;
+            indicator.textContent = `Next: ${activeMoves[step] || "Solved"} (Step: ${step}/${activeMoves.length})`;
         }
     }
     
@@ -142,7 +139,7 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.19] 逆手順の生成ロジックを修正 */
+/* [FIXED: v2.0.21] Setup logic without prime inversion */
 export function applySetup() {
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -150,27 +147,24 @@ export function applySetup() {
     const val = cb.value.trim();
     if (!val) return;
 
-    // 入力手順
-    const moves = val.split(/\s+/).filter(m => m.length > 0);
+    const rawMoves = val.split(/\s+/).filter(m => m.length > 0);
     
-    /**
-     * 【修正】逆手順（SetupMoves）の考え方
-     * 目的：完成状態から setupMoves を回した時、「入力手順を回す直前の崩れた状態」にする。
-     * つまり、setupMoves は「入力手順の逆転」でなければなりません。
-     */
-    setupMoves = [...moves].reverse().map(m => {
-        if (m.endsWith("2")) return m; // 180度回転はそのまま
-        return m.endsWith("'") ? m.slice(0, -1) : m + "'"; // 回転方向を反転
-    });
-
-    // 入力手順をそのまま実行手順とする
-    activeMoves = moves;
+    // 正順の手順を保存
+    activeMoves = [...rawMoves];
+    
+    // セットアップ: 手順の並び順だけを逆転させる（回転方向は変えない）
+    // これにより、スライダー0の時に「手順を巻き戻した崩し状態」が再現される
+    setupMoves = [...rawMoves].reverse();
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; // 開始位置（逆手順で崩しきった状態）
+        slider.value = 0; 
     }
+    
+    console.log("DEBUG: Applied Setup v2.0.21");
+    console.log("setupMoves (Scramble):", setupMoves);
+    console.log("activeMoves (Solve):", activeMoves);
     
     render();
 }
