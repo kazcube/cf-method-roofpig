@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.5.8 Final</title>
+    <title>KAZCUBE Lab - v1.6.2 Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
@@ -13,7 +13,7 @@
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
             <h2 class="text-2xl font-black text-emerald-400 italic uppercase">
                 KAZCUBE Lab 
-                <span id="version-display" class="text-xs text-white not-italic ml-2 tracking-widest">v1.5.8</span>
+                <span id="version-display" class="text-xs text-white not-italic ml-2 tracking-widest">Loading...</span>
             </h2>
             <div class="mode-switch w-48">
                 <button id="mode-rotate" class="mode-btn active">ROTATE</button>
@@ -30,7 +30,14 @@
         <div class="main-grid">
             <div class="left-col space-y-4">
                 <div id="cube-wrapper">
-                     <twisty-player id="main-cube" puzzle="3x3x3" background="none" control-panel="none" stickering="full"></twisty-player>
+                     <twisty-player 
+                        id="main-cube" 
+                        puzzle="3x3x3" 
+                        stickering="full"
+                        hint-stickering="none"
+                        background="none" 
+                        control-panel="none">
+                     </twisty-player>
                 </div>
 
                 <div id="paint-controls" class="hidden">
