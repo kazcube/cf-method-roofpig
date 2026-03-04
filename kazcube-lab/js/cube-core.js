@@ -1,6 +1,7 @@
+// js/cube-core.js
 export let moves = [];
 
-// Paint側で再描画するために現在のアルゴリズムを文字列で返す
+// 【修正】Paint側から現在のアルゴリズム文字列を安全に取得するための関数
 export function getCurrentAlgString() {
     const slider = document.getElementById('move-slider');
     const step = slider ? parseInt(slider.value) : 0;
@@ -13,6 +14,7 @@ export function render() {
     if (!player || !slider) return;
 
     const step = parseInt(slider.value) || 0;
+    // 直接値を代入するのみにする
     player.alg = getCurrentAlgString();
     
     document.getElementById('step-counter').textContent = step;
@@ -24,8 +26,10 @@ export function handleScramble() {
     moves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
     
     const slider = document.getElementById('move-slider');
-    slider.max = moves.length;
-    slider.value = moves.length;
+    if (slider) {
+        slider.max = moves.length;
+        slider.value = moves.length;
+    }
     document.getElementById('command-box').value = moves.join(" ");
     render();
 }
