@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.6.3 Stable</title>
+    <title>KAZCUBE Lab - v1.6.4 Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
@@ -13,67 +13,56 @@
         <header class="mb-6 border-b border-slate-700 pb-4 flex justify-between items-center">
             <h2 class="text-2xl font-black text-emerald-400 italic uppercase">
                 KAZCUBE Lab 
-                <span id="version-display" class="text-xs text-white not-italic ml-2 tracking-widest">Loading...</span>
+                <span id="version-display" class="text-xs text-white not-italic ml-2 tracking-widest">v1.6.4</span>
             </h2>
-            <div class="mode-switch w-48">
-                <button id="mode-rotate" class="mode-btn active">ROTATE</button>
-                <button id="mode-paint" class="mode-btn">PAINT</button>
+            <div class="mode-switch w-48 flex bg-black/40 rounded-lg p-1">
+                <button id="mode-rotate" class="flex-1 py-1 text-xs font-black rounded active">ROTATE</button>
+                <button id="mode-paint" class="flex-1 py-1 text-xs font-black rounded">PAINT</button>
             </div>
         </header>
 
-        <div class="share-panel mb-6">
-            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Hash</span>
-            <input type="text" id="hash-io" class="hash-io bg-black/40 border border-slate-700 rounded px-2 py-1 text-xs w-full" readonly>
-            <button id="btn-copy" class="bg-indigo-600 text-[10px] font-black px-3 py-1.5 rounded uppercase mt-2">Copy Link</button>
-        </div>
-
         <div class="main-grid grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="left-col space-y-4">
-                <div id="cube-wrapper" class="aspect-square bg-black rounded-3xl overflow-hidden border border-slate-700">
+                <div id="cube-wrapper" class="aspect-square bg-black rounded-3xl flex items-center justify-center">
                      <twisty-player 
                         id="main-cube" 
                         puzzle="3x3x3" 
-                        visualization="3d"
-                        stickering="full"
                         background="none" 
                         control-panel="none">
                      </twisty-player>
                 </div>
 
-                <div id="paint-controls" class="hidden bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                    <div class="color-palette flex gap-2 mb-4 justify-center">
-                        <div class="color-chip w-8 h-8 rounded-full border-2 border-white cursor-pointer bg-white active" data-color="white"></div>
-                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-yellow-400" data-color="yellow"></div>
-                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-red-600" data-color="red"></div>
-                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-orange-500" data-color="orange"></div>
-                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-blue-600" data-color="blue"></div>
-                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-green-600" data-color="green"></div>
+                <div id="paint-controls" class="hidden bg-slate-800 p-4 rounded-2xl">
+                    <div class="flex gap-2 justify-center mb-4">
+                        <button class="color-chip w-8 h-8 rounded-full bg-white border-2 border-emerald-400" data-color="white"></button>
+                        <button class="color-chip w-8 h-8 rounded-full bg-yellow-400" data-color="yellow"></button>
+                        <button class="color-chip w-8 h-8 rounded-full bg-red-600" data-color="red"></button>
+                        <button class="color-chip w-8 h-8 rounded-full bg-blue-600" data-color="blue"></button>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
-                        <button id="preset-cc" class="bg-slate-700 text-[10px] py-2 rounded uppercase font-black">C+Center</button>
-                        <button id="preset-co" class="bg-slate-700 text-[10px] py-2 rounded uppercase font-black">Corners</button>
-                        <button id="preset-gray" class="bg-rose-900 text-[10px] py-2 rounded uppercase font-black text-rose-200">Reset Gray</button>
+                        <button id="preset-gray" class="bg-rose-900 text-[10px] py-2 rounded font-black">RESET GRAY</button>
+                        <button id="preset-cc" class="bg-slate-700 text-[10px] py-2 rounded font-black">C+CORNER</button>
+                        <button id="preset-co" class="bg-slate-700 text-[10px] py-2 rounded font-black">CORNERS</button>
                     </div>
                 </div>
                 
-                <div id="rotate-controls" class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full mb-4">
-                    <div class="flex justify-center gap-2">
-                        <button id="nav-first" class="px-4 py-2 bg-slate-700 rounded">&lt;&lt;</button>
-                        <button id="nav-last" class="px-4 py-2 bg-slate-700 rounded">&gt;&gt;</button>
+                <div id="rotate-controls" class="bg-slate-800 p-5 rounded-2xl">
+                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full">
+                    <div class="flex justify-between mt-4 font-mono text-emerald-400">
+                        <span>Step: <span id="step-counter">0</span></span>
+                        <div id="move-indicator">---</div>
                     </div>
                 </div>
             </div>
 
             <div class="right-col space-y-4">
-                <textarea id="command-box" class="w-full h-32 bg-black text-emerald-400 p-4 rounded-xl font-mono border-2 border-slate-700" placeholder="Moves..."></textarea>
+                <textarea id="command-box" class="w-full h-32 bg-black text-emerald-400 p-4 rounded-xl border border-slate-700 font-mono text-sm" placeholder="Algorithm here..."></textarea>
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="btn-scramble" class="bg-indigo-600 py-3 rounded font-black text-sm">SCRAMBLE</button>
-                    <button id="btn-setup" class="bg-slate-700 py-3 rounded font-black text-sm border border-amber-500/50 text-amber-400">SET SETUP</button>
+                    <button id="btn-scramble" class="bg-indigo-600 py-3 rounded font-black">SCRAMBLE</button>
+                    <button id="btn-setup" class="bg-slate-700 py-3 rounded font-black text-amber-400">SET SETUP</button>
                 </div>
-                <button id="btn-reset-alg" class="w-full bg-rose-900/30 text-rose-400 py-2 rounded border border-rose-500/20 text-xs">RESET ALL</button>
-                
-                <div id="move-grid" class="grid grid-cols-6 gap-2 pt-4 border-t border-slate-700"></div>
+                <button id="btn-reset-alg" class="w-full bg-slate-800 py-2 rounded text-xs text-slate-400">RESET ALL</button>
+                <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
             </div>
         </div>
     </div>
