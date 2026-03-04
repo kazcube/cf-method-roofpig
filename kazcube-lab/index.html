@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.5.7</title>
+    <title>KAZCUBE Lab - v1.5.6 Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
@@ -73,4 +73,19 @@
                         <button id="btn-scramble" class="action-btn py-4 bg-indigo-600 text-white text-[12px]">Random Scramble</button>
                         <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px]">Set Setup</button>
                     </div>
-                    <button id="btn-reset-alg" class="w-full action-btn py-2 bg-rose-900/30 text-rose-4
+                    <button id="btn-reset-alg" class="w-full action-btn py-2 bg-rose-900/30 text-rose-400 border border-rose-500/30 text-[11px]">Reset Algorithm</button>
+                </div>
+                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
+                    <div class="flex gap-1.5 mb-4 bg-black/30 p-1.5 rounded-lg">
+                        <button id="tab-basic" class="tab-btn active">BASIC</button>
+                        <button id="tab-wide" class="tab-btn">WIDE</button>
+                        <button id="tab-slice" class="tab-btn">SLICE</button>
+                    </div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>
