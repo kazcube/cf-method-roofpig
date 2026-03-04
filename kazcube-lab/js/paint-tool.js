@@ -33,11 +33,7 @@ function ensurePaintPanel(show) {
             const btn = document.createElement('button');
             btn.textContent = btnInfo.text;
             btn.className = `${btnInfo.color} px-2 py-1.5 rounded text-[9px] font-black text-white uppercase hover:brightness-125 transition`;
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                applyOrbit(type);
-            };
-            // 修正: applyOrbitの引数が渡るように
+            // Coreを通さず、このファイル内のapplyOrbitを確実に呼ぶ
             btn.onclick = () => applyOrbit(btnInfo.type);
             panel.appendChild(btn);
         });
@@ -51,26 +47,21 @@ function ensurePaintPanel(show) {
 }
 
 export function applyOrbit(type) {
+    // Core の関数が確実に存在するかチェックしながら実行
     if (type === 'full') {
         Core.setAllStickers(1);
     } else if (type === 'gray') {
         Core.setAllStickers(0);
     } else if (type === 'cc') {
         Core.setAllStickers(0);
-        // --- 修正箇所: Center + Corner のインデックス ---
+        // Center(4,13,22,31,40,49) + Corner(各面0,2,6,8...)
         const centersAndCorners = [
-            // U面 (0,2,4,6,8)
-            0, 2, 4, 6, 8,
-            // R面 (9,11,13,15,17)
-            9, 11, 13, 15, 17,
-            // F面 (18,20,22,24,26)
-            18, 20, 22, 24, 26,
-            // D面 (27,29,31,33,35)
-            27, 29, 31, 33, 35,
-            // L面 (36,38,40,42,44)
-            36, 38, 40, 42, 44,
-            // B面 (45,47,49,51,53)
-            45, 47, 49, 51, 53
+            0, 2, 4, 6, 8,      // U
+            9, 11, 13, 15, 17,  // R
+            18, 20, 22, 24, 26, // F
+            27, 29, 31, 33, 35, // D
+            36, 38, 40, 42, 44, // L
+            45, 47, 49, 51, 53  // B
         ];
         centersAndCorners.forEach(i => Core.updateStickerState(i, 1));
     }
@@ -87,16 +78,12 @@ export function setPaintMode(mode) {
     if (moveGrid) moveGrid.style.display = isPaint ? 'none' : 'grid';
     if (tabArea) tabArea.style.display = isPaint ? 'none' : 'flex';
 
+    // ボタン色制御
     const pb = document.getElementById('mode-paint');
     const rb = document.getElementById('mode-rotate');
+    if (pb) pb.classList.toggle('bg-emerald-500', isPaint);
+    if (rb) rb.classList.toggle('bg-emerald-500', !isPaint);
     
-    if (pb) pb.className = isPaint 
-        ? "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white"
-        : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
-    
-    if (rb) rb.className = !isPaint 
-        ? "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white"
-        : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
-    
+    // モード切替時の初期化: PaintならGRAY、RotateならFULL
     applyOrbit(isPaint ? 'gray' : 'full');
 }
