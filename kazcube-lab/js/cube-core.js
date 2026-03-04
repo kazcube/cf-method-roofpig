@@ -1,11 +1,11 @@
 // js/cube-core.js
-export let moves = [];
+export let setupMoves = [];
+export let activeMoves = [];
 
-// 【修正】Paint側から現在のアルゴリズム文字列を安全に取得するための関数
 export function getCurrentAlgString() {
     const slider = document.getElementById('move-slider');
     const step = slider ? parseInt(slider.value) : 0;
-    return moves.slice(0, step).join(" ");
+    return [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
 }
 
 export function render() {
@@ -14,22 +14,37 @@ export function render() {
     if (!player || !slider) return;
 
     const step = parseInt(slider.value) || 0;
-    // 直接値を代入するのみにする
     player.alg = getCurrentAlgString();
     
     document.getElementById('step-counter').textContent = step;
-    document.getElementById('move-indicator').textContent = (step > 0) ? moves[step-1] : "---";
+    document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+}
+
+export function applySetup() {
+    const val = document.getElementById('command-box').value.trim();
+    if (!val) return;
+    
+    const movesArr = val.split(/\s+/).filter(m => m.length > 0);
+    // 逆手順を作成してセットアップに格納
+    setupMoves = [...movesArr].reverse().map(m => 
+        m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'")
+    );
+    activeMoves = movesArr;
+    
+    const slider = document.getElementById('move-slider');
+    slider.max = activeMoves.length;
+    slider.value = activeMoves.length;
+    render();
 }
 
 export function handleScramble() {
+    setupMoves = [];
     const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-    moves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+    activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
     
+    document.getElementById('command-box').value = activeMoves.join(" ");
     const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.max = moves.length;
-        slider.value = moves.length;
-    }
-    document.getElementById('command-box').value = moves.join(" ");
+    slider.max = activeMoves.length;
+    slider.value = activeMoves.length;
     render();
 }

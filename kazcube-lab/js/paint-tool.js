@@ -14,7 +14,7 @@ export function applyOrbit(type) {
     const mask = orbitMasks[type] || orbitMasks.full;
     player.experimentalStickeringMaskOrbits = mask;
 
-    // 【修正】Coreモジュールから安全に文字列を取得して再描画を強制
+    // 再描画を強制
     const currentAlg = Core.getCurrentAlgString();
     player.alg = ""; 
     setTimeout(() => {
