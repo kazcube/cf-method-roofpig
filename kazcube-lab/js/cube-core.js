@@ -1,10 +1,13 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.16: Added debug logs and improved setup-alg synchronization.
+ * v2.0.17: Force-logged initialization and fixed twisty-player attribute handling.
  */
 
-export const JS_VERSION = "v2.0.16";
+// 読み込み時に即座にログを出す（これがコンソールに出なければ、ファイル自体が読み込まれていません）
+console.log("LOG: cube-core.js loaded. Version: v2.0.17");
+
+export const JS_VERSION = "v2.0.17";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -56,10 +59,13 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.16] デバッグログの追加と描画ロジックの再確認 */
+/* [FIXED: v2.0.17] 属性の同期をより確実に実行 */
 export function render() {
     const player = document.getElementById('main-cube');
-    if (!player) return;
+    if (!player) {
+        console.error("ERROR: main-cube element not found!");
+        return;
+    }
 
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
@@ -71,30 +77,21 @@ export function render() {
         const setupStr = setupMoves.join(" ");
         const activeStr = activeMoves.slice(0, step).join(" ");
 
-        // デバッグログ: 現在の設定値をコンソールに出力
         console.log(`DEBUG render: step=${step}, setupAlg="${setupStr}", currentAlg="${activeStr}"`);
 
-        // 1. setup-alg (逆手順) の設定
-        // twisty-player が属性の変更を検知しやすいよう明示的にセット
+        // twisty-player の挙動を安定させるため、属性値を直接書き換える
         if (player.getAttribute('setup-alg') !== setupStr) {
             player.setAttribute('setup-alg', setupStr);
         }
 
-        // 2. alg (正手順の進捗) の設定
         player.tempoScale = isPlaying ? 1 : 0;
         player.alg = activeStr;
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
         if (indicator) {
-            // 画面上にもデバッグ情報を表示
             const currentMove = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-            indicator.textContent = `Move: ${currentMove} (Total: ${activeMoves.length})`;
-            
-            // setupMoves が空でない場合、デバッグ用にヒントを表示（必要ならコンソールを確認してください）
-            if (setupMoves.length > 0 && step === 0) {
-                console.log("DEBUG: Cube should be scrambled by setup-alg now.");
-            }
+            indicator.textContent = `Move: ${currentMove} (${step}/${activeMoves.length})`;
         }
     }
     
@@ -138,7 +135,7 @@ export function stopPlay() {
 
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
-    console.log("DEBUG: handleScramble called");
+    console.log("DEBUG: handleScramble START");
     stopPlay();
     setupMoves = [];
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
@@ -155,38 +152,40 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.16] applySetup 実行時の変数確定プロセスをログ出力 */
+/* [FIXED: v2.0.17] セットアップロジックの最優先デバッグ */
 export function applySetup() {
-    console.log("DEBUG: applySetup START");
+    console.log("DEBUG: applySetup button clicked");
     stopPlay();
     const cb = document.getElementById('command-box');
-    if (!cb) return;
+    if (!cb) {
+        console.error("ERROR: command-box not found");
+        return;
+    }
     const val = cb.value.trim();
     if (!val) {
-        console.log("DEBUG: applySetup - No input moves");
+        console.warn("DEBUG: No moves in command-box");
         return;
     }
 
     const moves = val.split(/\s+/).filter(m => m.length > 0);
-    console.log("DEBUG: Parsed moves:", moves);
     
-    // 逆手順生成
+    // 入力手順を逆転させて「初期状態を崩すための手順」を作成
     setupMoves = [...moves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
-    console.log("DEBUG: Generated setupMoves (Reverse):", setupMoves);
 
-    // 正手順保持
+    // 入力手順そのものを「これから回す手順」としてセット
     activeMoves = moves;
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
         slider.value = 0; 
-        console.log(`DEBUG: Slider set to 0/${activeMoves.length}`);
     }
     
+    console.log("DEBUG: setupMoves (Reverse):", setupMoves);
+    console.log("DEBUG: activeMoves (Normal):", activeMoves);
+    
     render();
-    console.log("DEBUG: applySetup END");
 }
