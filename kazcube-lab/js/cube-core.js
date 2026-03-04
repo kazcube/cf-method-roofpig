@@ -1,7 +1,12 @@
 export let setupMoves = [];
 export let activeMoves = [];
-// 表示するステッカーのインデックス (デフォルト全表示: 0-53)
+// 表示するステッカーのインデックス
 export let visibleStickers = new Set(Array.from({length: 54}, (_, i) => i));
+
+// 外部からステッカー状態を更新するための関数
+export function setVisibleStickers(newSet) {
+    visibleStickers = newSet;
+}
 
 export function getCurrentAlgString() {
     const slider = document.getElementById('move-slider');
@@ -17,11 +22,14 @@ export function render() {
     const step = parseInt(slider.value) || 0;
     player.alg = getCurrentAlgString();
     
-    // ステッカーマスクの適用 (個別制御)
+    // マスクの適用
     player.experimentalStickeringMask = Array.from(visibleStickers).join(',');
     
-    document.getElementById('step-counter').textContent = step;
-    document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = step;
+    
+    const indicator = document.getElementById('move-indicator');
+    if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
     
     updateHashDisplay();
 }
@@ -29,7 +37,6 @@ export function render() {
 function updateHashDisplay() {
     const hash = document.getElementById('hash-display');
     if (hash && activeMoves.length > 0) {
-        // ※将来的に visibleStickers の状態もここに含めると完全な共有が可能になります
         hash.value = "v5:" + btoa(activeMoves.join(",")).substring(0, 20);
     }
 }
@@ -44,8 +51,10 @@ export function applySetup() {
     );
     activeMoves = movesArr;
     const slider = document.getElementById('move-slider');
-    slider.max = activeMoves.length;
-    slider.value = activeMoves.length;
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = activeMoves.length;
+    }
     render();
 }
 
@@ -53,9 +62,12 @@ export function handleScramble() {
     setupMoves = [];
     const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
     activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-    document.getElementById('command-box').value = activeMoves.join(" ");
+    const cmd = document.getElementById('command-box');
+    if (cmd) cmd.value = activeMoves.join(" ");
     const slider = document.getElementById('move-slider');
-    slider.max = activeMoves.length;
-    slider.value = activeMoves.length;
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = activeMoves.length;
+    }
     render();
 }

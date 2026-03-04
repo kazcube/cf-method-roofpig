@@ -1,6 +1,5 @@
 import * as Core from './cube-core.js';
 
-// 3x3x3の各パーツに属するステッカーインデックスの定義
 const ORBIT_INDICES = {
     CENTERS: [4, 13, 22, 31, 40, 49],
     CORNERS: [0, 2, 6, 8, 9, 11, 15, 17, 18, 20, 24, 26, 27, 29, 33, 35, 36, 38, 42, 44, 45, 47, 51, 53],
@@ -11,51 +10,56 @@ export function initPaintTool() {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    // 特定のパーツ（ステッカー）をクリックした時の挙動
     player.addEventListener('pointerdown', (e) => {
-        const isPaintMode = document.getElementById('mode-paint').classList.contains('bg-emerald-500');
-        if (!isPaintMode) return;
+        const paintBtn = document.getElementById('mode-paint');
+        if (!paintBtn || !paintBtn.classList.contains('bg-emerald-500')) return;
 
         const idx = e.stickerIndex;
         if (idx === undefined) return;
 
-        // トグル切り替え: 表示されていれば消す（グレー）、消えていれば出す
-        if (Core.visibleStickers.has(idx)) {
-            Core.visibleStickers.delete(idx);
+        // Setをコピーして更新
+        const newSet = new Set(Core.visibleStickers);
+        if (newSet.has(idx)) {
+            newSet.delete(idx);
         } else {
-            Core.visibleStickers.add(idx);
+            newSet.add(idx);
         }
+        Core.setVisibleStickers(newSet);
         Core.render();
     });
 }
 
 export function applyOrbit(type) {
-    // 既存のOrbit文字列指定を、Core.visibleStickersの操作に置き換え
+    let nextSet;
     if (type === 'full') {
-        Core.visibleStickers = new Set(Array.from({length: 54}, (_, i) => i));
+        nextSet = new Set(Array.from({length: 54}, (_, i) => i));
     } else if (type === 'gray') {
-        Core.visibleStickers.clear();
+        nextSet = new Set();
     } else if (type === 'cc') {
-        // Cross + Centers (エッジは表示、コーナーは非表示)
-        Core.visibleStickers.clear();
-        [...ORBIT_INDICES.EDGES, ...ORBIT_INDICES.CENTERS].forEach(i => Core.visibleStickers.add(i));
+        nextSet = new Set([...ORBIT_INDICES.EDGES, ...ORBIT_INDICES.CENTERS]);
     }
-    Core.render();
+    
+    if (nextSet) {
+        Core.setVisibleStickers(nextSet);
+        Core.render();
+    }
 }
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
     const paintBtn = document.getElementById('mode-paint');
     const rotateBtn = document.getElementById('mode-rotate');
+    const paintPanel = document.getElementById('paint-panel');
 
-    // UIのボタンスタイル切り替え
+    if (paintPanel) paintPanel.classList.toggle('hidden', !isPaint);
+
     if (isPaint) {
-        paintBtn.className = "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white";
-        rotateBtn.className = "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
-        applyOrbit('gray'); // ペイント開始時はグレーから
+        if (paintBtn) paintBtn.className = "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white";
+        if (rotateBtn) rotateBtn.className = "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
+        applyOrbit('gray');
     } else {
-        rotateBtn.className = "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white";
-        paintBtn.className = "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
-        applyOrbit('full'); // 通常モードは全表示
+        if (rotateBtn) rotateBtn.className = "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white";
+        if (paintBtn) paintBtn.className = "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
+        applyOrbit('full');
     }
 }
