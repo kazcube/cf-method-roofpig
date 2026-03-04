@@ -4,10 +4,7 @@ export let currentMask = 'full';
 
 export function applyPreset(type) {
     const player = document.getElementById('main-cube');
-    if (!player) {
-        console.error("[DEBUG-Paint] main-cube not found in DOM");
-        return;
-    }
+    if (!player) return;
 
     const maskMap = {
         'gray': 'dim',
@@ -18,29 +15,25 @@ export function applyPreset(type) {
 
     currentMask = maskMap[type] || 'full';
     
-    console.log(`[DEBUG-Paint] Attempting to set stickering to: ${currentMask}`);
+    console.log(`[DEBUG-Paint] Setting stickering: ${currentMask}`);
     
-    // プロパティと属性の両方を更新
-    player.stickering = currentMask;
+    // 属性の直接セット
     player.setAttribute('stickering', currentMask);
     
-    // 反映後の値を確認
-    console.log(`[DEBUG-Paint] Current player.stickering is now: ${player.stickering}`);
+    // hint-stickeringを連動（グレーアウトの鍵）
+    if (currentMask === 'dim') {
+        player.setAttribute('hint-stickering', 'dim');
+    } else {
+        player.setAttribute('hint-stickering', 'none');
+    }
 }
 
 export function setPaintMode(mode) {
-    console.log(`[DEBUG-Paint] Mode changed to: ${mode}`);
+    console.log(`[DEBUG-Paint] Mode Switch: ${mode}`);
     const isPaint = (mode === 'paint');
-    const rotatePanel = document.getElementById('rotate-controls');
-    const paintPanel = document.getElementById('paint-controls');
-
-    if (isPaint) {
-        rotatePanel.classList.add('hidden');
-        paintPanel.classList.remove('hidden');
-        applyPreset('gray');
-    } else {
-        rotatePanel.classList.remove('hidden');
-        paintPanel.classList.add('hidden');
-        applyPreset('full');
-    }
+    
+    document.getElementById('rotate-controls').classList.toggle('hidden', isPaint);
+    document.getElementById('paint-controls').classList.toggle('hidden', !isPaint);
+    
+    applyPreset(isPaint ? 'gray' : 'full');
 }
