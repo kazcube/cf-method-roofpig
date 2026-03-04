@@ -1,5 +1,7 @@
 export let setupMoves = [];
 export let activeMoves = [];
+// 表示するステッカーのインデックス (デフォルト全表示: 0-53)
+export let visibleStickers = new Set(Array.from({length: 54}, (_, i) => i));
 
 export function getCurrentAlgString() {
     const slider = document.getElementById('move-slider');
@@ -15,17 +17,19 @@ export function render() {
     const step = parseInt(slider.value) || 0;
     player.alg = getCurrentAlgString();
     
+    // ステッカーマスクの適用 (個別制御)
+    player.experimentalStickeringMask = Array.from(visibleStickers).join(',');
+    
     document.getElementById('step-counter').textContent = step;
     document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
     
-    // ハッシュ表示の更新（簡易版）
     updateHashDisplay();
 }
 
 function updateHashDisplay() {
     const hash = document.getElementById('hash-display');
     if (hash && activeMoves.length > 0) {
-        // 本来はbtoaなどでシリアライズしますが、今は形式のみ
+        // ※将来的に visibleStickers の状態もここに含めると完全な共有が可能になります
         hash.value = "v5:" + btoa(activeMoves.join(",")).substring(0, 20);
     }
 }
