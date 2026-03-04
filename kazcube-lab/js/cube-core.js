@@ -1,16 +1,16 @@
 /**
  * KAZCUBE Lab Core Module
- * * [History]
+ * [History]
  * v2.0.0: Initial release with basic 3D cube.
  * v2.0.1: Added URL hash sync.
  * v2.0.2: Implemented sticker masking (Paint mode).
- * v2.0.3: Improved performance on mobile.
  * v2.0.4: Navigation buttons added.
  * v2.0.5: Added Hash Import logic and bug fixes.
  * v2.0.6: Added Auto-play (togglePlay) and fixed Setup sync bug.
+ * v2.0.7: Fixed applySetup to correctly set setupMoves.
  */
 
-export const JS_VERSION = "v2.0.6";
+export const JS_VERSION = "v2.0.7";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -27,6 +27,7 @@ export function resetAll() {
 
 /* [LOCKED: NO-REMOVE] */
 export function updateStickerState(idx, state) { stickerStates[idx] = state; }
+/* [LOCKED: NO-REMOVE] */
 export function setAllStickers(state) { stickerStates.fill(state); }
 
 /* [LOCKED: NO-REMOVE] */
@@ -67,6 +68,7 @@ export function render() {
     if (slider) {
         slider.max = activeMoves.length;
         const step = parseInt(slider.value) || 0;
+        // setupMoves (初期状態) + activeMoves の進捗分を表示
         player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
@@ -118,17 +120,21 @@ export function handleScramble() {
     render();
 }
 
-/* [LOCKED: NO-REMOVE] */
+/* [FIXED: v2.0.7] */
 export function applySetup() {
     stopPlay();
     const cb = document.getElementById('command-box');
     if (!cb) return;
     const val = cb.value.trim();
-    activeMoves = val ? val.split(/\s+/).filter(m => m.length > 0) : [];
+    // テキストエリアの手順を「セットアップ（初期状態）」として保存
+    setupMoves = val ? val.split(/\s+/).filter(m => m.length > 0) : [];
+    // メインの手順（activeMoves）は一旦空にして、ユーザーがここから新しい手順を追加できるようにする
+    activeMoves = [];
     const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.max = activeMoves.length;
-        slider.value = activeMoves.length;
+    if (slider) { 
+        slider.max = 0; 
+        slider.value = 0; 
     }
+    cb.value = ""; // 入力欄をクリア
     render();
 }
