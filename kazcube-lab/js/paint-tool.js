@@ -2,13 +2,30 @@
 export let selectedColor = 'white';
 
 /**
- * 特定のパーツだけを浮かび上がらせるマスク（Stickering）を適用
+ * 命令を繰り返し送るヘルパー関数
  */
+function applyWithRetry(player, value, retryCount = 0) {
+    if (!player || retryCount > 10) return;
+
+    // プロパティと属性の両方をセット
+    player.stickering = value;
+    player.setAttribute('stickering', value);
+
+    // 100ms ごとにリトライして、レンダリング完了を待つ
+    setTimeout(() => {
+        // 反映が不十分な場合を想定して再送（ログは初回のみ）
+        player.stickering = value;
+        player.setAttribute('stickering', value);
+        if(retryCount === 0) console.log(`[PaintTool] Applying mask: ${value}`);
+        
+        applyWithRetry(player, value, retryCount + 1);
+    }, 100);
+}
+
 export function applyPreset(type) {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    // 最新の仕様に基づき、属性(Attribute)とプロパティの両方を更新
     const maskMap = {
         'gray': 'dim',
         'corner-center': 'centers-corners',
@@ -16,19 +33,9 @@ export function applyPreset(type) {
         'full': 'full'
     };
 
-    const targetValue = maskMap[type] || 'full';
-
-    // 1. プロパティにセット
-    player.stickering = targetValue;
-    // 2. HTML属性としてもセット（TwistyPlayerは属性の変化を監視しているため、こちらの方が確実）
-    player.setAttribute('stickering', targetValue);
-
-    console.log(`[PaintTool] Applied preset: ${type} (${targetValue})`);
+    applyWithRetry(player, maskMap[type] || 'full');
 }
 
-/**
- * モード切替時のパネル表示制御と初期マスクの適用
- */
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
     const rotatePanel = document.getElementById('rotate-controls');
@@ -37,10 +44,8 @@ export function setPaintMode(mode) {
     if (isPaint) {
         rotatePanel.classList.add('hidden');
         paintPanel.classList.remove('hidden');
-        
-        // 描画の競合を避けるため、少し長めの待機時間を設けて実行
-        // もしこれでも変わらない場合は、player.connectedCallbackを待つ必要があります
-        setTimeout(() => applyPreset('gray'), 150);
+        // PAINT切り替え時にグレーにする
+        applyPreset('gray');
     } else {
         rotatePanel.classList.remove('hidden');
         paintPanel.classList.add('hidden');

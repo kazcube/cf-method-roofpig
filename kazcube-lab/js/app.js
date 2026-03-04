@@ -2,7 +2,7 @@ import * as Core from './cube-core.js';
 import * as Analyzer from './analyzer.js';
 import * as Paint from './paint-tool.js';
 
-const JS_VERSION = "v1.5.5 (Sync-Fix)"; 
+const JS_VERSION = "v1.5.6 (Mask-Retry)"; 
 
 document.addEventListener('DOMContentLoaded', () => {
     const versionDisplay = document.getElementById('version-display');
@@ -11,15 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const slider = document.getElementById('move-slider');
 
     // --- モード切替 ---
-    document.getElementById('mode-rotate').addEventListener('click', (e) => {
-        document.getElementById('mode-rotate').classList.add('active');
-        document.getElementById('mode-paint').classList.remove('active');
+    const modeRotateBtn = document.getElementById('mode-rotate');
+    const modePaintBtn = document.getElementById('mode-paint');
+
+    modeRotateBtn.addEventListener('click', () => {
+        modeRotateBtn.classList.add('active');
+        modePaintBtn.classList.remove('active');
         Paint.setPaintMode('rotate');
     });
 
-    document.getElementById('mode-paint').addEventListener('click', (e) => {
-        document.getElementById('mode-paint').classList.add('active');
-        document.getElementById('mode-rotate').classList.remove('active');
+    modePaintBtn.addEventListener('click', () => {
+        modePaintBtn.classList.add('active');
+        modeRotateBtn.classList.remove('active');
         Paint.setPaintMode('paint');
     });
 
@@ -58,9 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
         Analyzer.syncHash();
     });
 
-    // 初期化：まずはビューを更新してからハッシュを空にする
+    // 初期化
     Core.renderMoves('basic');
     Core.updateView();
-    // 起動直後はハッシュ欄を強制クリア
+    document.getElementById('rotate-controls').classList.remove('hidden');
     document.getElementById('hash-io').value = "";
 });
