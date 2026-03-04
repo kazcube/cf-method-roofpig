@@ -17,14 +17,15 @@ export function initPaintTool() {
         const idx = e.stickerIndex;
         if (idx === undefined) return;
 
-        // Setをコピーして更新
-        const newSet = new Set(Core.visibleStickers);
-        if (newSet.has(idx)) {
-            newSet.delete(idx);
+        // 現在の状態をコピーしてトグル
+        const nextSet = new Set(Core.visibleStickers);
+        if (nextSet.has(idx)) {
+            nextSet.delete(idx);
         } else {
-            newSet.add(idx);
+            nextSet.add(idx);
         }
-        Core.setVisibleStickers(newSet);
+        
+        Core.updateVisibleStickers(nextSet);
         Core.render();
     });
 }
@@ -40,7 +41,7 @@ export function applyOrbit(type) {
     }
     
     if (nextSet) {
-        Core.setVisibleStickers(nextSet);
+        Core.updateVisibleStickers(nextSet);
         Core.render();
     }
 }
@@ -49,9 +50,6 @@ export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
     const paintBtn = document.getElementById('mode-paint');
     const rotateBtn = document.getElementById('mode-rotate');
-    const paintPanel = document.getElementById('paint-panel');
-
-    if (paintPanel) paintPanel.classList.toggle('hidden', !isPaint);
 
     if (isPaint) {
         if (paintBtn) paintBtn.className = "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white";

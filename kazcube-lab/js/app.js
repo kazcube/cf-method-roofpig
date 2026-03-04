@@ -10,29 +10,24 @@ const moveSets = {
 let currentTab = 'basic';
 
 function init() {
-    console.log("KAZCUBE Lab: Initializing...");
+    // 画面のバージョン表記を更新
+    const versionTag = document.querySelector('header span');
+    if (versionTag) {
+        versionTag.textContent = Core.JS_VERSION;
+    }
 
-    // 1. ペイントツールの初期化（イベントリスナーの登録）
+    console.log(`KAZCUBE Lab: Initializing ${Core.JS_VERSION}...`);
+
     initPaintTool();
 
-    // 2. モード切替ボタンのイベント接続
+    // モード切替
     const btnRotate = document.getElementById('mode-rotate');
     const btnPaint = document.getElementById('mode-paint');
 
-    if (btnRotate) {
-        btnRotate.onclick = () => {
-            console.log("Mode: Rotate");
-            setPaintMode('rotate');
-        };
-    }
-    if (btnPaint) {
-        btnPaint.onclick = () => {
-            console.log("Mode: Paint");
-            setPaintMode('paint');
-        };
-    }
+    if (btnRotate) btnRotate.onclick = () => setPaintMode('rotate');
+    if (btnPaint) btnPaint.onclick = () => setPaintMode('paint');
 
-    // 3. タブ切り替えイベントの接続
+    // タブ
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -42,28 +37,13 @@ function init() {
         };
     });
 
-    // 4. その他コントロールボタン
-    const btnSetup = document.getElementById('btn-setup');
-    const btnScramble = document.getElementById('btn-scramble');
-    const btnReset = document.getElementById('btn-reset');
-
-    if (btnSetup) btnSetup.onclick = Core.applySetup;
-    if (btnScramble) btnScramble.onclick = Core.handleScramble;
-    if (btnReset) {
-        btnReset.onclick = () => {
-            if(confirm("すべてのデータをリセットしますか？")) {
-                location.reload();
-            }
-        };
-    }
+    // 各種操作
+    if (document.getElementById('btn-setup')) document.getElementById('btn-setup').onclick = Core.applySetup;
+    if (document.getElementById('btn-scramble')) document.getElementById('btn-scramble').onclick = Core.handleScramble;
     
-    // 5. スライダー
     const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.oninput = Core.render;
-    }
+    if (slider) slider.oninput = Core.render;
 
-    // 6. 初回レンダリング & ボタン生成
     updateMoveGrid();
     Core.render();
 }
@@ -75,7 +55,6 @@ function updateMoveGrid() {
     
     grid.innerHTML = "";
     
-    // タブのデザイン調整
     if (currentTab === 'basic') {
         panel.style.borderRadius = "0 15px 15px 15px";
     } else {
@@ -86,7 +65,6 @@ function updateMoveGrid() {
     faces.forEach(f => {
         [f, f + "'", f + "2"].forEach(m => {
             const b = document.createElement('button');
-            // Tailwindのクラスを確実に適用
             b.className = "bg-slate-800/50 py-2.5 rounded-lg font-mono text-[11px] font-bold hover:bg-slate-700 transition border border-slate-700/30 text-slate-200";
             b.textContent = m;
             b.onclick = () => {
@@ -103,7 +81,6 @@ function updateMoveGrid() {
     });
 }
 
-// DOMの読み込み完了を待って実行
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
