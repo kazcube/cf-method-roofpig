@@ -5,7 +5,6 @@ export let activeMoves = [];
 export function getCurrentAlgString() {
     const slider = document.getElementById('move-slider');
     const step = slider ? parseInt(slider.value) : 0;
-    // セットアップ（逆手順）を先に実行し、その後に現在の手順を重ねる
     return [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
 }
 
@@ -21,21 +20,19 @@ export function render() {
     document.getElementById('move-indicator').textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
 }
 
-// 【復活】ハッシュ解析とセットアップ適用ロジック
 export function applySetup() {
     let val = document.getElementById('command-box').value.trim();
     if (!val) return;
 
-    // ハッシュ記号があれば除去して解析
+    // ハッシュ記号の除去とパース
     const cleanVal = val.replace(/^#\s*/, "");
     const movesArr = cleanVal.split(/\s+/).filter(m => m.length > 0);
 
-    // セットアップとして「逆手順」を生成（初期状態からその形にするため）
+    // 逆手順をセットアップとして格納
     setupMoves = [...movesArr].reverse().map(m => 
         m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'")
     );
     
-    // 表示用のメイン手順としてもセット
     activeMoves = movesArr;
     
     const slider = document.getElementById('move-slider');

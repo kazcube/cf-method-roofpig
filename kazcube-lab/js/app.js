@@ -3,10 +3,11 @@ import * as Core from './cube-core.js';
 import * as Paint from './paint-tool.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // モード切替
     const btnRotate = document.getElementById('mode-rotate');
     const btnPaint = document.getElementById('mode-paint');
+    const commandBox = document.getElementById('command-box');
 
+    // モード切替
     if (btnRotate && btnPaint) {
         btnRotate.onclick = () => {
             btnRotate.className = "mode-btn active-rotate";
@@ -20,12 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // ユーティリティボタン (Copy / Paste / Clear)
+    document.getElementById('btn-copy').onclick = () => {
+        navigator.clipboard.writeText(commandBox.value);
+        console.log("Copied to clipboard");
+    };
+    document.getElementById('btn-paste').onclick = async () => {
+        commandBox.value = await navigator.clipboard.readText();
+    };
+    document.getElementById('btn-clear').onclick = () => {
+        commandBox.value = "";
+    };
+
     // マスクボタン
     document.getElementById('btn-mask-gray').onclick = () => Paint.applyOrbit('gray');
     document.getElementById('btn-mask-cc').onclick = () => Paint.applyOrbit('cc');
     document.getElementById('btn-mask-full').onclick = () => Paint.applyOrbit('full');
 
-    // キューブ操作（ハッシュ/セットアップ含む）
+    // キューブ操作
     document.getElementById('btn-scramble').onclick = Core.handleScramble;
     document.getElementById('btn-setup').onclick = Core.applySetup;
     document.getElementById('btn-reset').onclick = () => {
