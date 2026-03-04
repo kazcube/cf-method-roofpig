@@ -2,51 +2,48 @@
 import * as Core from './cube-core.js';
 import * as Paint from './paint-tool.js';
 
-const JS_VERSION = "v1.6.5 (Orbit-Logic)";
-
 document.addEventListener('DOMContentLoaded', () => {
-    const versionDisplay = document.getElementById('version-display');
-    if (versionDisplay) versionDisplay.textContent = JS_VERSION;
-
-    // --- モード切替 ---
+    // モード切替
     const btnRotate = document.getElementById('mode-rotate');
     const btnPaint = document.getElementById('mode-paint');
 
     btnRotate.onclick = () => {
-        btnRotate.classList.add('bg-emerald-600', 'text-white');
-        btnRotate.classList.remove('text-slate-500');
-        btnPaint.classList.remove('bg-orange-600', 'text-white');
-        btnPaint.classList.add('text-slate-500');
+        btnRotate.className = "mode-btn active-rotate";
+        btnPaint.className = "mode-btn inactive";
         Paint.setPaintMode('rotate');
     };
 
     btnPaint.onclick = () => {
-        btnPaint.classList.add('bg-orange-600', 'text-white');
-        btnPaint.classList.remove('text-slate-500');
-        btnRotate.classList.remove('bg-emerald-600', 'text-white');
-        btnRotate.classList.add('text-slate-500');
+        btnPaint.className = "mode-btn active-paint";
+        btnRotate.className = "mode-btn inactive";
         Paint.setPaintMode('paint');
     };
 
-    // --- ボタン操作 ---
+    // マスク操作
+    document.getElementById('btn-mask-gray').onclick = () => Paint.applyOrbit('gray');
+    document.getElementById('btn-mask-cc').onclick = () => Paint.applyOrbit('cc');
+    document.getElementById('btn-mask-full').onclick = () => Paint.applyOrbit('full');
+
+    // キューブ操作
     document.getElementById('btn-scramble').onclick = Core.handleScramble;
-    document.getElementById('btn-setup').onclick = Core.applyReverseSetup;
-    document.getElementById('btn-reset-alg').onclick = () => {
-        location.reload(); // 確実に初期化
-    };
+    document.getElementById('btn-reset').onclick = () => location.reload();
+    document.getElementById('move-slider').oninput = Core.render;
 
-    // --- スライダー ---
-    const slider = document.getElementById('move-slider');
-    slider.oninput = Core.updateView;
-    document.getElementById('nav-first').onclick = () => { slider.value = 0; Core.updateView(); };
-    document.getElementById('nav-last').onclick = () => { slider.value = Core.activeMoves.length; Core.updateView(); };
-
-    // --- プリセット ---
-    document.getElementById('preset-gray').onclick = () => Paint.applyPreset('gray');
-    document.getElementById('preset-cc').onclick = () => Paint.applyPreset('corner-center');
-    document.getElementById('preset-co').onclick = () => Paint.applyPreset('corner-only');
-
-    // 初期化
-    Core.renderMoves('basic');
-    Core.updateView();
+    // 回転ボタン生成
+    const grid = document.getElementById('move-grid');
+    ['U','D','L','R','F','B'].forEach(f => {
+        [f, f+"'", f+"2"].forEach(m => {
+            const b = document.createElement('button');
+            b.className = "bg-slate-800 py-2 rounded font-mono text-[10px] hover:bg-slate-700";
+            b.textContent = m;
+            b.onclick = () => {
+                Core.moves.push(m);
+                const slider = document.getElementById('move-slider');
+                slider.max = Core.moves.length;
+                slider.value = Core.moves.length;
+                Core.render();
+            };
+            grid.appendChild(b);
+        });
+    });
 });
