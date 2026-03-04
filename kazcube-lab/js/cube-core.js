@@ -1,4 +1,4 @@
-export const JS_VERSION = "v2.0.1";
+export const JS_VERSION = "v2.0.3";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1); 
@@ -21,7 +21,6 @@ export function loadFromHash() {
     } catch (e) { console.error("Hash Error", e); }
 }
 
-// エラー回避のため render の前に定義
 function generateOrbitMask() {
     const getMask = (indices) => indices.map(i => stickerStates[i] ? '-' : 'I').join('');
     const e = [1,3,5,7,10,12,14,16,19,21,23,25,28,30,32,34,37,39,41,43,46,48,50,52].slice(0, 12);
@@ -37,28 +36,48 @@ export function render() {
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
     const slider = document.getElementById('move-slider');
-    const step = slider ? parseInt(slider.value) : 0;
-    
-    // スライダーの最大値を更新
-    if (slider) slider.max = activeMoves.length;
-    
-    player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
-    
-    const counter = document.getElementById('step-counter');
-    if (counter) counter.textContent = step;
+    if (slider) {
+        slider.max = activeMoves.length;
+        const step = parseInt(slider.value) || 0;
+        // twisty-player の alg プロパティを直接更新してキューブを動かす
+        player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+        
+        const counter = document.getElementById('step-counter');
+        if (counter) counter.textContent = step;
+    }
 
-    // ハッシュ保存
     const rawData = `${stickerStates.join("")}|${activeMoves.join(",")}`;
     window.history.replaceState(null, "", "#v5:" + btoa(rawData));
 }
 
+// スクランブル処理の修正
 export function handleScramble() {
     setupMoves = [];
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
+    
+    // UI反映
     const cb = document.getElementById('command-box');
     if (cb) cb.value = activeMoves.join(" ");
+    
     const slider = document.getElementById('move-slider');
-    if (slider) slider.value = activeMoves.length;
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = activeMoves.length; // スライダーを最後まで持っていく
+    }
+    
+    // 描画実行（これでキューブが崩れます）
+    render();
+}
+
+export function applySetup() {
+    let val = document.getElementById('command-box').value.trim();
+    if (!val) return;
+    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+    const slider = document.getElementById('move-slider');
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = activeMoves.length;
+    }
     render();
 }

@@ -1,5 +1,5 @@
-import * as Core from './cube-core.js?v=2.0.2';
-import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.2';
+import * as Core from './cube-core.js?v=2.0.3';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.3';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -17,18 +17,20 @@ function updateMoveGrid(tab = "basic") {
             const move = m + mod;
             const btn = document.createElement('button');
             btn.textContent = move;
-            btn.className = "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold text-xs text-white transition";
+            btn.className = "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold text-xs text-white transition active:scale-95";
             btn.onclick = () => { 
                 Core.activeMoves.push(move); 
                 const slider = document.getElementById('move-slider');
-                if (slider) slider.value = Core.activeMoves.length;
+                if (slider) {
+                    slider.max = Core.activeMoves.length;
+                    slider.value = Core.activeMoves.length; // 常に最新の動きまで表示
+                }
                 Core.render(); 
             };
             grid.appendChild(btn);
         });
     });
 
-    // タブの見た目を更新
     document.querySelectorAll('.tab-btn').forEach(btn => {
         const isActive = btn.dataset.tab === tab;
         btn.className = isActive 
@@ -42,17 +44,16 @@ window.onload = () => {
     Core.loadFromHash();
     initPaintTool();
 
-    // モード切り替え
     document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
     document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
     
-    // タブ切り替えイベントの登録
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = () => updateMoveGrid(btn.dataset.tab);
     });
 
-    // その他ボタン
     document.getElementById('scramble-btn').onclick = Core.handleScramble;
+    document.getElementById('setup-btn').onclick = Core.applySetup;
+    
     const resetBtn = document.getElementById('reset-btn');
     if (resetBtn) {
         resetBtn.onclick = () => {
@@ -60,7 +61,11 @@ window.onload = () => {
         };
     }
 
-    // 初期表示の生成
+    const slider = document.getElementById('move-slider');
+    if (slider) {
+        slider.oninput = () => Core.render();
+    }
+
     updateMoveGrid('basic');
     setPaintMode(Core.stickerStates.includes(0) ? 'paint' : 'rotate');
     Core.render();
