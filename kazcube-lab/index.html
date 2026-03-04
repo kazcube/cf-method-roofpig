@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab v2.0.3</title>
+    <title>KAZCUBE Lab v2.0.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://cdn.cubing.net/js/cubing/twisty"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,6 +15,16 @@
         twisty-player { width: 100%; height: 100%; --background: none; }
         input:focus { outline: none; border-color: #3b82f6; }
         .tab-btn { transition: all 0.2s; }
+        /* スライダーのカスタマイズ */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #10b981;
+            border-radius: 50%;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen">
@@ -24,13 +34,13 @@
         <header class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-baseline gap-2">
                 <h1 class="text-3xl font-black italic tracking-tighter text-emerald-400">KAZCUBE Lab</h1>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">v2.0.3</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">v2.0.4</span>
             </div>
             
             <div class="flex items-center gap-3 bg-slate-900 p-1 rounded-xl border border-slate-800">
                 <div class="flex bg-slate-800 rounded-lg overflow-hidden p-1 gap-1">
-                    <button id="lang-jp" class="px-3 py-1 text-[10px] font-bold bg-blue-600 rounded-md">JP</button>
-                    <button id="lang-en" class="px-3 py-1 text-[10px] font-bold text-slate-400 hover:text-white">EN</button>
+                    <button id="lang-jp" class="px-3 py-1 text-[10px] font-bold bg-blue-600 rounded-md transition">JP</button>
+                    <button id="lang-en" class="px-3 py-1 text-[10px] font-bold text-slate-400 hover:text-white transition">EN</button>
                 </div>
                 <div class="flex gap-1 pr-1">
                     <button id="mode-rotate" class="px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white transition">Rotate</button>
@@ -43,8 +53,7 @@
             <div class="px-3 py-1 bg-black rounded text-[9px] font-black text-slate-500 uppercase">Hash</div>
             <input id="hash-display" type="text" readonly value="v5:ready..." 
                    class="bg-transparent text-xs font-mono text-emerald-500 flex-1 truncate">
-            <button class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition shrink-0">Copy Link</button>
-            <button id="import-btn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition shrink-0">Import</button>
+            <button id="copy-btn" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition shrink-0 text-white">Copy Link</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -55,9 +64,18 @@
                 </div>
                 
                 <div class="glass rounded-2xl p-6 space-y-4">
-                    <input id="move-slider" type="range" min="0" max="0" value="0" 
-                           class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <button id="nav-first" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-xs hover:bg-slate-700 transition">|◀</button>
+                        <button id="nav-prev" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-xs hover:bg-slate-700 transition">◀</button>
+                        
+                        <input id="move-slider" type="range" min="0" max="0" value="0" 
+                               class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        
+                        <button id="nav-next" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-xs hover:bg-slate-700 transition">▶</button>
+                        <button id="nav-last" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-xs hover:bg-slate-700 transition">▶|</button>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2">
                         <div class="flex items-baseline gap-1">
                             <span class="text-[9px] font-black text-slate-500 uppercase">Step</span>
                             <span id="step-counter" class="text-xl font-black text-emerald-400">0</span>
@@ -76,7 +94,7 @@
                               class="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-4 text-sm font-mono focus:ring-2 focus:ring-emerald-500/50 transition resize-none text-white"></textarea>
                     
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="scramble-btn" class="bg-indigo-600 hover:bg-indigo-500 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition">Scramble</button>
+                        <button id="scramble-btn" class="bg-indigo-600 hover:bg-indigo-500 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition text-white">Scramble</button>
                         <button id="setup-btn" class="border-2 border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition">Set Setup</button>
                     </div>
 
@@ -97,7 +115,7 @@
         </div>
     </div>
 
-    <script type="module" src="./js/app.js?v=v2.0.3"></script>
+    <script type="module" src="./js/app.js?v=2.0.4"></script>
 
 </body>
 </html>
