@@ -1,4 +1,4 @@
-export const JS_VERSION = "v1.9.3";
+export const JS_VERSION = "v1.9.5";
 
 export let setupMoves = [];
 export let activeMoves = [];
@@ -12,21 +12,14 @@ export function setAllStickers(state) {
     stickerStates.fill(state);
 }
 
-// ハッシュから状態を復元する関数
 export function loadFromHash() {
     const hash = window.location.hash.replace(/^#/, "");
     if (!hash.startsWith("v5:")) return;
-    
     try {
-        const decoded = atob(hash.substring(3)); // "v5:" 以降をデコード
+        const decoded = atob(hash.substring(3));
         const [mask, moves] = decoded.split("|");
-        
-        if (mask && mask.length === 54) {
-            stickerStates = mask.split("").map(Number);
-        }
-        if (moves) {
-            activeMoves = moves.split(",").filter(m => m !== "");
-        }
+        if (mask && mask.length === 54) stickerStates = mask.split("").map(Number);
+        if (moves) activeMoves = moves.split(",").filter(m => m !== "");
     } catch (e) {
         console.error("Hash recovery failed", e);
     }
@@ -50,17 +43,38 @@ export function render() {
     const step = parseInt(slider?.value || 0);
     player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
 
-    // ハッシュの更新
-    const maskStr = stickerStates.join("");
-    const movesStr = activeMoves.join(",");
-    const rawData = `v5:${maskStr}|${movesStr}`;
+    // UI更新
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = step;
+    
+    const indicator = document.getElementById('move-indicator');
+    if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+
+    // ハッシュ更新
+    const rawData = `v5:${stickerStates.join("")}|${activeMoves.join(",")}`;
     const hashValue = btoa(rawData);
-    
-    const hashDisplay = document.getElementById('hash-display');
-    if (hashDisplay) hashDisplay.value = `v5:${hashValue.substring(0, 16)}...`;
-    
-    // URLのハッシュを書き換え（履歴に残さない）
+    const display = document.getElementById('hash-display');
+    if (display) display.value = `v5:${hashValue.substring(0, 16)}...`;
     window.history.replaceState(null, "", "#" + `v5:${hashValue}`);
 }
 
-// ... applySetup, handleScramble は維持
+export function applySetup() {
+    let val = document.getElementById('command-box').value.trim().replace(/^#\s*/, "");
+    if (!val) return;
+    const movesArr = val.split(/\s+/).filter(m => m.length > 0);
+    setupMoves = [...movesArr].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
+    activeMoves = movesArr;
+    const slider = document.getElementById('move-slider');
+    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
+    render();
+}
+
+export function handleScramble() {
+    setupMoves = [];
+    const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
+    activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
+    document.getElementById('command-box').value = activeMoves.join(" ");
+    const slider = document.getElementById('move-slider');
+    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
+    render();
+}
