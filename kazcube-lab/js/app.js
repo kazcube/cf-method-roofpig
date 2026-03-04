@@ -1,3 +1,4 @@
+// js/app.js
 import * as Core from './cube-core.js';
 import * as Paint from './paint-tool.js';
 
@@ -14,11 +15,11 @@ function updateMoveGrid() {
     if (!grid) return;
     grid.innerHTML = "";
     
-    const faces = moveSets[currentTab];
-    faces.forEach(f => {
+    moveSets[currentTab].forEach(f => {
         [f, f+"'", f+"2"].forEach(m => {
             const b = document.createElement('button');
-            b.className = "bg-slate-800 py-2 rounded font-mono text-[11px] font-bold hover:bg-slate-700 transition active:scale-95 active:bg-indigo-900";
+            // ここで角丸(rounded-md)を適用
+            b.className = "bg-slate-800 py-2.5 rounded-md font-mono text-[11px] font-bold hover:bg-slate-700 transition active:scale-95 active:bg-indigo-900 border border-slate-700/50";
             b.textContent = m;
             b.onclick = () => {
                 Core.activeMoves.push(m);
@@ -33,7 +34,7 @@ function updateMoveGrid() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // タブ切り替えイベント
+    // タブ切り替え
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -43,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // 初期ボタン生成
     updateMoveGrid();
 
     // モード切替
@@ -60,9 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
         Paint.setPaintMode('paint');
     };
 
-    // UIボタン
+    // 共通イベント
     document.getElementById('btn-copy').onclick = () => {
         navigator.clipboard.writeText(document.getElementById('hash-display').value);
+        alert("Copied!");
     };
     document.getElementById('btn-scramble').onclick = Core.handleScramble;
     document.getElementById('btn-setup').onclick = Core.applySetup;
