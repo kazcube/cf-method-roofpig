@@ -12,13 +12,44 @@ export function initPaintTool() {
         Core.updateStickerState(idx, Core.stickerStates[idx] ? 0 : 1);
         Core.render();
     });
+}
 
-    // Orbitボタン群のイベント接続
-    const binds = { 'orbit-full': 'full', 'orbit-gray': 'gray', 'orbit-cc': 'cc' };
-    Object.entries(binds).forEach(([id, type]) => {
-        const el = document.getElementById(id);
-        if (el) el.onclick = () => applyOrbit(type);
-    });
+/**
+ * ペイント専用パネル（C+Centerなどのボタン）を確実に作成・表示する
+ */
+function ensurePaintPanel(show) {
+    let panel = document.getElementById('paint-panel');
+    const slider = document.getElementById('move-slider');
+
+    if (!panel && slider) {
+        // パネルが存在しない場合は作成してスライダーの下に挿入
+        panel = document.createElement('div');
+        panel.id = 'paint-panel';
+        panel.className = "flex justify-center gap-4 mt-4 mb-4";
+        
+        // ボタンの生成ロジック
+        const buttons = [
+            { id: 'orbit-full', text: 'ALL COLOR', type: 'full', color: 'bg-slate-700' },
+            { id: 'orbit-gray', text: 'ALL GRAY', type: 'gray', color: 'bg-slate-700' },
+            { id: 'orbit-cc', text: 'C+CENTER', type: 'cc', color: 'bg-emerald-600' }
+        ];
+
+        buttons.forEach(btnInfo => {
+            const btn = document.createElement('button');
+            btn.id = btnInfo.id;
+            btn.textContent = btnInfo.text;
+            btn.className = `${btnInfo.color} px-4 py-2 rounded-md text-[10px] font-bold text-white hover:opacity-80 transition`;
+            btn.onclick = () => applyOrbit(btnInfo.type);
+            panel.appendChild(btn);
+        });
+
+        // スライダーの親要素の末尾、またはスライダーの直後に挿入
+        slider.parentNode.insertBefore(panel, slider.nextSibling);
+    }
+
+    if (panel) {
+        panel.style.display = show ? 'flex' : 'none';
+    }
 }
 
 export function applyOrbit(type) {
@@ -35,21 +66,25 @@ export function applyOrbit(type) {
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
-    const paintPanel = document.getElementById('paint-panel');
     const moveGrid = document.getElementById('move-grid');
-    const tabWrapper = document.querySelector('.flex.gap-1.mb-2'); // タブボタンの親
+    const tabWrapper = document.querySelector('.flex.gap-1.mb-2');
 
-    // UIの切り替え
-    if (paintPanel) paintPanel.style.display = isPaint ? 'flex' : 'none';
+    // ペイントパネルの強制制御
+    ensurePaintPanel(isPaint);
+
+    // 回転UIの表示切り替え
     if (moveGrid) moveGrid.style.display = isPaint ? 'none' : 'grid';
     if (tabWrapper) tabWrapper.style.display = isPaint ? 'none' : 'flex';
 
-    // ボタンの色
-    document.getElementById('mode-paint').className = isPaint 
+    // モードボタンのスタイル更新
+    const paintBtn = document.getElementById('mode-paint');
+    const rotateBtn = document.getElementById('mode-rotate');
+    
+    if (paintBtn) paintBtn.className = isPaint 
         ? "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white"
         : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
     
-    document.getElementById('mode-rotate').className = !isPaint 
+    if (rotateBtn) rotateBtn.className = !isPaint 
         ? "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white"
         : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
     
