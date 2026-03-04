@@ -1,19 +1,33 @@
 import * as Core from './cube-core.js';
 
+/**
+ * ペイントツールの初期化
+ * キューブのステッカーをクリックした際の挙動を定義
+ */
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
     player.addEventListener('pointerdown', (e) => {
-        if (!document.getElementById('mode-paint').classList.contains('bg-emerald-500')) return;
+        // PAINTモードが有効（ボタンが緑色）な時だけ反応する
+        const paintBtn = document.getElementById('mode-paint');
+        if (!paintBtn || !paintBtn.classList.contains('bg-emerald-500')) return;
+
         const idx = e.stickerIndex;
         if (idx === undefined) return;
 
-        Core.updateStickerState(idx, Core.stickerStates[idx] ? 0 : 1);
+        // ステッカーの状態を反転 (1:表示 / 0:非表示)
+        const currentState = Core.stickerStates[idx];
+        Core.updateStickerState(idx, currentState === 1 ? 0 : 1);
+        
+        // 描画更新（ハッシュ更新も含む）
         Core.render();
     });
 }
 
+/**
+ * ペイント専用パネル（GRAY / C+C / FULL）を生成・表示制御
+ */
 function ensurePaintPanel(show) {
     let panel = document.getElementById('paint-panel');
     const paintBtn = document.getElementById('mode-paint');
@@ -23,18 +37,21 @@ function ensurePaintPanel(show) {
         panel.id = 'paint-panel';
         panel.className = "flex gap-2 ml-4 px-3 border-l border-slate-700 items-center";
         
-        const buttons = [
-            { text: 'GRAY', type: 'gray', color: 'bg-slate-700' },
-            { text: 'C+C', type: 'cc', color: 'bg-emerald-600' },
-            { text: 'FULL', type: 'full', color: 'bg-slate-700' }
+        const config = [
+            { key: 'gray', text: 'GRAY' },
+            { key: 'cc', text: 'C+C' },
+            { key: 'full', text: 'FULL' }
         ];
 
-        buttons.forEach(btnInfo => {
+        config.forEach(item => {
             const btn = document.createElement('button');
-            btn.textContent = btnInfo.text;
-            btn.className = `${btnInfo.color} px-2 py-1.5 rounded text-[9px] font-black text-white uppercase hover:brightness-125 transition`;
-            // Coreを通さず、このファイル内のapplyOrbitを確実に呼ぶ
-            btn.onclick = () => applyOrbit(btnInfo.type);
+            btn.id = `btn-orbit-${item.key}`;
+            btn.textContent = item.text;
+            btn.className = "px-2 py-1.5 rounded text-[9px] font-black text-white uppercase bg-slate-700 hover:brightness-125 transition";
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                applyOrbit(item.key);
+            };
             panel.appendChild(btn);
         });
 
@@ -46,15 +63,29 @@ function ensurePaintPanel(show) {
     }
 }
 
+/**
+ * プリセットのマスク（塗り絵）を適用
+ */
 export function applyOrbit(type) {
-    // Core の関数が確実に存在するかチェックしながら実行
+    // 全ボタンのハイライトをリセット
+    ['gray', 'cc', 'full'].forEach(key => {
+        const el = document.getElementById(`btn-orbit-${key}`);
+        if (el) {
+            if (key === type) {
+                el.classList.replace('bg-slate-700', 'bg-emerald-500');
+            } else {
+                el.classList.replace('bg-emerald-500', 'bg-slate-700');
+            }
+        }
+    });
+
     if (type === 'full') {
         Core.setAllStickers(1);
     } else if (type === 'gray') {
         Core.setAllStickers(0);
     } else if (type === 'cc') {
         Core.setAllStickers(0);
-        // Center(4,13,22,31,40,49) + Corner(各面0,2,6,8...)
+        // Center(真ん中) + Corner(四隅) のインデックス
         const centersAndCorners = [
             0, 2, 4, 6, 8,      // U
             9, 11, 13, 15, 17,  // R
@@ -65,25 +96,51 @@ export function applyOrbit(type) {
         ];
         centersAndCorners.forEach(i => Core.updateStickerState(i, 1));
     }
+    
     Core.render();
 }
 
+/**
+ * ROTATE / PAINT モードの切り替え
+ */
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
     const moveGrid = document.getElementById('move-grid');
     const tabArea = document.querySelector('.tab-btn')?.parentNode;
 
+    // パネルの表示・非表示
     ensurePaintPanel(isPaint);
 
+    // 回転UIの隠蔽設定
     if (moveGrid) moveGrid.style.display = isPaint ? 'none' : 'grid';
     if (tabArea) tabArea.style.display = isPaint ? 'none' : 'flex';
 
-    // ボタン色制御
+    // モード切り替えボタンのスタイル
     const pb = document.getElementById('mode-paint');
     const rb = document.getElementById('mode-rotate');
-    if (pb) pb.classList.toggle('bg-emerald-500', isPaint);
-    if (rb) rb.classList.toggle('bg-emerald-500', !isPaint);
     
-    // モード切替時の初期化: PaintならGRAY、RotateならFULL
-    applyOrbit(isPaint ? 'gray' : 'full');
+    if (pb) {
+        pb.className = isPaint 
+            ? "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white"
+            : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
+    }
+    if (rb) {
+        rb.className = !isPaint 
+            ? "px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white"
+            : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg";
+    }
+
+    // すでにURLハッシュから復元されたデータ（非表示ステッカー）があるか確認
+    const hasMask = Core.stickerStates.includes(0);
+
+    // 新規でPaintモードにする時、かつ何も塗られていない時だけ初期マスク(GRAY)を適用
+    if (isPaint && !hasMask) {
+        applyOrbit('gray');
+    } else if (!isPaint && !hasMask) {
+        // Rotateモードに戻る時は全表示に戻す（お好みで調整）
+        applyOrbit('full');
+    }
+
+    // 最後に描画を強制更新
+    Core.render();
 }
