@@ -2,7 +2,7 @@ import * as Core from './cube-core.js';
 import * as Analyzer from './analyzer.js';
 import * as Paint from './paint-tool.js';
 
-const JS_VERSION = "v1.5.4 (Full-UI)"; 
+const JS_VERSION = "v1.5.5 (Sync-Fix)"; 
 
 document.addEventListener('DOMContentLoaded', () => {
     const versionDisplay = document.getElementById('version-display');
@@ -11,18 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const slider = document.getElementById('move-slider');
 
     // --- モード切替 ---
-    const modeRotateBtn = document.getElementById('mode-rotate');
-    const modePaintBtn = document.getElementById('mode-paint');
-
-    modeRotateBtn.addEventListener('click', () => {
-        modeRotateBtn.classList.add('active');
-        modePaintBtn.classList.remove('active');
+    document.getElementById('mode-rotate').addEventListener('click', (e) => {
+        document.getElementById('mode-rotate').classList.add('active');
+        document.getElementById('mode-paint').classList.remove('active');
         Paint.setPaintMode('rotate');
     });
 
-    modePaintBtn.addEventListener('click', () => {
-        modePaintBtn.classList.add('active');
-        modeRotateBtn.classList.remove('active');
+    document.getElementById('mode-paint').addEventListener('click', (e) => {
+        document.getElementById('mode-paint').classList.add('active');
+        document.getElementById('mode-rotate').classList.remove('active');
         Paint.setPaintMode('paint');
     });
 
@@ -30,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-scramble').addEventListener('click', Core.handleScramble);
     document.getElementById('btn-setup').addEventListener('click', Core.applyReverseSetup);
     
-    // アルゴリズムのリセット
     document.getElementById('btn-reset-alg').addEventListener('click', () => {
         document.getElementById('command-box').value = "";
         Core.setSetupMoves([]);
@@ -62,8 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
         Analyzer.syncHash();
     });
 
-    // 初期化
+    // 初期化：まずはビューを更新してからハッシュを空にする
     Core.renderMoves('basic');
     Core.updateView();
-    document.getElementById('rotate-controls').classList.remove('hidden');
+    // 起動直後はハッシュ欄を強制クリア
+    document.getElementById('hash-io').value = "";
 });

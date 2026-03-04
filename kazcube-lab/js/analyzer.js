@@ -2,17 +2,32 @@ import { setupMoves, activeMoves } from './cube-core.js';
 
 export function syncHash() {
     const slider = document.getElementById('move-slider');
+    const hashIo = document.getElementById('hash-io');
+
+    // 手順が一つも無い時は空にする
+    if (setupMoves.length === 0 && activeMoves.length === 0) {
+        hashIo.value = "";
+        return;
+    }
+
     const state = {
         s: setupMoves,
         a: activeMoves,
         v: parseInt(slider.value) || 0
     };
-    const hash = "v5:" + btoa(JSON.stringify(state));
-    document.getElementById('hash-io').value = hash;
+    
+    try {
+        const hash = "v5:" + btoa(JSON.stringify(state));
+        hashIo.value = hash;
+    } catch (e) {
+        console.error("Hash generation failed", e);
+    }
 }
 
 export function copyLink() {
     const hash = document.getElementById('hash-io').value;
+    if (!hash) return; // 空なら何もしない
+
     const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
     navigator.clipboard.writeText(url).then(() => {
         const btn = document.getElementById('btn-copy');
