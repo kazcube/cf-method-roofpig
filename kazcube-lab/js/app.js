@@ -1,13 +1,14 @@
 /**
  * KAZCUBE Lab Application Module
- * [v2.0.5] 2026-03-04
- * [Added] Import ボタンのイベント追加
- * [Updated] Reset ボタンの確認ダイアログを撤去
- * [Updated] 依存パスのバージョンを v2.0.5 に統一
+ * * [History]
+ * v2.0.0: UI framework with Tailwind.
+ * v2.0.4: Navigation controls & i18n support.
+ * v2.0.5: Added Import button handler.
+ * v2.0.6: Play button event added & Copy/Import order swapped.
  */
 
-import * as Core from './cube-core.js?v=2.0.5';
-import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.5';
+import * as Core from './cube-core.js?v=2.0.6';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.6';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -15,11 +16,13 @@ const moveSets = {
     slice: ["E", "M", "S", "x", "y", "z"]
 };
 
+/* [LOCKED: NO-REMOVE] */
 const i18n = {
     jp: { scramble: "スクランブル", setup: "セットアップ設定", reset: "全データリセット", placeholder: "手順を入力..." },
     en: { scramble: "SCRAMBLE", setup: "SET SETUP", reset: "RESET ALL DATA", placeholder: "Enter algorithm..." }
 };
 
+/* [LOCKED: NO-REMOVE] */
 function setLanguage(lang) {
     const texts = i18n[lang];
     document.getElementById('scramble-btn').textContent = texts.scramble;
@@ -31,18 +34,18 @@ function setLanguage(lang) {
     btnEn.className = `px-3 py-1 text-[10px] font-bold ${lang === 'en' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'} rounded-md transition`;
 }
 
+/* [LOCKED: NO-REMOVE] */
 function updateMoveGrid(tab = "basic") {
     const grid = document.getElementById('move-grid');
     if (!grid) return;
     grid.innerHTML = "";
     moveSets[tab].forEach(m => {
         ["", "'", "2"].forEach(mod => {
-            const move = m + mod;
             const btn = document.createElement('button');
-            btn.textContent = move;
+            btn.textContent = m + mod;
             btn.className = "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold text-xs text-white transition active:scale-95";
             btn.onclick = () => { 
-                Core.activeMoves.push(move); 
+                Core.activeMoves.push(m + mod); 
                 const slider = document.getElementById('move-slider');
                 if (slider) { slider.max = Core.activeMoves.length; slider.value = Core.activeMoves.length; }
                 Core.render(); 
@@ -58,6 +61,7 @@ function updateMoveGrid(tab = "basic") {
     });
 }
 
+/* [LOCKED: NO-REMOVE] */
 window.onload = () => {
     Core.loadFromHash();
     initPaintTool();
@@ -71,6 +75,7 @@ window.onload = () => {
     document.getElementById('nav-last').onclick = () => updateAndRender(Core.activeMoves.length);
     document.getElementById('nav-prev').onclick = () => updateAndRender(Math.max(0, parseInt(slider.value) - 1));
     document.getElementById('nav-next').onclick = () => updateAndRender(Math.min(Core.activeMoves.length, parseInt(slider.value) + 1));
+    document.getElementById('play-btn').onclick = () => Core.togglePlay();
     
     document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
     document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
@@ -78,30 +83,23 @@ window.onload = () => {
     
     document.getElementById('scramble-btn').onclick = Core.handleScramble;
     document.getElementById('setup-btn').onclick = Core.applySetup;
-    document.getElementById('reset-btn').onclick = () => {
-        Core.resetAll();
-        window.location.hash = "";
-        window.location.reload();
-    };
+    document.getElementById('reset-btn').onclick = () => { Core.resetAll(); window.location.hash = ""; window.location.reload(); };
 
-    // Import ボタンの処理
     document.getElementById('import-btn').onclick = () => {
-        const hashVal = document.getElementById('hash-display').value.trim();
-        if (hashVal) Core.loadFromHash(hashVal);
+        const val = document.getElementById('hash-display').value.trim();
+        if (val) Core.loadFromHash(val);
     };
 
     const copyBtn = document.getElementById('copy-btn');
     if (copyBtn) {
         copyBtn.onclick = () => {
             navigator.clipboard.writeText(window.location.href);
-            const originalText = copyBtn.textContent;
             copyBtn.textContent = "COPIED!";
-            setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+            setTimeout(() => { copyBtn.textContent = "COPY LINK"; }, 2000);
         };
     }
-    if (slider) slider.oninput = () => Core.render();
+    if (slider) slider.oninput = () => { Core.stopPlay(); Core.render(); };
     updateMoveGrid('basic');
     setLanguage('jp');
     setPaintMode(Core.stickerStates.includes(0) ? 'paint' : 'rotate');
-    Core.render();
 };

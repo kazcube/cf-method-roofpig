@@ -1,11 +1,14 @@
 /**
  * KAZCUBE Lab Paint Tool Module
- * [v2.0.5] 2026-03-04
- * [Updated] setPaintMode 呼び出し時に確実に ensurePaintPanel を実行するように修正
+ * * [History]
+ * v2.0.2: Initial paint logic.
+ * v2.0.5: Added GRAY/FULL/CC presets.
+ * v2.0.6: Fixed insertion point for Paint Panel to ensure visibility.
  */
 
-import * as Core from './cube-core.js?v=2.0.5';
+import * as Core from './cube-core.js?v=2.0.6';
 
+/* [LOCKED: NO-REMOVE] */
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -20,11 +23,12 @@ export function initPaintTool() {
     });
 }
 
+/* [LOCKED: NO-REMOVE] */
 function ensurePaintPanel(show) {
     let panel = document.getElementById('paint-panel');
-    const paintBtn = document.getElementById('mode-paint');
+    const container = document.getElementById('mode-container');
     
-    if (!panel && paintBtn) {
+    if (!panel && container) {
         panel = document.createElement('div');
         panel.id = 'paint-panel';
         panel.className = "flex gap-2 ml-4 px-3 border-l border-slate-700 items-center";
@@ -37,11 +41,12 @@ function ensurePaintPanel(show) {
             btn.onclick = (e) => { e.stopPropagation(); applyOrbit(opt.k); };
             panel.appendChild(btn);
         });
-        paintBtn.parentNode.appendChild(panel);
+        container.appendChild(panel);
     }
     if (panel) panel.style.display = show ? 'flex' : 'none';
 }
 
+/* [LOCKED: NO-REMOVE] */
 export function applyOrbit(type) {
     if (type === 'full') Core.setAllStickers(1);
     else if (type === 'gray') Core.setAllStickers(0);
@@ -52,6 +57,7 @@ export function applyOrbit(type) {
     Core.render();
 }
 
+/* [LOCKED: NO-REMOVE] */
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
     ensurePaintPanel(isPaint);
