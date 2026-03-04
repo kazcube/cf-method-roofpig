@@ -1,6 +1,5 @@
 // js/paint-tool.js
-export let selectedColor = 'white';
-export let currentMask = 'full'; 
+export let currentMask = 'full';
 
 export function applyPreset(type) {
     const player = document.getElementById('main-cube');
@@ -15,23 +14,16 @@ export function applyPreset(type) {
 
     currentMask = maskMap[type] || 'full';
     
-    console.log(`[DEBUG-Paint] Setting stickering: ${currentMask}`);
-    
-    // 属性の直接セット
+    // 強制適用
     player.setAttribute('stickering', currentMask);
+    // 3D visualizationにおいてグレーアウトを確実にする属性
+    player.setAttribute('hint-stickering', (currentMask === 'dim' ? 'dim' : 'none'));
     
-    // hint-stickeringを連動（グレーアウトの鍵）
-    if (currentMask === 'dim') {
-        player.setAttribute('hint-stickering', 'dim');
-    } else {
-        player.setAttribute('hint-stickering', 'none');
-    }
+    console.log(`[Paint] Forced mask: ${currentMask}`);
 }
 
 export function setPaintMode(mode) {
-    console.log(`[DEBUG-Paint] Mode Switch: ${mode}`);
     const isPaint = (mode === 'paint');
-    
     document.getElementById('rotate-controls').classList.toggle('hidden', isPaint);
     document.getElementById('paint-controls').classList.toggle('hidden', !isPaint);
     
