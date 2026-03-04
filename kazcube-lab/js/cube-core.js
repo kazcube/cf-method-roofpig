@@ -1,13 +1,13 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.17: Force-logged initialization and fixed twisty-player attribute handling.
+ * v2.0.19: Fixed setup logic. SetupMoves (reverse of input) should scramble the cube 
+ * so that applying activeMoves (input) results in a solved state.
  */
 
-// 読み込み時に即座にログを出す（これがコンソールに出なければ、ファイル自体が読み込まれていません）
-console.log("LOG: cube-core.js loaded. Version: v2.0.17");
+console.log("LOG: cube-core.js loaded. Version: v2.0.19");
 
-export const JS_VERSION = "v2.0.17";
+export const JS_VERSION = "v2.0.19";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -16,7 +16,6 @@ let playTimer = null;
 
 /* [LOCKED: NO-REMOVE] */
 export function resetAll() {
-    console.log("DEBUG: resetAll called");
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -59,13 +58,10 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.17] 属性の同期をより確実に実行 */
+/* [FIXED: v2.0.19] algプロパティによる確実な描画 */
 export function render() {
     const player = document.getElementById('main-cube');
-    if (!player) {
-        console.error("ERROR: main-cube element not found!");
-        return;
-    }
+    if (!player) return;
 
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
@@ -74,18 +70,15 @@ export function render() {
     
     if (slider) {
         const step = parseInt(slider.value) || 0;
-        const setupStr = setupMoves.join(" ");
-        const activeStr = activeMoves.slice(0, step).join(" ");
-
-        console.log(`DEBUG render: step=${step}, setupAlg="${setupStr}", currentAlg="${activeStr}"`);
-
-        // twisty-player の挙動を安定させるため、属性値を直接書き換える
-        if (player.getAttribute('setup-alg') !== setupStr) {
-            player.setAttribute('setup-alg', setupStr);
-        }
+        
+        // [逆手順(すべて)] + [正手順(進捗分)]
+        const fullMoves = [...setupMoves, ...activeMoves.slice(0, step)];
+        const algStr = fullMoves.join(" ");
 
         player.tempoScale = isPlaying ? 1 : 0;
-        player.alg = activeStr;
+        
+        // algに連結した手順を渡す
+        player.alg = algStr;
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
@@ -135,15 +128,12 @@ export function stopPlay() {
 
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
-    console.log("DEBUG: handleScramble START");
     stopPlay();
     setupMoves = [];
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
-    
     const cb = document.getElementById('command-box');
     if (cb) cb.value = activeMoves.join(" ");
-    
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
@@ -152,40 +142,35 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.17] セットアップロジックの最優先デバッグ */
+/* [FIXED: v2.0.19] 逆手順の生成ロジックを修正 */
 export function applySetup() {
-    console.log("DEBUG: applySetup button clicked");
     stopPlay();
     const cb = document.getElementById('command-box');
-    if (!cb) {
-        console.error("ERROR: command-box not found");
-        return;
-    }
+    if (!cb) return;
     const val = cb.value.trim();
-    if (!val) {
-        console.warn("DEBUG: No moves in command-box");
-        return;
-    }
+    if (!val) return;
 
+    // 入力手順
     const moves = val.split(/\s+/).filter(m => m.length > 0);
     
-    // 入力手順を逆転させて「初期状態を崩すための手順」を作成
+    /**
+     * 【修正】逆手順（SetupMoves）の考え方
+     * 目的：完成状態から setupMoves を回した時、「入力手順を回す直前の崩れた状態」にする。
+     * つまり、setupMoves は「入力手順の逆転」でなければなりません。
+     */
     setupMoves = [...moves].reverse().map(m => {
-        if (m.endsWith("2")) return m;
-        return m.endsWith("'") ? m.slice(0, -1) : m + "'";
+        if (m.endsWith("2")) return m; // 180度回転はそのまま
+        return m.endsWith("'") ? m.slice(0, -1) : m + "'"; // 回転方向を反転
     });
 
-    // 入力手順そのものを「これから回す手順」としてセット
+    // 入力手順をそのまま実行手順とする
     activeMoves = moves;
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; 
+        slider.value = 0; // 開始位置（逆手順で崩しきった状態）
     }
-    
-    console.log("DEBUG: setupMoves (Reverse):", setupMoves);
-    console.log("DEBUG: activeMoves (Normal):", activeMoves);
     
     render();
 }
