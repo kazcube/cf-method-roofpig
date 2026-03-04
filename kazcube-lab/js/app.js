@@ -2,27 +2,23 @@ import * as Core from './cube-core.js';
 import * as Analyzer from './analyzer.js';
 import * as Paint from './paint-tool.js';
 
-const JS_VERSION = "v1.5.8 Final-Build"; 
+const JS_VERSION = "v1.5.9 (Paint-Fix)"; 
 
 async function init() {
     const player = document.getElementById('main-cube');
     const versionDisplay = document.getElementById('version-display');
     if (versionDisplay) versionDisplay.textContent = JS_VERSION;
 
-    // --- TwistyPlayerの準備完了を待つ ---
     if (player) {
-        try {
-            // コンポーネントが定義され、レンダリングが始まるのを待機
-            await customElements.whenDefined('twisty-player');
-            console.log("[App] TwistyPlayer defined");
-        } catch (e) {
-            console.error("[App] Failed to initialize cube player", e);
-        }
+        // コンポーネントの定義を待つ
+        await customElements.whenDefined('twisty-player');
+        // 念のため少し待機して内部エンジンの起動を待つ
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     const slider = document.getElementById('move-slider');
 
-    // --- イベントリスナー設定 ---
+    // --- モード切替 ---
     document.getElementById('mode-rotate').addEventListener('click', () => {
         document.getElementById('mode-rotate').classList.add('active');
         document.getElementById('mode-paint').classList.remove('active');
@@ -35,6 +31,7 @@ async function init() {
         Paint.setPaintMode('paint');
     });
 
+    // --- 操作 ---
     document.getElementById('btn-scramble').addEventListener('click', Core.handleScramble);
     document.getElementById('btn-setup').addEventListener('click', Core.applyReverseSetup);
     document.getElementById('btn-reset-alg').addEventListener('click', () => {
@@ -65,19 +62,13 @@ async function init() {
         Analyzer.syncHash();
     });
 
-    // --- 初期状態の描画 ---
+    // 初期化
     Core.renderMoves('basic');
     Core.updateView();
     
-    // 起動時にハッシュがあれば反映、なければクリア
     if (!window.location.search.includes('hash')) {
         document.getElementById('hash-io').value = "";
     }
 }
 
-// 実行
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
+document.addEventListener('DOMContentLoaded', init);
