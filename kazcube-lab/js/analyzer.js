@@ -3,8 +3,9 @@ import { setupMoves, activeMoves } from './cube-core.js';
 export function syncHash() {
     const slider = document.getElementById('move-slider');
     const hashIo = document.getElementById('hash-io');
+    if (!hashIo) return;
 
-    // 手順が一つも無い時は空にする
+    // セットアップもアクティブ手順も無い場合は表示しない
     if (setupMoves.length === 0 && activeMoves.length === 0) {
         hashIo.value = "";
         return;
@@ -25,14 +26,16 @@ export function syncHash() {
 }
 
 export function copyLink() {
-    const hash = document.getElementById('hash-io').value;
-    if (!hash) return; // 空なら何もしない
+    const hashIo = document.getElementById('hash-io');
+    if (!hashIo || !hashIo.value) return;
 
-    const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hash)}`;
+    const url = `${window.location.origin}${window.location.pathname}?hash=${encodeURIComponent(hashIo.value)}`;
     navigator.clipboard.writeText(url).then(() => {
         const btn = document.getElementById('btn-copy');
-        const oldText = btn.textContent;
-        btn.textContent = "COPIED!";
-        setTimeout(() => btn.textContent = oldText, 1500);
+        if (btn) {
+            const oldText = btn.textContent;
+            btn.textContent = "COPIED!";
+            setTimeout(() => btn.textContent = oldText, 1500);
+        }
     });
 }
