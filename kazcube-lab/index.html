@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab - v1.6.2 Fixed</title>
+    <title>KAZCUBE Lab - v1.6.3 Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
@@ -21,75 +21,59 @@
             </div>
         </header>
 
-        <div class="share-panel shadow-lg">
+        <div class="share-panel mb-6">
             <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Hash</span>
-            <input type="text" id="hash-io" class="hash-io" readonly>
-            <button id="btn-copy" class="bg-indigo-600 text-[10px] font-black px-3 py-1.5 rounded uppercase transition">Copy Link</button>
+            <input type="text" id="hash-io" class="hash-io bg-black/40 border border-slate-700 rounded px-2 py-1 text-xs w-full" readonly>
+            <button id="btn-copy" class="bg-indigo-600 text-[10px] font-black px-3 py-1.5 rounded uppercase mt-2">Copy Link</button>
         </div>
 
-        <div class="main-grid">
+        <div class="main-grid grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="left-col space-y-4">
-                <div id="cube-wrapper">
+                <div id="cube-wrapper" class="aspect-square bg-black rounded-3xl overflow-hidden border border-slate-700">
                      <twisty-player 
                         id="main-cube" 
                         puzzle="3x3x3" 
+                        visualization="3d"
                         stickering="full"
-                        hint-stickering="none"
                         background="none" 
                         control-panel="none">
                      </twisty-player>
                 </div>
 
-                <div id="paint-controls" class="hidden">
-                    <div class="color-palette shadow-xl">
-                        <div class="color-chip bg-white active" data-color="white"></div>
-                        <div class="color-chip bg-yellow-400" data-color="yellow"></div>
-                        <div class="color-chip bg-red-600" data-color="red"></div>
-                        <div class="color-chip bg-orange-500" data-color="orange"></div>
-                        <div class="color-chip bg-blue-600" data-color="blue"></div>
-                        <div class="color-chip bg-green-600" data-color="green"></div>
-                        <div class="color-chip bg-slate-600" data-color="gray"></div>
+                <div id="paint-controls" class="hidden bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <div class="color-palette flex gap-2 mb-4 justify-center">
+                        <div class="color-chip w-8 h-8 rounded-full border-2 border-white cursor-pointer bg-white active" data-color="white"></div>
+                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-yellow-400" data-color="yellow"></div>
+                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-red-600" data-color="red"></div>
+                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-orange-500" data-color="orange"></div>
+                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-blue-600" data-color="blue"></div>
+                        <div class="color-chip w-8 h-8 rounded-full border-2 border-transparent cursor-pointer bg-green-600" data-color="green"></div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 mt-3">
-                        <button id="preset-cc" class="preset-btn">C + Corner</button>
-                        <button id="preset-co" class="preset-btn">Corner Only</button>
-                        <button id="preset-gray" class="preset-btn bg-rose-900/50 text-rose-200">Reset Gray</button>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="preset-cc" class="bg-slate-700 text-[10px] py-2 rounded uppercase font-black">C+Center</button>
+                        <button id="preset-co" class="bg-slate-700 text-[10px] py-2 rounded uppercase font-black">Corners</button>
+                        <button id="preset-gray" class="bg-rose-900 text-[10px] py-2 rounded uppercase font-black text-rose-200">Reset Gray</button>
                     </div>
                 </div>
                 
-                <div id="rotate-controls" class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-5">
-                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                    <div class="flex justify-center items-center gap-2">
-                        <button id="nav-first" class="nav-btn">&lt;&lt;</button>
-                        <button id="nav-prev" class="nav-btn">&lt;</button>
-                        <button id="btn-play" class="nav-btn play-btn">▶</button>
-                        <button id="nav-next" class="nav-btn">&gt;</button>
-                        <button id="nav-last" class="nav-btn">&gt;&gt;</button>
-                    </div>
-                    <div class="flex justify-between items-center font-mono pt-2 border-t border-slate-700">
-                        <div class="flex flex-col"><span class="text-slate-500 text-[10px] uppercase font-black">Step</span><span id="step-counter" class="text-emerald-500 text-2xl font-black">0</span></div>
-                        <div id="move-indicator" class="text-xl font-black bg-slate-900 px-6 py-2 rounded-xl text-emerald-400 border border-slate-700 italic min-w-[80px] text-center">---</div>
+                <div id="rotate-controls" class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
+                    <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full mb-4">
+                    <div class="flex justify-center gap-2">
+                        <button id="nav-first" class="px-4 py-2 bg-slate-700 rounded">&lt;&lt;</button>
+                        <button id="nav-last" class="px-4 py-2 bg-slate-700 rounded">&gt;&gt;</button>
                     </div>
                 </div>
             </div>
 
-            <div class="right-col">
-                <div class="space-y-3">
-                    <textarea id="command-box" class="w-full h-24 bg-black text-emerald-400 p-4 rounded-xl font-mono text-sm border-2 border-slate-700 outline-none" placeholder="Enter algorithm..."></textarea>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-scramble" class="action-btn py-4 bg-indigo-600 text-white text-[12px]">Random Scramble</button>
-                        <button id="btn-setup" class="action-btn py-4 bg-slate-700 text-amber-400 border-2 border-amber-500/30 text-[12px]">Set Setup</button>
-                    </div>
-                    <button id="btn-reset-alg" class="w-full action-btn py-2 bg-rose-900/30 text-rose-400 border border-rose-500/30 text-[11px]">Reset Algorithm</button>
+            <div class="right-col space-y-4">
+                <textarea id="command-box" class="w-full h-32 bg-black text-emerald-400 p-4 rounded-xl font-mono border-2 border-slate-700" placeholder="Moves..."></textarea>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-scramble" class="bg-indigo-600 py-3 rounded font-black text-sm">SCRAMBLE</button>
+                    <button id="btn-setup" class="bg-slate-700 py-3 rounded font-black text-sm border border-amber-500/50 text-amber-400">SET SETUP</button>
                 </div>
-                <div class="bg-slate-800/40 rounded-xl border border-slate-700 p-4">
-                    <div class="flex gap-1.5 mb-4 bg-black/30 p-1.5 rounded-lg">
-                        <button id="tab-basic" class="tab-btn active">BASIC</button>
-                        <button id="tab-wide" class="tab-btn">WIDE</button>
-                        <button id="tab-slice" class="tab-btn">SLICE</button>
-                    </div>
-                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
-                </div>
+                <button id="btn-reset-alg" class="w-full bg-rose-900/30 text-rose-400 py-2 rounded border border-rose-500/20 text-xs">RESET ALL</button>
+                
+                <div id="move-grid" class="grid grid-cols-6 gap-2 pt-4 border-t border-slate-700"></div>
             </div>
         </div>
     </div>
