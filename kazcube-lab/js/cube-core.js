@@ -1,10 +1,10 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.13: Fixed applySetup to prevent array mutation bug and ensure correct reverse setup.
+ * v2.0.15: Fixed setup logic using 'setup-alg' attribute to properly separate scrambling from playback.
  */
 
-export const JS_VERSION = "v2.0.13";
+export const JS_VERSION = "v2.0.15";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -40,7 +40,7 @@ export function loadFromHash(targetHash = null) {
         const slider = document.getElementById('move-slider');
         if (slider) { 
             slider.max = activeMoves.length; 
-            slider.value = activeMoves.length; 
+            slider.value = 0; // Hash読込時はリセット状態
         }
         render();
     } catch (e) { console.error("Import Error", e); }
@@ -55,7 +55,7 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [LOCKED: NO-REMOVE] */
+/* [FIXED: v2.0.15] セットアップと実行手順を分離して描画 */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -66,19 +66,22 @@ export function render() {
     const hashDisp = document.getElementById('hash-display');
     
     if (slider) {
-        slider.max = activeMoves.length;
         const step = parseInt(slider.value) || 0;
         
-        // setupMoves (逆手順で崩す) + activeMoves の進捗
-        const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
-        
-        if (!isPlaying) {
-            player.tempoScale = 0; 
-        } else {
-            player.tempoScale = 1; 
+        // 1. 逆手順（崩す用）を初期状態として設定
+        const setupStr = setupMoves.join(" ");
+        if (player.getAttribute('setup-alg') !== setupStr) {
+            player.setAttribute('setup-alg', setupStr);
         }
+
+        // 2. 正手順（再生用）をセット
+        const activeStr = activeMoves.slice(0, step).join(" ");
         
-        player.alg = fullAlg;
+        // アニメーション速度の設定（スライダー操作時は即時反映）
+        player.tempoScale = isPlaying ? 1 : 0;
+        
+        // セットアップ状態からの相対的な手順として適用
+        player.alg = activeStr;
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
@@ -128,20 +131,22 @@ export function stopPlay() {
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
     stopPlay();
-    setupMoves = [];
+    setupMoves = []; // スクランブル時は純粋なランダムなのでセットアップは空
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
+    
     const cb = document.getElementById('command-box');
     if (cb) cb.value = activeMoves.join(" ");
+    
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = activeMoves.length; 
+        slider.value = activeMoves.length; // スクランブルは完了状態で表示
     }
     render();
 }
 
-/* [FIXED: v2.0.13] 配列の破壊的変更を避け、正順の手順を維持 */
+/* [FIXED: v2.0.15] 逆手順で崩し、スライダーを0にする */
 export function applySetup() {
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -149,23 +154,23 @@ export function applySetup() {
     const val = cb.value.trim();
     if (!val) return;
 
-    // 入力された手順を配列化（これが正順の手順になる）
     const moves = val.split(/\s+/).filter(m => m.length > 0);
     
-    // 重要: [...moves] でコピーを作ってから反転させる。
-    // そうしないと元の moves 配列まで書き換わってしまう。
+    // 逆手順を生成（コピーを使用）
+    // これを setup-alg に入れることで、キューブが最初から「崩れた状態」になる
     setupMoves = [...moves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    // 正順の手順を activeMoves に保持
+    // 正の手順を保持
+    // スライダーを動かすと、この手順が実行されて完成に向かう
     activeMoves = moves;
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; // スライダーを0（セットアップ直後＝崩れた状態）にセット
+        slider.value = 0; // 崩れた直後の状態を表示
     }
     
     render();
