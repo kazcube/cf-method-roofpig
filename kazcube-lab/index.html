@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab v1.7.7</title>
+    <title>KAZCUBE Lab v1.7.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <style>
@@ -11,27 +11,28 @@
         #cube-wrapper { width: 100%; max-width: 320px; margin: 0 auto; aspect-ratio: 1; background: #000; border-radius: 1.5rem; border: 1px solid #1e293b; overflow: hidden; }
         twisty-player { width: 100%; height: 100%; }
         
-        /* タブをボタンらしいデザインに */
+        /* タブをはっきりとしたボタンデザインに */
         .tab-btn { 
-            @apply flex-1 py-2 text-[10px] font-black uppercase transition-all rounded-md mx-1;
+            @apply flex-1 py-2 text-[10px] font-black uppercase transition-all rounded-lg mx-1;
             color: #64748b;
-            background: rgba(30, 41, 59, 0.4);
+            background: #1e293b;
         }
         .tab-btn.active { 
-            background: #334155;
-            color: #3b82f6;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            @apply bg-slate-700 text-blue-400 border border-blue-500/50;
         }
 
-        /* 全体的な角丸と色の統一 */
+        /* すべてのボタンを角丸に */
         .action-btn { @apply rounded-lg font-black text-[11px] uppercase transition-all py-3; }
         .mode-select-btn { @apply px-5 py-2 rounded-lg font-black text-[10px] uppercase transition-all; }
         .active-rotate { background: #10b981; color: white; }
         .active-paint { background: #f97316; color: white; }
         .inactive-mode { background: #1e293b; color: #475569; }
 
-        .hash-container { background: #000; border: 1px solid #1e293b; border-radius: 0.75rem; display: flex; align-items: center; overflow: hidden; }
+        .hash-container { background: #000; border: 1px solid #1e293b; border-radius: 0.75rem; display: flex; align-items: center; padding-right: 4px; }
         .panel-card { background: #0f172a88; border: 1px solid #1e293b; border-radius: 1.25rem; padding: 1.25rem; }
+        
+        /* Import, Copyボタン専用 */
+        .util-btn { @apply text-[9px] font-black px-3 py-2 uppercase rounded-lg transition-all ml-1; }
     </style>
 </head>
 <body class="p-4">
@@ -39,7 +40,7 @@
         <header class="flex justify-between items-center">
             <div class="flex items-baseline gap-2">
                 <h1 class="text-xl font-black text-emerald-500 italic">KAZCUBE Lab</h1>
-                <span class="text-[9px] text-slate-600 font-bold">v1.7.7</span>
+                <span class="text-[9px] text-slate-600 font-bold">v1.7.8</span>
             </div>
             <div class="flex gap-4 items-center">
                 <div class="flex bg-slate-900 p-1 rounded-full border border-slate-800">
@@ -56,7 +57,8 @@
         <div class="hash-container">
             <span class="text-[9px] font-black text-slate-500 px-4">HASH</span>
             <input id="hash-display" class="bg-transparent text-emerald-500 font-mono text-[10px] flex-1 border-none outline-none" readonly value="v5:ready...">
-            <button id="btn-copy" class="bg-indigo-600 hover:bg-indigo-500 text-[9px] font-black px-4 py-2 uppercase m-1 rounded-md">Copy Link</button>
+            <button id="btn-copy" class="util-btn bg-indigo-600 hover:bg-indigo-500">Copy Link</button>
+            <button id="btn-import" class="util-btn bg-slate-700 hover:bg-slate-600">Import</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -84,7 +86,7 @@
                 </div>
 
                 <div class="panel-card p-2">
-                    <div class="flex p-1 bg-slate-950 rounded-lg mb-3">
+                    <div class="flex p-1 bg-slate-950 rounded-xl mb-3">
                         <button class="tab-btn active" data-tab="basic">Basic</button>
                         <button class="tab-btn" data-tab="wide">Wide</button>
                         <button class="tab-btn" data-tab="slice">Slice</button>
