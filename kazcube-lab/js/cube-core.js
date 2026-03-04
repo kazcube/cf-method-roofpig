@@ -9,22 +9,17 @@ export function updateView() {
     const slider = document.getElementById('move-slider');
     const step = parseInt(slider.value) || 0;
     
+    // 手順の最大値を常に同期
+    slider.max = activeMoves.length;
+
     const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
     if (player) player.alg = fullAlg;
     
-    // イベントを発火させて他モジュール（Analyzer等）に通知
+    // UI表示の更新
+    const indicator = document.getElementById('move-indicator');
+    if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
+
     window.dispatchEvent(new CustomEvent('cubeUpdate', { detail: { step } }));
 }
 
-export function handleScramble() {
-    setSetupMoves([]);
-    const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
-    const newMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
-    setActiveMoves(newMoves);
-    
-    const slider = document.getElementById('move-slider');
-    slider.max = activeMoves.length;
-    slider.value = activeMoves.length;
-    document.getElementById('command-box').value = activeMoves.join(" ");
-    updateView();
-}
+// 他の関数（applyReverseSetup, handleScramble, renderMoves）は前回と同じ

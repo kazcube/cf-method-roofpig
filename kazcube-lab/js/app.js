@@ -3,20 +3,45 @@ import * as Analyzer from './analyzer.js';
 import * as Paint from './paint-tool.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // モード切替
-    document.getElementById('mode-rotate').addEventListener('click', () => Paint.setPaintMode('rotate'));
-    document.getElementById('mode-paint').addEventListener('click', () => Paint.setPaintMode('paint'));
+    const slider = document.getElementById('move-slider');
 
-    // 回転ボタン類
+    // --- モード切替 ---
+    const modeRotateBtn = document.getElementById('mode-rotate');
+    const modePaintBtn = document.getElementById('mode-paint');
+
+    modeRotateBtn.addEventListener('click', () => {
+        modeRotateBtn.classList.add('active');
+        modePaintBtn.classList.remove('active');
+        Paint.setPaintMode('rotate');
+    });
+
+    modePaintBtn.addEventListener('click', () => {
+        modePaintBtn.classList.add('active');
+        modeRotateBtn.classList.remove('active');
+        Paint.setPaintMode('paint');
+    });
+
+    // --- 回転・セットアップ操作 ---
     document.getElementById('btn-scramble').addEventListener('click', Core.handleScramble);
-    document.getElementById('btn-setup').addEventListener('click', Core.applyReverseSetup); // coreに後で実装
+    document.getElementById('btn-setup').addEventListener('click', Core.applyReverseSetup);
 
-    // プリセットボタン
+    // --- ナビゲーション ---
+    document.getElementById('nav-first').addEventListener('click', () => { slider.value = 0; Core.updateView(); });
+    document.getElementById('nav-last').addEventListener('click', () => { slider.value = Core.activeMoves.length; Core.updateView(); });
+    document.getElementById('nav-prev').addEventListener('click', () => { if(slider.value > 0) { slider.value--; Core.updateView(); }});
+    document.getElementById('nav-next').addEventListener('click', () => { if(parseInt(slider.value) < Core.activeMoves.length) { slider.value++; Core.updateView(); }});
+
+    // --- タブ切り替え ---
+    document.getElementById('tab-basic').addEventListener('click', () => Core.renderMoves('basic'));
+    document.getElementById('tab-wide').addEventListener('click', () => Core.renderMoves('wide'));
+    document.getElementById('tab-slice').addEventListener('click', () => Core.renderMoves('slice'));
+
+    // --- プリセットボタン ---
     document.getElementById('preset-cc').addEventListener('click', () => Paint.applyPreset('corner-center'));
     document.getElementById('preset-co').addEventListener('click', () => Paint.applyPreset('corner-only'));
     document.getElementById('preset-gray').addEventListener('click', () => Paint.applyPreset('gray'));
 
-    // 共有ボタン
+    // --- 共有機能 ---
     document.getElementById('btn-copy').addEventListener('click', Analyzer.copyLink);
 
     // キューブ更新イベントの購読
@@ -24,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
         Analyzer.syncHash();
     });
 
-    // 初期化
+    // --- 初期ロード ---
+    Core.renderMoves('basic');
     Core.updateView();
+    // 初期状態はROTATEコントロールを表示しておく
+    document.getElementById('rotate-controls').classList.remove('hidden');
 });
