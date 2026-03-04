@@ -9,9 +9,10 @@
  * v2.0.6: Added Auto-play (togglePlay) and fixed Setup sync bug.
  * v2.0.7: Fixed applySetup to correctly set setupMoves.
  * v2.0.8: Use setupAlg for reliable setup moves reflection.
+ * v2.0.9: Fixed property name to 'setup-alg' and updated hash to include setupMoves.
  */
 
-export const JS_VERSION = "v2.0.8";
+export const JS_VERSION = "v2.0.9";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -24,6 +25,7 @@ export function resetAll() {
     stopPlay();
     const cb = document.getElementById('command-box');
     if (cb) cb.value = "";
+    render();
 }
 
 /* [LOCKED: NO-REMOVE] */
@@ -31,21 +33,31 @@ export function updateStickerState(idx, state) { stickerStates[idx] = state; }
 /* [LOCKED: NO-REMOVE] */
 export function setAllStickers(state) { stickerStates.fill(state); }
 
-/* [LOCKED: NO-REMOVE] */
+/* [FIXED: v2.0.9] */
 export function loadFromHash(targetHash = null) {
     const hash = targetHash || window.location.hash.replace(/^#/, "");
     if (!hash || !hash.startsWith("v5:")) return;
     try {
         const decoded = atob(hash.substring(3));
-        const [mask, moves] = decoded.split("|");
+        // 形式: mask|setupMoves|activeMoves
+        const [mask, setup, active] = decoded.split("|");
+        
         if (mask && mask.length === 54) stickerStates = mask.split("").map(Number);
-        if (moves !== undefined) {
-            activeMoves = moves ? moves.split(",").filter(m => m !== "") : [];
-            const cb = document.getElementById('command-box');
-            if (cb) cb.value = activeMoves.join(" ");
-        }
+        
+        // セットアップ手順の復元
+        setupMoves = (setup && setup !== "") ? setup.split(",") : [];
+        
+        // メイン手順の復元
+        activeMoves = (active && active !== "") ? active.split(",") : [];
+        
+        const cb = document.getElementById('command-box');
+        if (cb) cb.value = activeMoves.join(" ");
+        
         const slider = document.getElementById('move-slider');
-        if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
+        if (slider) { 
+            slider.max = activeMoves.length; 
+            slider.value = activeMoves.length; 
+        }
         render();
     } catch (e) { console.error("Import Error", e); }
 }
@@ -59,14 +71,14 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [LOCKED: NO-REMOVE] */
+/* [FIXED: v2.0.9] */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
-    // セットアップ手順を専用プロパティに設定
-    player.setupAlg = setupMoves.join(" ");
+    // セットアップ手順を属性として設定 (プロパティ経由ではなくsetAttributeが確実)
+    player.setAttribute('setup-alg', setupMoves.join(" "));
     
     const slider = document.getElementById('move-slider');
     const hashDisp = document.getElementById('hash-display');
@@ -74,7 +86,7 @@ export function render() {
         slider.max = activeMoves.length;
         const step = parseInt(slider.value) || 0;
         
-        // メインの手順（スライダー連動分）のみをalgに設定
+        // メイン手順のアニメーション設定
         player.alg = activeMoves.slice(0, step).join(" ");
         
         document.getElementById('step-counter').textContent = step;
@@ -82,17 +94,21 @@ export function render() {
         if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
     }
     
-    // URLハッシュにはセットアップを含まない（現在の仕様を維持）
-    const rawData = `${stickerStates.join("")}|${activeMoves.join(",")}`;
+    // URLハッシュにsetupMovesも含めるように変更
+    const rawData = `${stickerStates.join("")}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
     const hashValue = `v5:${btoa(rawData)}`;
-    window.history.replaceState(null, "", "#" + hashValue);
-    if (hashDisp && !isPlaying) hashDisp.value = hashValue;
+    
+    // 再生中でない場合のみハッシュと表示を更新
+    if (!isPlaying) {
+        window.history.replaceState(null, "", "#" + hashValue);
+        if (hashDisp) hashDisp.value = hashValue;
+    }
 
     const playBtn = document.getElementById('play-btn');
     if (playBtn) playBtn.textContent = isPlaying ? "||" : "▶";
 }
 
-/* [ADDED: v2.0.6] */
+/* [LOCKED: NO-REMOVE] */
 export function togglePlay() {
     if (isPlaying) { stopPlay(); } 
     else {
@@ -110,7 +126,7 @@ export function togglePlay() {
     }
 }
 
-/* [ADDED: v2.0.6] */
+/* [LOCKED: NO-REMOVE] */
 export function stopPlay() {
     isPlaying = false;
     clearInterval(playTimer);
@@ -120,7 +136,6 @@ export function stopPlay() {
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
     stopPlay();
-    // スクランブル時はセットアップをクリアする
     setupMoves = [];
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
@@ -131,21 +146,24 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.8] */
+/* [FIXED: v2.0.9] */
 export function applySetup() {
     stopPlay();
     const cb = document.getElementById('command-box');
     if (!cb) return;
     const val = cb.value.trim();
-    // テキストエリアの手順を「セットアップ（初期状態）」として保存
+    
+    // セットアップとして保存
     setupMoves = val ? val.split(/\s+/).filter(m => m.length > 0) : [];
-    // メインの手順はリセット
+    
+    // セットアップ適用時はメイン手順をクリア
     activeMoves = [];
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = 0; 
         slider.value = 0; 
     }
+    // テキストエリアをクリア
     cb.value = ""; 
     render();
 }
