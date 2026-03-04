@@ -2,68 +2,82 @@ import * as Core from './cube-core.js';
 import * as Analyzer from './analyzer.js';
 import * as Paint from './paint-tool.js';
 
-const JS_VERSION = "v1.5.7 (Viz-Fix)"; 
+const JS_VERSION = "v1.5.6 (Stable)"; 
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. バージョン表示
     const versionDisplay = document.getElementById('version-display');
     if (versionDisplay) versionDisplay.textContent = JS_VERSION;
 
     const slider = document.getElementById('move-slider');
+    if (!slider) {
+        console.error("Critical Error: move-slider not found.");
+        return; 
+    }
 
-    // --- モード切替 ---
-    const modeRotateBtn = document.getElementById('mode-rotate');
-    const modePaintBtn = document.getElementById('mode-paint');
+    // 2. モード切替のヘルパー関数
+    const setTabActive = (activeBtnId, inactiveBtnId) => {
+        const activeBtn = document.getElementById(activeBtnId);
+        const inactiveBtn = document.getElementById(inactiveBtnId);
+        if (activeBtn) activeBtn.classList.add('active');
+        if (inactiveBtn) inactiveBtn.classList.remove('active');
+    };
 
-    modeRotateBtn.addEventListener('click', () => {
-        modeRotateBtn.classList.add('active');
-        modePaintBtn.classList.remove('active');
+    // 3. イベントリスナー（存在チェック付き）
+    const bindClick = (id, fn) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', fn);
+    };
+
+    bindClick('mode-rotate', () => {
+        setTabActive('mode-rotate', 'mode-paint');
         Paint.setPaintMode('rotate');
     });
 
-    modePaintBtn.addEventListener('click', () => {
-        modePaintBtn.classList.add('active');
-        modeRotateBtn.classList.remove('active');
+    bindClick('mode-paint', () => {
+        setTabActive('mode-paint', 'mode-rotate');
         Paint.setPaintMode('paint');
     });
 
-    // --- 操作 ---
-    document.getElementById('btn-scramble').addEventListener('click', Core.handleScramble);
-    document.getElementById('btn-setup').addEventListener('click', Core.applyReverseSetup);
+    bindClick('btn-scramble', Core.handleScramble);
+    bindClick('btn-setup', Core.applyReverseSetup);
     
-    document.getElementById('btn-reset-alg').addEventListener('click', () => {
-        document.getElementById('command-box').value = "";
+    bindClick('btn-reset-alg', () => {
+        const cmdBox = document.getElementById('command-box');
+        if (cmdBox) cmdBox.value = "";
         Core.setSetupMoves([]);
         Core.setActiveMoves([]);
         Core.updateView();
     });
 
-    // --- ナビゲーション ---
-    document.getElementById('nav-first').addEventListener('click', () => { slider.value = 0; Core.updateView(); });
-    document.getElementById('nav-last').addEventListener('click', () => { slider.value = Core.activeMoves.length; Core.updateView(); });
-    document.getElementById('nav-prev').addEventListener('click', () => { if(slider.value > 0) { slider.value--; Core.updateView(); }});
-    document.getElementById('nav-next').addEventListener('click', () => { if(parseInt(slider.value) < Core.activeMoves.length) { slider.value++; Core.updateView(); }});
+    bindClick('nav-first', () => { slider.value = 0; Core.updateView(); });
+    bindClick('nav-last', () => { slider.value = Core.activeMoves.length; Core.updateView(); });
+    bindClick('nav-prev', () => { if(slider.value > 0) { slider.value--; Core.updateView(); }});
+    bindClick('nav-next', () => { if(parseInt(slider.value) < Core.activeMoves.length) { slider.value++; Core.updateView(); }});
+    
     slider.addEventListener('input', Core.updateView);
 
-    // --- タブ ---
-    document.getElementById('tab-basic').addEventListener('click', () => Core.renderMoves('basic'));
-    document.getElementById('tab-wide').addEventListener('click', () => Core.renderMoves('wide'));
-    document.getElementById('tab-slice').addEventListener('click', () => Core.renderMoves('slice'));
+    bindClick('tab-basic', () => Core.renderMoves('basic'));
+    bindClick('tab-wide', () => Core.renderMoves('wide'));
+    bindClick('tab-slice', () => Core.renderMoves('slice'));
 
-    // --- プリセット ---
-    document.getElementById('preset-cc').addEventListener('click', () => Paint.applyPreset('corner-center'));
-    document.getElementById('preset-co').addEventListener('click', () => Paint.applyPreset('corner-only'));
-    document.getElementById('preset-gray').addEventListener('click', () => Paint.applyPreset('gray'));
+    bindClick('preset-cc', () => Paint.applyPreset('corner-center'));
+    bindClick('preset-co', () => Paint.applyPreset('corner-only'));
+    bindClick('preset-gray', () => Paint.applyPreset('gray'));
 
-    // --- その他 ---
-    document.getElementById('btn-copy').addEventListener('click', Analyzer.copyLink);
+    bindClick('btn-copy', Analyzer.copyLink);
 
     window.addEventListener('cubeUpdate', () => {
         Analyzer.syncHash();
     });
 
-    // 初期化
-    Core.renderMoves('basic');
-    Core.updateView();
-    document.getElementById('rotate-controls').classList.remove('hidden');
-    document.getElementById('hash-io').value = "";
+    // 4. 初期化実行
+    try {
+        Core.renderMoves('basic');
+        Core.updateView();
+        const hashIo = document.getElementById('hash-io');
+        if (hashIo) hashIo.value = "";
+    } catch (e) {
+        console.error("Initialization failed:", e);
+    }
 });
