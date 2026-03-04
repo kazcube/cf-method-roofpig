@@ -1,5 +1,5 @@
-import * as Core from './cube-core.js?v=1.9.7';
-import { initPaintTool, setPaintMode } from './paint-tool.js?v=1.9.7';
+import * as Core from './cube-core.js?v=1.9.8';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=1.9.8';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -20,9 +20,11 @@ function updateMoveGrid(tab = "basic") {
             btn.className = "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold text-xs text-white transition active:scale-95";
             btn.onclick = () => {
                 const player = document.getElementById('main-cube');
-                if (player) player.addAlg(move);
-                Core.activeMoves.push(move);
-                Core.render();
+                if (player) {
+                    player.addAlg(move); // twisty-playerへの直接反映
+                    Core.activeMoves.push(move); // Core側の配列を更新
+                    Core.render(); // UIとURLハッシュを同期
+                }
             };
             grid.appendChild(btn);
         });
@@ -42,11 +44,28 @@ function init() {
     Core.loadFromHash();
     initPaintTool();
 
-    // イベント登録
-    document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
-    document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
-    document.getElementById('scramble-btn').onclick = Core.handleScramble;
-    document.getElementById('setup-btn').onclick = Core.applySetup;
+    // 各ボタンの紐付け
+    const rotateBtn = document.getElementById('mode-rotate');
+    const paintBtn = document.getElementById('mode-paint');
+    const scrambleBtn = document.getElementById('scramble-btn');
+    const setupBtn = document.getElementById('setup-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    if (rotateBtn) rotateBtn.onclick = () => setPaintMode('rotate');
+    if (paintBtn) paintBtn.onclick = () => setPaintMode('paint');
+    if (scrambleBtn) scrambleBtn.onclick = Core.handleScramble;
+    if (setupBtn) setupBtn.onclick = Core.applySetup;
+
+    // --- RESET BUTTON ロジック ---
+    if (resetBtn) {
+        resetBtn.onclick = () => {
+            if (confirm("すべてのデータ（手順・塗り絵）をリセットしますか？")) {
+                Core.resetAll();
+                location.hash = ""; // URLハッシュを消去
+                location.reload(); // ページをリロードして初期状態へ
+            }
+        };
+    }
     
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = () => updateMoveGrid(btn.dataset.tab);
@@ -57,7 +76,6 @@ function init() {
         slider.oninput = () => Core.render();
     }
 
-    // COPY LINK
     const copyBtn = document.querySelector('button.bg-indigo-600');
     if (copyBtn) {
         copyBtn.onclick = () => {
@@ -68,10 +86,8 @@ function init() {
         };
     }
 
-    // 初期化実行
     updateMoveGrid();
-    const hasMask = Core.stickerStates.includes(0);
-    setPaintMode(hasMask ? 'paint' : 'rotate');
+    setPaintMode(Core.stickerStates.includes(0) ? 'paint' : 'rotate');
     Core.render();
 }
 
