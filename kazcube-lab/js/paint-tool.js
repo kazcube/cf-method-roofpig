@@ -1,4 +1,4 @@
-import * as Core from './cube-core.js?v=2.0.1';
+import * as Core from './cube-core.js?v=2.0.2';
 
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
@@ -14,6 +14,28 @@ export function initPaintTool() {
     });
 }
 
+function ensurePaintPanel(show) {
+    let panel = document.getElementById('paint-panel');
+    const paintBtn = document.getElementById('mode-paint');
+    
+    if (!panel && paintBtn) {
+        panel = document.createElement('div');
+        panel.id = 'paint-panel';
+        panel.className = "flex gap-2 ml-4 px-3 border-l border-slate-700 items-center";
+        
+        const opts = [{k:'gray',t:'GRAY'}, {k:'cc',t:'C+C'}, {k:'full',t:'FULL'}];
+        opts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.textContent = opt.t;
+            btn.className = "px-2 py-1.5 rounded text-[9px] font-black text-white bg-slate-700 hover:bg-slate-600";
+            btn.onclick = (e) => { e.stopPropagation(); applyOrbit(opt.k); };
+            panel.appendChild(btn);
+        });
+        paintBtn.parentNode.appendChild(panel);
+    }
+    if (panel) panel.style.display = show ? 'flex' : 'none';
+}
+
 export function applyOrbit(type) {
     if (type === 'full') Core.setAllStickers(1);
     else if (type === 'gray') Core.setAllStickers(0);
@@ -26,6 +48,8 @@ export function applyOrbit(type) {
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
+    ensurePaintPanel(isPaint);
+
     const grid = document.getElementById('move-grid-container');
     if (grid) grid.style.display = isPaint ? 'none' : 'block';
 
@@ -34,20 +58,5 @@ export function setPaintMode(mode) {
     if (pb) pb.className = isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg";
     if (rb) rb.className = !isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg";
     
-    let panel = document.getElementById('paint-panel');
-    if (!panel && pb) {
-        panel = document.createElement('div');
-        panel.id = 'paint-panel';
-        panel.className = "flex gap-2 ml-4 px-3 border-l border-slate-700 items-center";
-        ['gray','cc','full'].forEach(k => {
-            const btn = document.createElement('button');
-            btn.textContent = k.toUpperCase();
-            btn.className = "px-2 py-1.5 rounded text-[9px] font-black text-white bg-slate-700";
-            btn.onclick = (e) => { e.stopPropagation(); applyOrbit(k); };
-            panel.appendChild(btn);
-        });
-        pb.parentNode.appendChild(panel);
-    }
-    if (panel) panel.style.display = isPaint ? 'flex' : 'none';
     Core.render();
 }
