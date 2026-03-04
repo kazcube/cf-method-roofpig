@@ -1,10 +1,10 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.12: Forced instant-jump using tempoScale:0 and manual 'alg' update.
+ * v2.0.13: Fixed applySetup to prevent array mutation bug and ensure correct reverse setup.
  */
 
-export const JS_VERSION = "v2.0.12";
+export const JS_VERSION = "v2.0.13";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -55,12 +55,11 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.12] 即時反映（ジャンプ）を保証する描画ロジック */
+/* [LOCKED: NO-REMOVE] */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    // スティッカーマスクの適用
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
     const slider = document.getElementById('move-slider');
@@ -70,20 +69,17 @@ export function render() {
         slider.max = activeMoves.length;
         const step = parseInt(slider.value) || 0;
         
-        // セットアップ（逆手順） + アクティブ（進捗）
+        // setupMoves (逆手順で崩す) + activeMoves の進捗
         const fullAlg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
         
-        // 再生中でない場合は、アニメーションを飛ばして即座にその状態を表示する
         if (!isPlaying) {
-            player.tempoScale = 0; // アニメーション速度を0（瞬間）にする
+            player.tempoScale = 0; 
         } else {
-            player.tempoScale = 1; // 再生時は通常の速さ
+            player.tempoScale = 1; 
         }
         
-        // アルゴリズムをセット
         player.alg = fullAlg;
         
-        // UI表示の更新
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
         if (indicator) {
@@ -91,7 +87,6 @@ export function render() {
         }
     }
     
-    // ハッシュの生成と保存
     const rawData = `${stickerStates.join("")}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
     const hashValue = `v5:${btoa(rawData)}`;
     
@@ -111,7 +106,7 @@ export function togglePlay() {
         const slider = document.getElementById('move-slider');
         if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
         isPlaying = true;
-        render(); // 再生開始直前に render を呼んで tempoScale をセット
+        render(); 
         
         playTimer = setInterval(() => {
             const current = parseInt(slider.value);
@@ -146,7 +141,7 @@ export function handleScramble() {
     render();
 }
 
-/* [LOCKED: NO-REMOVE] */
+/* [FIXED: v2.0.13] 配列の破壊的変更を避け、正順の手順を維持 */
 export function applySetup() {
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -154,20 +149,23 @@ export function applySetup() {
     const val = cb.value.trim();
     if (!val) return;
 
+    // 入力された手順を配列化（これが正順の手順になる）
     const moves = val.split(/\s+/).filter(m => m.length > 0);
     
-    // v1.4.2 と同じ逆手順ロジック
+    // 重要: [...moves] でコピーを作ってから反転させる。
+    // そうしないと元の moves 配列まで書き換わってしまう。
     setupMoves = [...moves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
+    // 正順の手順を activeMoves に保持
     activeMoves = moves;
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; 
+        slider.value = 0; // スライダーを0（セットアップ直後＝崩れた状態）にセット
     }
     
     render();
