@@ -1,22 +1,14 @@
-export const JS_VERSION = "v1.9.9";
-
+export const JS_VERSION = "v2.0.1";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1); 
 
 export function resetAll() {
-    setupMoves = [];
-    activeMoves = [];
-    stickerStates.fill(1);
+    setupMoves = []; activeMoves = []; stickerStates.fill(1);
 }
 
-export function updateStickerState(idx, state) {
-    stickerStates[idx] = state;
-}
-
-export function setAllStickers(state) {
-    stickerStates.fill(state);
-}
+export function updateStickerState(idx, state) { stickerStates[idx] = state; }
+export function setAllStickers(state) { stickerStates.fill(state); }
 
 export function loadFromHash() {
     const hash = window.location.hash.replace(/^#/, "");
@@ -26,14 +18,10 @@ export function loadFromHash() {
         const [mask, moves] = decoded.split("|");
         if (mask && mask.length === 54) stickerStates = mask.split("").map(Number);
         if (moves) activeMoves = moves.split(",").filter(m => m !== "");
-        
-        const cmdBox = document.getElementById('command-box');
-        if (cmdBox && activeMoves.length > 0) cmdBox.value = activeMoves.join(" ");
-    } catch (e) {
-        console.error("Hash recovery failed", e);
-    }
+    } catch (e) { console.error("Hash Error", e); }
 }
 
+// エラー回避のため render の前に定義
 function generateOrbitMask() {
     const getMask = (indices) => indices.map(i => stickerStates[i] ? '-' : 'I').join('');
     const e = [1,3,5,7,10,12,14,16,19,21,23,25,28,30,32,34,37,39,41,43,46,48,50,52].slice(0, 12);
@@ -46,47 +34,31 @@ export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    // --- 1. マスク処理（最優先） ---
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
-    // --- 2. 手順・スライダー処理 ---
     const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.max = activeMoves.length;
-        // 手順がない場合は0として扱う
-        const step = (activeMoves.length > 0) ? parseInt(slider.value) : 0;
-        player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
-        
-        const counter = document.getElementById('step-counter');
-        if (counter) counter.textContent = step;
-        
-        const indicator = document.getElementById('move-indicator');
-        if (indicator) indicator.textContent = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-    }
+    const step = slider ? parseInt(slider.value) : 0;
+    
+    // スライダーの最大値を更新
+    if (slider) slider.max = activeMoves.length;
+    
+    player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
+    
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = step;
 
-    // --- 3. ハッシュ更新 ---
+    // ハッシュ保存
     const rawData = `${stickerStates.join("")}|${activeMoves.join(",")}`;
-    window.history.replaceState(null, "", "#" + `v5:${btoa(rawData)}`);
-}
-
-export function applySetup() {
-    let val = document.getElementById('command-box').value.trim();
-    if (!val) return;
-    const movesArr = val.split(/\s+/).filter(m => m.length > 0);
-    setupMoves = [...movesArr].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'"));
-    activeMoves = movesArr;
-    const slider = document.getElementById('move-slider');
-    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
-    render();
+    window.history.replaceState(null, "", "#v5:" + btoa(rawData));
 }
 
 export function handleScramble() {
     setupMoves = [];
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
-    const cmdBox = document.getElementById('command-box');
-    if (cmdBox) cmdBox.value = activeMoves.join(" ");
+    const cb = document.getElementById('command-box');
+    if (cb) cb.value = activeMoves.join(" ");
     const slider = document.getElementById('move-slider');
-    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
+    if (slider) slider.value = activeMoves.length;
     render();
 }
