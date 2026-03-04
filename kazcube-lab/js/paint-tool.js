@@ -14,18 +14,23 @@ export function applyPreset(type) {
 
     currentMask = maskMap[type] || 'full';
     
-    // 強制適用
+    // 両方の可能性のある属性名にセット
     player.setAttribute('stickering', currentMask);
-    // 3D visualizationにおいてグレーアウトを確実にする属性
-    player.setAttribute('hint-stickering', (currentMask === 'dim' ? 'dim' : 'none'));
+    player.setAttribute('sticker-mask', currentMask);
     
-    console.log(`[Paint] Forced mask: ${currentMask}`);
+    // hint-stickeringが有効なバージョンへの対応
+    if (currentMask === 'dim') {
+        player.setAttribute('hint-stickering', 'dim');
+    } else {
+        player.removeAttribute('hint-stickering');
+    }
+    
+    console.log("[Paint] Applied:", currentMask);
 }
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
     document.getElementById('rotate-controls').classList.toggle('hidden', isPaint);
     document.getElementById('paint-controls').classList.toggle('hidden', !isPaint);
-    
     applyPreset(isPaint ? 'gray' : 'full');
 }

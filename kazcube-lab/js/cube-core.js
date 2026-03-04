@@ -12,14 +12,15 @@ export function updateView() {
     const step = parseInt(slider.value) || 0;
     slider.max = activeMoves.length;
 
-    // アルゴリズム更新
+    // 手順更新
     player.alg = [...setupMoves, ...activeMoves.slice(0, step)].join(" ");
     
-    // 現在のマスクを「念押し」で適用
+    // マスクを維持
     player.setAttribute('stickering', Paint.currentMask);
-    player.setAttribute('hint-stickering', (Paint.currentMask === 'dim' ? 'dim' : 'none'));
 
-    document.getElementById('step-counter') && (document.getElementById('step-counter').textContent = step);
+    document.getElementById('step-counter').textContent = step;
+    const lastMove = (step > 0) ? activeMoves[step-1] : "---";
+    document.getElementById('move-indicator').textContent = lastMove;
 }
 
 export function handleScramble() {
@@ -47,7 +48,7 @@ export function renderMoves() {
     ['U','D','L','R','F','B'].forEach(f => {
         [f, f+"'", f+"2"].forEach(m => {
             const b = document.createElement('button');
-            b.className = "bg-slate-700 text-xs py-2 rounded font-mono";
+            b.className = "bg-slate-700 py-2 rounded font-mono text-xs hover:bg-slate-600";
             b.textContent = m;
             b.onclick = () => {
                 activeMoves.push(m);
