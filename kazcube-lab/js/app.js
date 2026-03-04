@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-mask-cc').onclick = () => Paint.applyOrbit('cc');
     document.getElementById('btn-mask-full').onclick = () => Paint.applyOrbit('full');
 
-    // キューブ・ハッシュ・リセット
+    // キューブ操作（ハッシュ/セットアップ含む）
     document.getElementById('btn-scramble').onclick = Core.handleScramble;
     document.getElementById('btn-setup').onclick = Core.applySetup;
     document.getElementById('btn-reset').onclick = () => {

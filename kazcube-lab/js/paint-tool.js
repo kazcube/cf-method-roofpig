@@ -14,7 +14,7 @@ export function applyOrbit(type) {
     const mask = orbitMasks[type] || orbitMasks.full;
     player.experimentalStickeringMaskOrbits = mask;
 
-    // 再描画を強制
+    // 現在のセットアップ状態を維持したまま描画をリフレッシュ
     const currentAlg = Core.getCurrentAlgString();
     player.alg = ""; 
     setTimeout(() => {
