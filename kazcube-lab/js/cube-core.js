@@ -1,18 +1,17 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.30: Fixed play synchronization after setup.
- * Added logging for play loop and reinforced slider max update.
+ * v2.0.31: Switched to player.play() for smoother animation.
+ * Removed manual setInterval for movement to prevent sync issues.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.30");
+console.log("LOG: cube-core.js loaded. Version: v2.0.31");
 
-export const JS_VERSION = "v2.0.30";
+export const JS_VERSION = "v2.0.31";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
-let playTimer = null;
 
 let lastAppliedAlg = null;
 let lastAppliedSetup = null;
@@ -63,7 +62,7 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.30] Added more debug for play state */
+/* [FIXED: v2.0.31] Sync player state with slider for manual move/play */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -79,28 +78,28 @@ export function render() {
         // 1. Setup Algorithm
         const setupStr = setupMoves.join(" ");
         if (lastAppliedSetup !== setupStr) {
-            console.log(`DEBUG RENDER: Updating setupAlg to "${setupStr}"`);
             player.experimentalSetupAlg = setupStr;
             lastAppliedSetup = setupStr;
         }
 
         // 2. Active Algorithm
-        const activeStr = activeMoves.slice(0, step).join(" ");
-        
-        // Ensure tempo is 1 during play, otherwise moves won't animate
-        player.tempoScale = isPlaying ? 1 : 0;
-        
+        const activeStr = activeMoves.join(" "); // Set FULL alg
         if (lastAppliedAlg !== activeStr) {
-            console.log(`DEBUG RENDER: Updating currentAlg to "${activeStr}" (step ${step}/${activeMoves.length})`);
             player.alg = activeStr;
             lastAppliedAlg = activeStr;
+        }
+
+        // Sync slider with player's animation timeline
+        // If not playing, jump to specific move
+        if (!isPlaying) {
+            player.jumpToStep(step);
         }
 
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
         if (indicator) {
             const currentMove = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-            indicator.textContent = isPlaying ? `Playing: ${currentMove}` : `Step: ${step}`;
+            indicator.textContent = isPlaying ? `Playing...` : `Step: ${step}`;
         }
     }
     
@@ -116,50 +115,59 @@ export function render() {
     if (playBtn) playBtn.textContent = isPlaying ? "||" : "▶";
 }
 
-/* [FIXED: v2.0.30] Added logging to check play interval */
-export function togglePlay() {
-    console.log("DEBUG: togglePlay clicked. Current isPlaying:", isPlaying);
-    if (isPlaying) { stopPlay(); } 
-    else {
-        const slider = document.getElementById('move-slider');
-        if (!slider) return;
+/* [FIXED: v2.0.31] Use twisty-player's built-in play method */
+export async function togglePlay() {
+    const player = document.getElementById('main-cube');
+    const slider = document.getElementById('move-slider');
+    if (!player || !slider) return;
 
-        // If at the end, reset to start
-        if (parseInt(slider.value) >= activeMoves.length) {
-            console.log("DEBUG: Resetting slider to 0 for replay");
-            slider.value = 0;
-        }
-        
+    if (isPlaying) {
+        stopPlay();
+    } else {
         isPlaying = true;
-        console.log(`DEBUG: Starting play loop. Total moves: ${activeMoves.length}`);
-        render(); 
+        player.tempoScale = 1.0;
         
-        playTimer = setInterval(() => {
-            const current = parseInt(slider.value);
-            if (current < activeMoves.length) {
-                slider.value = current + 1;
-                console.log(`DEBUG: Play interval tick. Step: ${slider.value}`);
-                render();
-            } else {
-                console.log("DEBUG: Reached end of moves. Stopping.");
-                stopPlay();
+        // If we are at the end, jump to start
+        if (parseInt(slider.value) >= activeMoves.length) {
+            slider.value = 0;
+            player.jumpToStep(0);
+        }
+
+        render();
+
+        // Use twisty-player's built-in play mechanism
+        // We listen to the move events to update our slider
+        player.play();
+
+        const syncLoop = () => {
+            if (!isPlaying) return;
+            // Update slider based on player's current internal step
+            const currentStep = player.experimentalCurrentMoveIndex;
+            if (currentStep !== undefined && slider.value != currentStep) {
+                slider.value = currentStep;
+                document.getElementById('step-counter').textContent = currentStep;
             }
-        }, 500);
+            
+            if (currentStep >= activeMoves.length) {
+                stopPlay();
+            } else {
+                requestAnimationFrame(syncLoop);
+            }
+        };
+        requestAnimationFrame(syncLoop);
     }
 }
 
-/* [LOCKED: NO-REMOVE] */
+/* [FIXED: v2.0.31] */
 export function stopPlay() {
-    console.log("DEBUG: stopPlay called");
+    const player = document.getElementById('main-cube');
+    if (player) player.pause();
     isPlaying = false;
-    if (playTimer) clearInterval(playTimer);
-    playTimer = null;
     render();
 }
 
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
-    console.log("DEBUG: handleScramble START");
     stopPlay();
     setupMoves = [];
     lastAppliedAlg = null; lastAppliedSetup = null;
@@ -175,9 +183,8 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.30] Ensure slider max is robustly updated */
+/* [FIXED: v2.0.31] */
 export function applySetup() {
-    console.log("DEBUG: applySetup START");
     stopPlay();
     const cb = document.getElementById('command-box');
     if (!cb) return;
@@ -192,8 +199,6 @@ export function applySetup() {
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    console.log(`DEBUG: Setup generated. ActiveMoves length: ${activeMoves.length}`);
-
     const player = document.getElementById('main-cube');
     if (player) {
         player.alg = "";
@@ -206,7 +211,6 @@ export function applySetup() {
     if (slider) { 
         slider.max = activeMoves.length; 
         slider.value = 0; 
-        console.log(`DEBUG: Slider MAX set to ${slider.max}, VALUE set to ${slider.value}`);
     }
     
     render();
