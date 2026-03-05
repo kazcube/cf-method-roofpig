@@ -1,19 +1,18 @@
 /**
  * KAZCUBE Lab Core Module
- * [Final Restructured Version]
- * v2.0.34: Refined sync logic for setup vs play.
- * Uses native player properties for position control to ensure stability.
+ * [Standardized Logic Version]
+ * v2.0.35: Fixed Setup-to-Solved flow using backwards playback logic.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.34");
+console.log("LOG: cube-core.js loaded. Version: v2.0.35");
 
-export const JS_VERSION = "v2.0.34";
+export const JS_VERSION = "v2.0.35";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 
-// DOMの属性値を追跡するためのキャッシュ（不必要なリセットを防ぐ）
+// キャッシュ変数
 let currentDomAlg = "";
 let currentDomSetup = "";
 
@@ -64,7 +63,7 @@ function generateOrbitMask() {
 }
 
 /**
- * 描画関数: プレイヤーのプロパティを物理的な状態に同期させる
+ * 描画関数
  */
 export function render() {
     const player = document.getElementById('main-cube');
@@ -77,33 +76,29 @@ export function render() {
     
     if (slider) {
         const step = parseInt(slider.value) || 0;
-        const setupStr = setupMoves.join(" ");
-        const activeStr = activeMoves.join(" ");
-
-        // セットアップ手順の同期
-        if (currentDomSetup !== setupStr) {
-            console.log("DEBUG RENDER: Setting setupAlg:", setupStr);
-            player.experimentalSetupAlg = setupStr;
-            currentDomSetup = setupStr;
+        const setupStr = setupMoves.join(" "); // これが「逆手順」
+        
+        // twisty-playerの仕様に合わせる: 
+        // セットアップ状態（バラバラ）を表示するには、逆手順(setupMoves)をalgにセットし、
+        // そのインデックスを操作する。
+        if (currentDomAlg !== setupStr) {
+            console.log("DEBUG RENDER: Updating alg to setup-sequence:", setupStr);
+            player.alg = setupStr;
+            currentDomAlg = setupStr;
         }
 
-        // 実行手順の同期（常に全手順をセット）
-        if (currentDomAlg !== activeStr) {
-            console.log("DEBUG RENDER: Setting alg:", activeStr);
-            player.alg = activeStr;
-            currentDomAlg = activeStr;
-        }
-
-        // 位置の同期（再生中でないときのみ物理的にジャンプ）
+        // 再生中でない時のみ、スライダーの位置をプレイヤーに強制反映
+        // バラバラの状態は「setupMoves.length - step」の位置
         if (!isPlaying) {
-            player.experimentalCurrentMoveIndex = step;
+            player.experimentalCurrentMoveIndex = setupMoves.length - step;
         }
 
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
         if (indicator) {
+            // 表示上の手順は activeMoves (順手順) から取得
             const currentMove = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-            indicator.textContent = isPlaying ? `Playing...` : `Step: ${step}`;
+            indicator.textContent = isPlaying ? `Playing...` : currentMove;
         }
     }
     
@@ -119,7 +114,7 @@ export function render() {
 }
 
 /**
- * 再生制御: プレイヤー自身の内部アニメーションを使用
+ * 再生制御: 逆手順を後ろから前に向かって再生（＝元の状態に戻る）
  */
 export async function togglePlay() {
     const player = document.getElementById('main-cube');
@@ -129,34 +124,34 @@ export async function togglePlay() {
     if (isPlaying) {
         stopPlay();
     } else {
-        console.log("DEBUG: togglePlay - Start");
+        console.log("DEBUG: togglePlay START");
         isPlaying = true;
         
-        // 既に最後まで行っている場合は0に戻す
+        // すでに0面（完成）なら、最大（バラバラ）に戻してリプレイ
         if (parseInt(slider.value) >= activeMoves.length) {
             slider.value = 0;
-            player.experimentalCurrentMoveIndex = 0;
+            player.experimentalCurrentMoveIndex = setupMoves.length;
         }
 
-        player.tempoScale = 1.0;
-        render(); // UI表示更新
-        
+        // プレイヤーを逆再生モードに設定
+        player.tempoScale = -1.0; 
         player.play();
 
-        // プレイヤーの内部進捗を監視してスライダーに反映
         const syncLoop = () => {
             if (!isPlaying) return;
             
+            // プレイヤーの内部インデックス (setupMovesの残り)
             const pIndex = player.experimentalCurrentMoveIndex;
-            if (pIndex !== undefined && slider.value != pIndex) {
-                slider.value = pIndex;
-                document.getElementById('step-counter').textContent = pIndex;
-                // 注意: ここで render() を呼ぶと alg の再代入が走る可能性があるため、
-                // 必要最小限のUI更新に留めるか、render内の if ガードに任せる。
+            // スライダーの値（進捗）に変換
+            const virtualStep = setupMoves.length - pIndex;
+
+            if (slider.value != virtualStep) {
+                slider.value = virtualStep;
+                document.getElementById('step-counter').textContent = virtualStep;
             }
             
-            if (pIndex >= activeMoves.length) {
-                console.log("DEBUG: togglePlay - Finished");
+            if (pIndex <= 0) {
+                console.log("DEBUG: togglePlay FINISHED");
                 stopPlay();
             } else {
                 requestAnimationFrame(syncLoop);
@@ -170,7 +165,6 @@ export function stopPlay() {
     const player = document.getElementById('main-cube');
     if (player) {
         player.pause();
-        console.log("DEBUG: stopPlay - Paused at", player.experimentalCurrentMoveIndex);
     }
     isPlaying = false;
     render();
@@ -179,17 +173,25 @@ export function stopPlay() {
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
     stopPlay();
-    setupMoves = [];
-    currentDomAlg = "__RESET__"; currentDomSetup = "__RESET__";
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
+    
+    // ScrambleもSetupと同じ論理で扱う
+    setupMoves = [...activeMoves].reverse().map(m => {
+        if (m.endsWith("2")) return m;
+        return m.endsWith("'") ? m.slice(0, -1) : m + "'";
+    });
+
     const cb = document.getElementById('command-box');
     if (cb) cb.value = activeMoves.join(" ");
+    
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = activeMoves.length; 
+        slider.value = activeMoves.length; // スクランブル時は最初からバラバラの状態にする
     }
+    
+    currentDomAlg = "__RESET__";
     render();
 }
 
@@ -204,23 +206,23 @@ export function applySetup() {
     const val = cb.value.trim();
     if (!val) return;
 
-    const rawMoves = val.split(/\s+/).filter(m => m.length > 0);
-    activeMoves = [...rawMoves];
+    // 入力された手順
+    activeMoves = val.split(/\s+/).filter(m => m.length > 0);
     
-    setupMoves = [...rawMoves].reverse().map(m => {
+    // その逆手順（これがキューブをバラバラにする手順）
+    setupMoves = [...activeMoves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    // 内部キャッシュをリセットして render で強制反映させる
-    currentDomAlg = "__FORCE__";
-    currentDomSetup = "__FORCE__";
+    console.log("DEBUG: setupMoves generated:", setupMoves);
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; 
+        slider.value = activeMoves.length; // セットアップ直後は「全ステップ完了＝バラバラ」の状態にする
     }
     
+    currentDomAlg = "__FORCE__";
     render();
 }
