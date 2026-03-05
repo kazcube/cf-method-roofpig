@@ -1,12 +1,12 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.22: Fixed applySetup to use mathematical inverse moves (direction + order).
+ * v2.0.23: Added intensive debug logging and forced player refresh logic.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.22");
+console.log("LOG: cube-core.js loaded. Version: v2.0.23");
 
-export const JS_VERSION = "v2.0.22";
+export const JS_VERSION = "v2.0.23";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -15,6 +15,7 @@ let playTimer = null;
 
 /* [LOCKED: NO-REMOVE] */
 export function resetAll() {
+    console.log("DEBUG: resetAll called");
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -57,10 +58,13 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.22] 描画とスライダー状態の同期を強化 */
+/* [FIXED: v2.0.23] デバッグログ強化と強制リフレッシュ */
 export function render() {
     const player = document.getElementById('main-cube');
-    if (!player) return;
+    if (!player) {
+        console.error("DEBUG RENDER: player not found");
+        return;
+    }
 
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
@@ -70,14 +74,20 @@ export function render() {
     if (slider) {
         const step = parseInt(slider.value) || 0;
         
-        // [崩し用の逆手順（数学的逆）] + [実行手順の現在進捗]
-        const fullMoves = [...setupMoves, ...activeMoves.slice(0, step)];
+        // 結合手順の作成
+        const currentActive = activeMoves.slice(0, step);
+        const fullMoves = [...setupMoves, ...currentActive];
         const algStr = fullMoves.join(" ");
+
+        console.log(`DEBUG RENDER: step=${step}, setup=[${setupMoves.join(" ")}], active_slice=[${currentActive.join(" ")}], final_alg="${algStr}"`);
 
         player.tempoScale = isPlaying ? 1 : 0;
         
-        // twisty-player の alg にセット（setup-alg 属性は使用しない）
-        player.alg = algStr;
+        // 強制リフレッシュ：一度空にしてからセットすることで描画更新を促す
+        if (player.alg !== algStr) {
+            player.alg = ""; 
+            player.alg = algStr;
+        }
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
@@ -127,6 +137,7 @@ export function stopPlay() {
 
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
+    console.log("DEBUG: handleScramble called");
     stopPlay();
     setupMoves = [];
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
@@ -141,37 +152,41 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.22] 数学的な逆手順生成を実装 */
+/* [FIXED: v2.0.23] セットアップボタン押下時のログを詳細化 */
 export function applySetup() {
+    console.log("DEBUG: applySetup button CLICKED");
     stopPlay();
     const cb = document.getElementById('command-box');
-    if (!cb) return;
+    if (!cb) {
+        console.error("DEBUG: command-box NOT FOUND");
+        return;
+    }
     const val = cb.value.trim();
-    if (!val) return;
+    if (!val) {
+        console.warn("DEBUG: command-box IS EMPTY");
+        return;
+    }
 
-    // 入力手順
     const rawMoves = val.split(/\s+/).filter(m => m.length > 0);
     activeMoves = [...rawMoves];
     
-    /**
-     * 【重要】数学的逆手順（Mathematical Inverse）
-     * 例：U R -> R' U'
-     * 手順を逆順にし、各回転のプライムを反転させる。
-     */
+    // 数学的逆手順の生成
     setupMoves = [...rawMoves].reverse().map(m => {
-        if (m.endsWith("2")) return m; // 180度回転はそのままでOK
+        if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
+
+    console.log("DEBUG: setupMoves generated:", setupMoves);
+    console.log("DEBUG: activeMoves set:", activeMoves);
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; // スライダーを0に強制セット
+        slider.value = 0; 
+        console.log(`DEBUG: slider.max set to ${slider.max}, slider.value set to 0`);
+    } else {
+        console.error("DEBUG: move-slider NOT FOUND");
     }
-    
-    console.log("DEBUG: Apply Setup v2.0.22");
-    console.log("Input:", activeMoves);
-    console.log("Inverse Setup (for Scramble):", setupMoves);
     
     render();
 }
