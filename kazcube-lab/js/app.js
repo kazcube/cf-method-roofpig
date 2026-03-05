@@ -1,14 +1,11 @@
 /**
  * KAZCUBE Lab Application Module
- * * [History]
- * v2.0.0: UI framework with Tailwind.
- * v2.0.4: Navigation controls & i18n support.
- * v2.0.5: Added Import button handler.
- * v2.0.6: Play button event added & Copy/Import order swapped.
+ * [History]
+ * v2.0.7: Updated updateMoveGrid to use Core.addMove for logic sync.
  */
 
-import * as Core from './cube-core.js?v=2.0.6';
-import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.6';
+import * as Core from './cube-core.js?v=2.0.36';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.36';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -45,10 +42,8 @@ function updateMoveGrid(tab = "basic") {
             btn.textContent = m + mod;
             btn.className = "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold text-xs text-white transition active:scale-95";
             btn.onclick = () => { 
-                Core.activeMoves.push(m + mod); 
-                const slider = document.getElementById('move-slider');
-                if (slider) { slider.max = Core.activeMoves.length; slider.value = Core.activeMoves.length; }
-                Core.render(); 
+                // Core側のロジック管理関数を呼び出す
+                Core.addMove(m + mod); 
             };
             grid.appendChild(btn);
         });
@@ -67,29 +62,23 @@ window.onload = () => {
     initPaintTool();
     document.getElementById('lang-jp').onclick = () => setLanguage('jp');
     document.getElementById('lang-en').onclick = () => setLanguage('en');
-    
     const slider = document.getElementById('move-slider');
     const updateAndRender = (val) => { if (slider) { slider.value = val; Core.render(); } };
-    
     document.getElementById('nav-first').onclick = () => updateAndRender(0);
     document.getElementById('nav-last').onclick = () => updateAndRender(Core.activeMoves.length);
     document.getElementById('nav-prev').onclick = () => updateAndRender(Math.max(0, parseInt(slider.value) - 1));
     document.getElementById('nav-next').onclick = () => updateAndRender(Math.min(Core.activeMoves.length, parseInt(slider.value) + 1));
     document.getElementById('play-btn').onclick = () => Core.togglePlay();
-    
     document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
     document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
     document.querySelectorAll('.tab-btn').forEach(btn => btn.onclick = () => updateMoveGrid(btn.dataset.tab));
-    
     document.getElementById('scramble-btn').onclick = Core.handleScramble;
     document.getElementById('setup-btn').onclick = Core.applySetup;
     document.getElementById('reset-btn').onclick = () => { Core.resetAll(); window.location.hash = ""; window.location.reload(); };
-
     document.getElementById('import-btn').onclick = () => {
         const val = document.getElementById('hash-display').value.trim();
         if (val) Core.loadFromHash(val);
     };
-
     const copyBtn = document.getElementById('copy-btn');
     if (copyBtn) {
         copyBtn.onclick = () => {
