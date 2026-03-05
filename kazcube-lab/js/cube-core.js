@@ -1,24 +1,26 @@
 /**
  * KAZCUBE Lab Core Module
  * [Standardized Logic Version]
- * v2.0.36: Integrated addMove for grid buttons to sync with setup-playback logic.
+ * v2.0.37: Fixed setup-to-play flow by using SetupAlg for scrambling and Alg for solving.
+ * Ensures "U R" is animated correctly in forward direction.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.36");
+console.log("LOG: cube-core.js loaded. Version: v2.0.37");
 
-export const JS_VERSION = "v2.0.36";
+export const JS_VERSION = "v2.0.37";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 
-// キャッシュ変数
+// DOMプロパティ代入を最小限にするためのキャッシュ
 let currentDomAlg = "";
 let currentDomSetup = "";
 
-/* [LOCKED: NO-REMOVE] */
+/**
+ * すべての状態をリセット
+ */
 export function resetAll() {
-    console.log("DEBUG: resetAll");
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
     currentDomAlg = null; currentDomSetup = null;
     stopPlay();
@@ -27,12 +29,15 @@ export function resetAll() {
     render();
 }
 
-/* [LOCKED: NO-REMOVE] */
+/**
+ * スティッカー状態の更新
+ */
 export function updateStickerState(idx, state) { stickerStates[idx] = state; }
-/* [LOCKED: NO-REMOVE] */
 export function setAllStickers(state) { stickerStates.fill(state); }
 
-/* [LOCKED: NO-REMOVE] */
+/**
+ * ハッシュから状態をロード
+ */
 export function loadFromHash(targetHash = null) {
     const hash = targetHash || window.location.hash.replace(/^#/, "");
     if (!hash || !hash.startsWith("v5:")) return;
@@ -47,13 +52,15 @@ export function loadFromHash(targetHash = null) {
         const slider = document.getElementById('move-slider');
         if (slider) { 
             slider.max = activeMoves.length; 
-            slider.value = activeMoves.length; // 読み込み時は状態再現のため末尾へ
+            slider.value = 0; 
         }
         render();
     } catch (e) { console.error("Import Error", e); }
 }
 
-/* [LOCKED: NO-REMOVE] */
+/**
+ * TwistyPlayer用のマスク文字列生成
+ */
 function generateOrbitMask() {
     const getMask = (indices) => indices.map(i => stickerStates[i] ? '-' : 'I').join('');
     const e = [1,3,5,7,10,12,14,16,19,21,23,25,28,30,32,34,37,39,41,43,46,48,50,52].slice(0, 12);
@@ -63,7 +70,7 @@ function generateOrbitMask() {
 }
 
 /**
- * 逆手順の生成ヘルパー
+ * 正順序からセットアップ（崩し）手順を生成
  */
 function updateSetupFromActive() {
     setupMoves = [...activeMoves].reverse().map(m => {
@@ -73,7 +80,7 @@ function updateSetupFromActive() {
 }
 
 /**
- * 手順の追加（グリッドボタン用）
+ * 手順の追加
  */
 export function addMove(move) {
     stopPlay();
@@ -86,13 +93,14 @@ export function addMove(move) {
     const slider = document.getElementById('move-slider');
     if (slider) {
         slider.max = activeMoves.length;
-        slider.value = activeMoves.length; // 追加したら即座にその状態を表示
+        slider.value = 0; 
     }
     render();
 }
 
 /**
- * 描画関数
+ * 描画とTwistyPlayerへの同期
+ * 核心部：setupAlg と alg を使い分けることで再生方向のエラーを回避
  */
 export function render() {
     const player = document.getElementById('main-cube');
@@ -105,16 +113,24 @@ export function render() {
     
     if (slider) {
         const step = parseInt(slider.value) || 0;
+        const activeStr = activeMoves.join(" ");
         const setupStr = setupMoves.join(" ");
-        
-        if (currentDomAlg !== setupStr) {
-            player.alg = setupStr;
-            currentDomAlg = setupStr;
+
+        // セットアップ手順の更新
+        if (currentDomSetup !== setupStr) {
+            player.experimentalSetupAlg = setupStr;
+            currentDomSetup = setupStr;
         }
 
+        // 解決手順（再生用）の更新
+        if (currentDomAlg !== activeStr) {
+            player.alg = activeStr;
+            currentDomAlg = activeStr;
+        }
+
+        // 非再生時はスライダー位置を強制反映
         if (!isPlaying) {
-            // スライダーが最大（セットアップ完了）のとき、playerは0手目（逆手順の開始前）
-            player.experimentalCurrentMoveIndex = setupMoves.length - step;
+            player.experimentalCurrentMoveIndex = step;
         }
 
         document.getElementById('step-counter').textContent = step;
@@ -136,6 +152,9 @@ export function render() {
     if (playBtn) playBtn.textContent = isPlaying ? "||" : "▶";
 }
 
+/**
+ * 再生
+ */
 export async function togglePlay() {
     const player = document.getElementById('main-cube');
     const slider = document.getElementById('move-slider');
@@ -147,26 +166,31 @@ export async function togglePlay() {
         isPlaying = true;
         if (parseInt(slider.value) >= activeMoves.length) {
             slider.value = 0;
-            player.experimentalCurrentMoveIndex = setupMoves.length;
+            player.experimentalCurrentMoveIndex = 0;
         }
-        player.tempoScale = -1.0; 
+        player.tempoScale = 1.0; 
         player.play();
 
         const syncLoop = () => {
             if (!isPlaying) return;
             const pIndex = player.experimentalCurrentMoveIndex;
-            const virtualStep = setupMoves.length - pIndex;
-            if (slider.value != virtualStep) {
-                slider.value = virtualStep;
-                document.getElementById('step-counter').textContent = virtualStep;
+            if (slider.value != pIndex) {
+                slider.value = pIndex;
+                document.getElementById('step-counter').textContent = pIndex;
             }
-            if (pIndex <= 0) { stopPlay(); } 
-            else { requestAnimationFrame(syncLoop); }
+            if (pIndex >= activeMoves.length) {
+                stopPlay();
+            } else {
+                requestAnimationFrame(syncLoop);
+            }
         };
         requestAnimationFrame(syncLoop);
     }
 }
 
+/**
+ * 停止
+ */
 export function stopPlay() {
     const player = document.getElementById('main-cube');
     if (player) { player.pause(); }
@@ -174,7 +198,9 @@ export function stopPlay() {
     render();
 }
 
-/* [LOCKED: NO-REMOVE] */
+/**
+ * ランダムスクランブル
+ */
 export function handleScramble() {
     stopPlay();
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
@@ -183,13 +209,16 @@ export function handleScramble() {
     const cb = document.getElementById('command-box');
     if (cb) cb.value = activeMoves.join(" ");
     const slider = document.getElementById('move-slider');
-    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
+    if (slider) { 
+        slider.max = activeMoves.length; 
+        slider.value = 0; 
+    }
     currentDomAlg = "__RESET__";
     render();
 }
 
 /**
- * セットアップ適用
+ * 手順入力欄からの適用
  */
 export function applySetup() {
     stopPlay();
@@ -200,7 +229,10 @@ export function applySetup() {
     activeMoves = val.split(/\s+/).filter(m => m.length > 0);
     updateSetupFromActive();
     const slider = document.getElementById('move-slider');
-    if (slider) { slider.max = activeMoves.length; slider.value = activeMoves.length; }
+    if (slider) { 
+        slider.max = activeMoves.length; 
+        slider.value = 0; 
+    }
     currentDomAlg = "__FORCE__";
     render();
 }
