@@ -2,106 +2,115 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAZCUBE Lab v2.0.44</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KAZCUBE Lab - Paint & Rotate</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="https://cdn.cubing.net/js/cubing/twisty"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        twisty-player { width: 100%; height: 100%; --background: none; }
-        input:focus { outline: none; border-color: #3b82f6; }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none; width: 16px; height: 16px;
-            background: #10b981; border-radius: 50%; cursor: pointer;
-        }
+        body { background-color: #0f172a; color: #f8fafc; overflow: hidden; font-family: sans-serif; }
+        twisty-player { width: 100%; height: 100%; background: transparent; --twisty-frame-background: none; }
+        #main-cube { filter: drop-shadow(0 25px 25px rgb(0 0 0 / 0.5)); }
+        .no-select { user-select: none; -webkit-tap-highlight-color: transparent; }
+        input[type="range"] { accent-color: #10b981; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-8 min-h-screen">
+<body class="h-screen flex flex-col no-select">
 
-    <div class="max-w-5xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md z-10">
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
+            <h1 class="text-sm font-black tracking-tighter text-slate-200">KAZCUBE <span class="text-emerald-500">LAB</span></h1>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="location.reload()" class="p-2 text-slate-400 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 relative flex flex-col overflow-hidden">
         
-        <header class="flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-baseline gap-2">
-                <h1 class="text-3xl font-black italic tracking-tighter text-emerald-400">KAZCUBE Lab</h1>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">v2.0.44</span>
-            </div>
-            
-            <div class="flex items-center gap-3 bg-slate-900 p-1 rounded-xl border border-slate-800">
-                <div class="flex bg-slate-800 rounded-lg overflow-hidden p-1 gap-1">
-                    <button id="lang-jp" class="px-3 py-1 text-[10px] font-bold bg-blue-600 rounded-md transition">JP</button>
-                    <button id="lang-en" class="px-3 py-1 text-[10px] font-bold text-slate-400 hover:text-white transition">EN</button>
-                </div>
-                <div class="flex gap-1 pr-1" id="mode-container">
-                    <button id="mode-rotate" class="px-5 py-2 bg-emerald-500 font-black text-[10px] uppercase rounded-lg text-white transition">Rotate</button>
-                    <button id="mode-paint" class="px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] uppercase rounded-lg transition">Paint</button>
-                </div>
-            </div>
-        </header>
+        <!-- Cube Stage -->
+        <div class="flex-1 flex items-center justify-center p-4 relative">
+            <twisty-player 
+                id="main-cube"
+                puzzle="3x3x3"
+                initial-pose="custom"
+                camera-latitude="30"
+                camera-longitude="-30"
+                background="none"
+                control-panel="none"
+                hint-stickers="none"
+                back-view="none"
+            ></twisty-player>
 
-        <div class="glass rounded-xl p-2 flex items-center gap-3">
-            <div class="px-3 py-1 bg-black rounded text-[9px] font-black text-slate-500 uppercase">Hash</div>
-            <input id="hash-display" type="text" placeholder="v5:..." class="bg-transparent text-xs font-mono text-emerald-500 flex-1 truncate">
-            <div class="flex gap-2">
-                <button id="copy-btn" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition shrink-0 text-white">Copy Link</button>
-                <button id="import-btn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition text-white">Import</button>
+            <!-- Floating Move Indicator -->
+            <div class="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-slate-900/80 backdrop-blur border border-slate-700 rounded-full shadow-2xl z-20">
+                <span id="move-indicator" class="text-[11px] font-black text-emerald-400 tracking-widest uppercase">---</span>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Mode & Tool Container -->
+        <div class="px-4 pb-4 w-full max-w-lg mx-auto space-y-4">
             
-            <div class="lg:col-span-5 space-y-4">
-                <div class="aspect-square glass rounded-3xl overflow-hidden relative">
-                    <twisty-player id="main-cube" visualization="3D" control-panel="none" background="none"></twisty-player>
+            <!-- Mode Selector + Sub Panels (Dynamic) -->
+            <div id="mode-container" class="flex items-center justify-between bg-slate-900/80 p-1 rounded-xl border border-slate-800 shadow-xl">
+                <div class="flex p-0.5 gap-1">
+                    <button id="mode-rotate" class="px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/20 transition">ROTATE</button>
+                    <button id="mode-paint" class="px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition">PAINT</button>
                 </div>
-                
-                <div class="glass rounded-2xl p-6 space-y-4">
-                    <div class="flex items-center gap-4">
-                        <button id="nav-first" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-[10px] hover:bg-slate-700 transition text-white">|◀</button>
-                        <button id="nav-prev" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-[10px] hover:bg-slate-700 transition text-white">◀</button>
-                        
-                        <button id="play-btn" class="w-10 h-10 flex items-center justify-center bg-emerald-600 rounded-full text-xs hover:bg-emerald-500 transition text-white shadow-lg shadow-emerald-900/20">▶</button>
-                        
-                        <input id="move-slider" type="range" min="0" max="0" value="0" class="flex-1 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                        
-                        <button id="nav-next" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-[10px] hover:bg-slate-700 transition text-white">▶</button>
-                        <button id="nav-last" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-[10px] hover:bg-slate-700 transition text-white">▶|</button>
-                    </div>
-                    <div class="flex items-center justify-between pt-2">
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-[9px] font-black text-slate-500 uppercase">Step</span>
-                            <span id="step-counter" class="text-xl font-black text-emerald-400">0</span>
+                <!-- Paint Palette or Orbit buttons will be injected here by paint-tool.js -->
+            </div>
+
+            <!-- Main Control Grid (Rotate Mode) -->
+            <div id="move-grid-container" class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                <div id="move-grid" class="grid grid-cols-6 gap-2">
+                    <!-- Buttons injected via app.js -->
+                </div>
+
+                <!-- Slider & Play -->
+                <div class="flex items-center gap-4 bg-slate-950/50 p-3 rounded-xl border border-slate-800">
+                    <button id="play-btn" class="w-10 h-10 flex items-center justify-center bg-emerald-600 rounded-full text-white hover:bg-emerald-500 transition active:scale-90 shadow-lg shadow-emerald-900/20">
+                        <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <div class="flex-1 space-y-1">
+                        <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
+                            <span>Step <span id="step-counter" class="text-emerald-500">0</span></span>
+                            <span>Timeline</span>
                         </div>
-                        <div id="move-indicator" class="px-4 py-2 bg-black/50 rounded-lg font-mono text-sm font-bold text-emerald-500 min-w-[60px] text-center border border-emerald-500/20">---</div>
+                        <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-7 space-y-6">
-                <div class="glass rounded-3xl p-6 space-y-4">
-                    <textarea id="command-box" placeholder="手順を入力..." class="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-4 text-sm font-mono focus:ring-2 focus:ring-emerald-500/50 transition resize-none text-white"></textarea>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="scramble-btn" class="bg-indigo-600 hover:bg-indigo-500 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition text-white">Scramble</button>
-                        <button id="setup-btn" class="border-2 border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition">Set Setup</button>
-                    </div>
-                    <button id="reset-btn" class="w-full bg-rose-600/20 hover:bg-rose-600 text-rose-500 hover:text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition border border-rose-600/30">Reset All Data</button>
-                </div>
+            <!-- Command Bar -->
+            <div class="flex gap-2">
+                <input type="text" id="command-box" placeholder="U R U' R' ..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm font-mono text-emerald-400 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                <button id="apply-btn" class="px-6 bg-slate-100 text-slate-900 font-black text-xs rounded-xl hover:bg-white active:scale-95 transition">APPLY</button>
+            </div>
 
-                <div id="move-grid-container" class="space-y-4">
-                    <div class="flex gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
-                        <button class="tab-btn px-4 py-2 text-[10px] font-black uppercase text-blue-500 border-b-2 border-blue-500" data-tab="basic">Basic</button>
-                        <button class="tab-btn px-4 py-2 text-[10px] font-black uppercase text-slate-500 hover:text-white" data-tab="wide">Wide</button>
-                        <button class="tab-btn px-4 py-2 text-[10px] font-black uppercase text-slate-500 hover:text-white" data-tab="slice">Slice</button>
-                    </div>
-                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
-                </div>
+            <!-- Sub Actions -->
+            <div class="flex gap-2">
+                <button id="scramble-btn" class="flex-1 py-3 bg-slate-800/50 text-slate-300 font-bold text-[10px] rounded-xl border border-slate-700 hover:bg-slate-800 transition uppercase tracking-widest">Scramble</button>
+                <button id="reset-btn" class="flex-1 py-3 bg-slate-800/50 text-rose-400 font-bold text-[10px] rounded-xl border border-slate-700 hover:bg-slate-800 transition uppercase tracking-widest">Reset All</button>
             </div>
         </div>
-    </div>
+    </main>
 
-    <script type="module" src="./js/app.js?v=2.0.6"></script>
+    <!-- Footer / Hash -->
+    <footer class="p-3 border-t border-slate-800 bg-slate-900/80">
+        <input type="text" id="hash-display" readonly class="w-full bg-transparent text-[8px] font-mono text-slate-600 border-none focus:outline-none" value="">
+    </footer>
+
+    <!-- Scripts -->
+    <!-- キャッシュを回避するため、クエリパラメータに最新バージョン v2.0.44 を指定 -->
+    <script type="module">
+        import { initApp } from './js/app.js?v=2.0.44';
+        window.onload = initApp;
+    </script>
 </body>
 </html>
