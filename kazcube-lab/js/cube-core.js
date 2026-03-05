@@ -1,22 +1,24 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.23: Added intensive debug logging and forced player refresh logic.
+ * v2.0.24: Fixed "Cannot get .alg" error by using a local variable to track applied alg.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.23");
+console.log("LOG: cube-core.js loaded. Version: v2.0.24");
 
-export const JS_VERSION = "v2.0.23";
+export const JS_VERSION = "v2.0.24";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 let playTimer = null;
+let lastAppliedAlg = ""; // player.alg の代わりに比較用で使用
 
 /* [LOCKED: NO-REMOVE] */
 export function resetAll() {
     console.log("DEBUG: resetAll called");
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
+    lastAppliedAlg = "";
     stopPlay();
     const cb = document.getElementById('command-box');
     if (cb) cb.value = "";
@@ -58,13 +60,10 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.23] デバッグログ強化と強制リフレッシュ */
+/* [FIXED: v2.0.24] player.alg からの読み取りを廃止 */
 export function render() {
     const player = document.getElementById('main-cube');
-    if (!player) {
-        console.error("DEBUG RENDER: player not found");
-        return;
-    }
+    if (!player) return;
 
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
@@ -74,19 +73,19 @@ export function render() {
     if (slider) {
         const step = parseInt(slider.value) || 0;
         
-        // 結合手順の作成
+        // 数学的逆手順(setup) + 現在の進捗(active)
         const currentActive = activeMoves.slice(0, step);
         const fullMoves = [...setupMoves, ...currentActive];
         const algStr = fullMoves.join(" ");
 
-        console.log(`DEBUG RENDER: step=${step}, setup=[${setupMoves.join(" ")}], active_slice=[${currentActive.join(" ")}], final_alg="${algStr}"`);
+        console.log(`DEBUG RENDER: step=${step}, alg="${algStr}"`);
 
         player.tempoScale = isPlaying ? 1 : 0;
         
-        // 強制リフレッシュ：一度空にしてからセットすることで描画更新を促す
-        if (player.alg !== algStr) {
-            player.alg = ""; 
+        // player.alg を直接 get しないように修正
+        if (lastAppliedAlg !== algStr) {
             player.alg = algStr;
+            lastAppliedAlg = algStr;
         }
         
         document.getElementById('step-counter').textContent = step;
@@ -137,9 +136,9 @@ export function stopPlay() {
 
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
-    console.log("DEBUG: handleScramble called");
     stopPlay();
     setupMoves = [];
+    lastAppliedAlg = "";
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
     const cb = document.getElementById('command-box');
@@ -152,41 +151,33 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.23] セットアップボタン押下時のログを詳細化 */
+/* [FIXED: v2.0.24] Mathmatical inverse confirmed */
 export function applySetup() {
-    console.log("DEBUG: applySetup button CLICKED");
+    console.log("DEBUG: applySetup START");
     stopPlay();
     const cb = document.getElementById('command-box');
-    if (!cb) {
-        console.error("DEBUG: command-box NOT FOUND");
-        return;
-    }
+    if (!cb) return;
     const val = cb.value.trim();
-    if (!val) {
-        console.warn("DEBUG: command-box IS EMPTY");
-        return;
-    }
+    if (!val) return;
 
     const rawMoves = val.split(/\s+/).filter(m => m.length > 0);
     activeMoves = [...rawMoves];
     
-    // 数学的逆手順の生成
+    // 数学的逆手順の生成 (U R -> R' U')
     setupMoves = [...rawMoves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
     console.log("DEBUG: setupMoves generated:", setupMoves);
-    console.log("DEBUG: activeMoves set:", activeMoves);
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
         slider.value = 0; 
-        console.log(`DEBUG: slider.max set to ${slider.max}, slider.value set to 0`);
-    } else {
-        console.error("DEBUG: move-slider NOT FOUND");
     }
     
+    // 手順が完全に変わるのでキャッシュをクリア
+    lastAppliedAlg = "__FORCE_REFRESH__";
     render();
 }
