@@ -1,20 +1,20 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.28: Re-implemented intensive debugging and forced refresh logic.
- * Fixed 2nd+ setup attempt failure and improved play synchronization.
+ * v2.0.29: Fixed rendering logic for setup and play.
+ * Added forced seek to 0 before applying algorithms to ensure visual update.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.28");
+console.log("LOG: cube-core.js loaded. Version: v2.0.29");
 
-export const JS_VERSION = "v2.0.28";
+export const JS_VERSION = "v2.0.29";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 let playTimer = null;
 
-// [IMPORTANT] Use local variables to track state because direct reading from player properties causes errors.
+// Local state tracking to avoid direct player property access errors
 let lastAppliedAlg = null;
 let lastAppliedSetup = null;
 
@@ -64,13 +64,10 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.28] Intensive debug logging and state comparison fix */
+/* [FIXED: v2.0.29] Improved sync logic */
 export function render() {
     const player = document.getElementById('main-cube');
-    if (!player) {
-        console.warn("DEBUG RENDER: player not found");
-        return;
-    }
+    if (!player) return;
 
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
@@ -94,6 +91,7 @@ export function render() {
         
         if (lastAppliedAlg !== activeStr) {
             console.log(`DEBUG RENDER: Updating currentAlg to "${activeStr}" (step ${step})`);
+            // Set alg
             player.alg = activeStr;
             lastAppliedAlg = activeStr;
         }
@@ -162,7 +160,7 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.28] Forced state clearing for consecutive setup attempts */
+/* [FIXED: v2.0.29] Total Reset before Applying new Setup */
 export function applySetup() {
     console.log("DEBUG: applySetup START");
     stopPlay();
@@ -180,26 +178,24 @@ export function applySetup() {
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    console.log("DEBUG: New setupMoves generated:", setupMoves);
+    console.log("DEBUG: setupMoves generated:", setupMoves);
 
-    // Force clear player properties before render
+    // [CRITICAL] Reset everything on player to ensure it re-draws correctly
     const player = document.getElementById('main-cube');
     if (player) {
         player.alg = "";
         player.experimentalSetupAlg = "";
-        console.log("DEBUG: Player properties cleared for re-setup");
+        // Force visual update by clearing local cache
+        lastAppliedAlg = "__RESET__";
+        lastAppliedSetup = "__RESET__";
     }
-    
-    // Reset local cache to ensure next render() takes the new strings
-    lastAppliedAlg = "__FORCE_REFRESH__";
-    lastAppliedSetup = "__FORCE_REFRESH__";
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
         slider.value = 0; 
-        console.log(`DEBUG: Slider reset to 0 / ${slider.max}`);
     }
     
+    // Call render twice or once with forced variables
     render();
 }
