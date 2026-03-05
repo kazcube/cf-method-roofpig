@@ -1,12 +1,9 @@
 /**
  * KAZCUBE Lab Paint Tool Module
- * * [History]
- * v2.0.2: Initial paint logic.
- * v2.0.5: Added GRAY/FULL/CC presets.
- * v2.0.6: Fixed insertion point for Paint Panel to ensure visibility.
+ * v2.0.40: Remove old version queries to fix cache display issues.
  */
 
-import * as Core from './cube-core.js?v=2.0.6';
+import * as Core from './cube-core.js';
 
 /* [LOCKED: NO-REMOVE] */
 export function initPaintTool() {
@@ -27,12 +24,10 @@ export function initPaintTool() {
 function ensurePaintPanel(show) {
     let panel = document.getElementById('paint-panel');
     const container = document.getElementById('mode-container');
-    
     if (!panel && container) {
         panel = document.createElement('div');
         panel.id = 'paint-panel';
         panel.className = "flex gap-2 ml-4 px-3 border-l border-slate-700 items-center";
-        
         const opts = [{k:'gray',t:'GRAY'}, {k:'cc',t:'C+C'}, {k:'full',t:'FULL'}];
         opts.forEach(opt => {
             const btn = document.createElement('button');
@@ -61,14 +56,10 @@ export function applyOrbit(type) {
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
     ensurePaintPanel(isPaint);
-
     const grid = document.getElementById('move-grid-container');
     if (grid) grid.style.display = isPaint ? 'none' : 'block';
-
-    const pb = document.getElementById('mode-paint');
-    const rb = document.getElementById('mode-rotate');
+    const pb = document.getElementById('mode-paint'), rb = document.getElementById('mode-rotate');
     if (pb) pb.className = isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg transition";
     if (rb) rb.className = !isPaint ? "px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white" : "px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg transition";
-    
     Core.render();
 }
