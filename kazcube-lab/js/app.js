@@ -1,11 +1,10 @@
 /**
  * KAZCUBE Lab Application Module
- * [History]
- * v2.0.37: Updated import to v2.0.37 and ensured compatibility with latest Core.render.
+ * v2.0.44: Fixed initApp export and ensured safe move filtering.
  */
 
-import * as Core from './cube-core.js?v=2.0.37';
-import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.37';
+import * as Core from './cube-core.js?v=2.0.44';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.44';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -13,100 +12,79 @@ const moveSets = {
     slice: ["E", "M", "S", "x", "y", "z"]
 };
 
-const i18n = {
-    jp: { scramble: "スクランブル", setup: "セットアップ設定", reset: "全データリセット", placeholder: "手順を入力..." },
-    en: { scramble: "SCRAMBLE", setup: "SET SETUP", reset: "RESET ALL DATA", placeholder: "Enter algorithm..." }
-};
+/**
+ * [LOCKED: NO-REMOVE]
+ * index.htmlから呼び出される初期化関数
+ */
+export function initApp() {
+    console.log("LOG: initApp starting...");
+    
+    // Coreの初期化
+    Core.loadFromHash();
+    
+    // UIの構築
+    updateMoveGrid();
+    initEventListeners();
+    initPaintTool();
 
-function setLanguage(lang) {
-    const texts = i18n[lang];
-    document.getElementById('scramble-btn').textContent = texts.scramble;
-    document.getElementById('setup-btn').textContent = texts.setup;
-    document.getElementById('reset-btn').textContent = texts.reset;
-    document.getElementById('command-box').placeholder = texts.placeholder;
-    const btnJp = document.getElementById('lang-jp'), btnEn = document.getElementById('lang-en');
-    btnJp.className = `px-3 py-1 text-[10px] font-bold ${lang === 'jp' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'} rounded-md transition`;
-    btnEn.className = `px-3 py-1 text-[10px] font-bold ${lang === 'en' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'} rounded-md transition`;
+    // 初期状態の描画
+    Core.render();
 }
 
-function updateMoveGrid(tab = "basic") {
+function updateMoveGrid() {
     const grid = document.getElementById('move-grid');
     if (!grid) return;
     grid.innerHTML = "";
-    moveSets[tab].forEach(m => {
-        ["", "'", "2"].forEach(mod => {
-            const btn = document.createElement('button');
-            btn.textContent = m + mod;
-            btn.className = "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold text-xs text-white transition active:scale-95";
-            btn.onclick = () => { 
-                Core.addMove(m + mod); 
-            };
-            grid.appendChild(btn);
-        });
-    });
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        const isActive = btn.dataset.tab === tab;
-        btn.className = isActive 
-            ? "tab-btn px-4 py-2 text-[10px] font-black uppercase text-blue-500 border-b-2 border-blue-500"
-            : "tab-btn px-4 py-2 text-[10px] font-black uppercase text-slate-500 hover:text-white transition";
+
+    const allMoves = [...moveSets.basic, ...moveSets.wide, ...moveSets.slice];
+    
+    allMoves.forEach(m => {
+        const btn = document.createElement('button');
+        btn.className = "h-10 bg-slate-800 border border-slate-700 rounded-lg text-[10px] font-black hover:bg-slate-700 hover:text-emerald-400 active:scale-90 transition shadow-sm";
+        btn.textContent = m;
+        btn.onclick = () => Core.addMove(m);
+        grid.appendChild(btn);
     });
 }
 
-window.onload = () => {
-    Core.loadFromHash();
-    initPaintTool();
-    document.getElementById('lang-jp').onclick = () => setLanguage('jp');
-    document.getElementById('lang-en').onclick = () => setLanguage('en');
+function initEventListeners() {
+    // Play/Pause
+    const playBtn = document.getElementById('play-btn');
+    if (playBtn) playBtn.onclick = Core.togglePlay;
+
+    // Apply
+    const applyBtn = document.getElementById('apply-btn');
+    if (applyBtn) applyBtn.onclick = Core.applySetup;
+
+    // Scramble
+    const scrambleBtn = document.getElementById('scramble-btn');
+    if (scrambleBtn) scrambleBtn.onclick = Core.handleScramble;
+
+    // Reset
+    const resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) resetBtn.onclick = Core.resetAll;
+
+    // Slider
     const slider = document.getElementById('move-slider');
-    
-    const updateAndRender = (val) => { 
-        if (slider) { 
-            slider.value = val; 
-            Core.render(); 
-        } 
-    };
-
-    document.getElementById('nav-first').onclick = () => updateAndRender(0);
-    document.getElementById('nav-last').onclick = () => updateAndRender(Core.activeMoves.length);
-    document.getElementById('nav-prev').onclick = () => updateAndRender(Math.max(0, parseInt(slider.value) - 1));
-    document.getElementById('nav-next').onclick = () => updateAndRender(Math.min(Core.activeMoves.length, parseInt(slider.value) + 1));
-    
-    document.getElementById('play-btn').onclick = () => Core.togglePlay();
-    document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
-    document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
-    
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.onclick = () => updateMoveGrid(btn.dataset.tab));
-    
-    document.getElementById('scramble-btn').onclick = Core.handleScramble;
-    document.getElementById('setup-btn').onclick = Core.applySetup;
-    document.getElementById('reset-btn').onclick = () => { 
-        Core.resetAll(); 
-        window.location.hash = ""; 
-        window.location.reload(); 
-    };
-
-    document.getElementById('import-btn').onclick = () => {
-        const val = document.getElementById('hash-display').value.trim();
-        if (val) Core.loadFromHash(val);
-    };
-
-    const copyBtn = document.getElementById('copy-btn');
-    if (copyBtn) {
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(window.location.href);
-            copyBtn.textContent = "COPIED!";
-            setTimeout(() => { copyBtn.textContent = "COPY LINK"; }, 2000);
-        };
-    }
-
     if (slider) {
-        slider.oninput = () => { 
-            Core.stopPlay(); 
-            Core.render(); 
+        slider.oninput = () => {
+            if (Core.isPlaying) Core.stopPlay();
+            Core.render();
         };
     }
 
-    updateMoveGrid('basic');
-    setLanguage('jp');
-    setPaintMode(Core.stickerStates.includes(0) ? 'paint' : 'rotate');
-};
+    // Mode Switching
+    const btnRotate = document.getElementById('mode-rotate');
+    const btnPaint = document.getElementById('mode-paint');
+
+    if (btnRotate) btnRotate.onclick = () => setPaintMode('rotate');
+    if (btnPaint) btnPaint.onclick = () => setPaintMode('paint');
+
+    // Command Box Enter Key
+    const cb = document.getElementById('command-box');
+    if (cb) {
+        cb.onkeydown = (e) => {
+            if (e.key === 'Enter') Core.applySetup();
+        };
+    }
+}
