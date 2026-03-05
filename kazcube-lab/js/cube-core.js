@@ -1,21 +1,26 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.25: Final fix for Setup logic using experimental-setup-alg for robust scrambling.
+ * v2.0.26: Fixed "Cannot get .setup" error. Using local state tracking for both alg and setupAlg.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.25");
+console.log("LOG: cube-core.js loaded. Version: v2.0.26");
 
-export const JS_VERSION = "v2.0.25";
+export const JS_VERSION = "v2.0.26";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 let playTimer = null;
 
+// [IMPORTANT] twisty-playerのプロパティを直接読み取れないための状態保持変数
+let lastAppliedAlg = "";
+let lastAppliedSetup = "";
+
 /* [LOCKED: NO-REMOVE] */
 export function resetAll() {
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
+    lastAppliedAlg = ""; lastAppliedSetup = "";
     stopPlay();
     const cb = document.getElementById('command-box');
     if (cb) cb.value = "";
@@ -57,7 +62,7 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.25] setup-alg 属性を活用し、スライダー 0 での崩し状態を確定させる */
+/* [FIXED: v2.0.26] 読み取りエラーを完全に回避するロジック */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -70,20 +75,23 @@ export function render() {
     if (slider) {
         const step = parseInt(slider.value) || 0;
         
-        // 1. セットアップ（崩し）手順を experimentalSetupAlg に設定
-        // これにより、キューブの「初期状態」そのものが逆手順後の状態になる
+        // 1. セットアップ（崩し）手順
         const setupStr = setupMoves.join(" ");
-        if (player.experimentalSetupAlg !== setupStr) {
+        if (lastAppliedSetup !== setupStr) {
             player.experimentalSetupAlg = setupStr;
+            lastAppliedSetup = setupStr;
         }
 
-        // 2. 実行手順（スライダーの進捗）を alg に設定
+        // 2. 実行手順（進捗）
         const activeStr = activeMoves.slice(0, step).join(" ");
-        
         player.tempoScale = isPlaying ? 1 : 0;
-        player.alg = activeStr;
+        
+        if (lastAppliedAlg !== activeStr) {
+            player.alg = activeStr;
+            lastAppliedAlg = activeStr;
+        }
 
-        console.log(`RENDER v2.0.25: step=${step}, setupAlg="${setupStr}", currentAlg="${activeStr}"`);
+        console.log(`RENDER v2.0.26: step=${step}, setupAlg="${setupStr}", currentAlg="${activeStr}"`);
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
@@ -135,6 +143,7 @@ export function stopPlay() {
 export function handleScramble() {
     stopPlay();
     setupMoves = [];
+    lastAppliedAlg = ""; lastAppliedSetup = "";
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
     const cb = document.getElementById('command-box');
@@ -147,7 +156,7 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.25] セットアップボタン押下時の挙動を最適化 */
+/* [FIXED: v2.0.26] 状態変数のリセットを伴うセットアップ適用 */
 export function applySetup() {
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -155,23 +164,25 @@ export function applySetup() {
     const val = cb.value.trim();
     if (!val) return;
 
-    // 入力手順をそのまま activeMoves に
     const rawMoves = val.split(/\s+/).filter(m => m.length > 0);
     activeMoves = [...rawMoves];
     
-    // 数学的逆手順を setupMoves に（崩し用）
+    // U R -> R' U' の生成
     setupMoves = [...rawMoves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    console.log("APPLY SETUP: Scramble with", setupMoves);
+    console.log("APPLY SETUP: Scramble inverse", setupMoves);
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; // スライダーを0にする＝崩し状態のみ表示
+        slider.value = 0; 
     }
     
+    // キャッシュを強制リセットして再描画を確実に
+    lastAppliedAlg = "__FORCE__";
+    lastAppliedSetup = "__FORCE__";
     render();
 }
