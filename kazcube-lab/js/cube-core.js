@@ -1,31 +1,20 @@
 /**
  * KAZCUBE Lab Core Module
- * v2.0.45: Fixed stickerFill logic for Gray/Full buttons.
+ * v2.0.46: Restored MASK-based logic for Orbit buttons.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.45");
-
-export const JS_VERSION = "v2.0.45";
+export const JS_VERSION = "v2.0.46";
 export let setupMoves = [];
 export let activeMoves = [];
-export let stickerColors = Array(54).fill(null);
+// 1 = 表示, 0 = 非表示 (Gray)
+export let stickerMask = Array(54).fill(1);
 export let isPlaying = false;
 
 let currentDomAlg = "";
 let currentDomSetup = "";
 
-const colorMap = {
-    0: "#4b5563", // Gray
-    1: "#ffffff", // White
-    2: "#ffff00", // Yellow
-    3: "#00ff00", // Green
-    4: "#0000ff", // Blue
-    5: "#ff0000", // Red
-    6: "#ffa500"  // Orange
-};
-
 export function resetAll() {
-    setupMoves = []; activeMoves = []; stickerColors.fill(null);
+    setupMoves = []; activeMoves = []; stickerMask.fill(1);
     currentDomAlg = null; currentDomSetup = null;
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -33,22 +22,22 @@ export function resetAll() {
     render();
 }
 
-export function updateStickerColor(idx, colorId) { 
-    if (idx >= 0 && idx < 54) stickerColors[idx] = colorId; 
+export function updateStickerState(idx, state) { 
+    if (idx >= 0 && idx < 54) stickerMask[idx] = state; 
 }
 
-export function setAllStickers(colorId) { 
-    stickerColors.fill(colorId); 
+export function setAllStickers(state) { 
+    stickerMask.fill(state); 
 }
 
-export function loadFromHash(targetHash = null) {
-    const hash = targetHash || window.location.hash.replace(/^#/, "");
+export function loadFromHash() {
+    const hash = window.location.hash.replace(/^#/, "");
     if (!hash || !hash.startsWith("v5:")) return;
     try {
         const decoded = atob(hash.substring(3));
         const [mask, setup, active] = decoded.split("|");
         if (mask && mask.length === 54) {
-            stickerColors = mask.split("").map(v => v === "1" ? null : parseInt(v));
+            stickerMask = mask.split("").map(v => parseInt(v));
         }
         setupMoves = (setup && setup !== "") ? setup.split(",") : [];
         activeMoves = (active && active !== "") ? active.split(",") : [];
@@ -62,17 +51,10 @@ export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    // Apply custom colors
-    const fills = {};
-    let hasCustom = false;
-    stickerColors.forEach((cId, idx) => {
-        if (cId !== null) {
-            fills[idx] = colorMap[cId];
-            hasCustom = true;
-        }
-    });
-    // stickerFillが関数の場合、個別に色を上書きできる
-    player.stickerFill = hasCustom ? (idx) => fills[idx] || null : null;
+    // MASKの適用 (以前動作していた確実な方法)
+    // 1(表示) -> 'I', 0(非表示) -> '-'
+    const maskStr = stickerMask.map(v => v === 1 ? "I" : "-").join("");
+    player.experimentalStickeringMaskOrbits = `3x3x3:${maskStr}`;
 
     const slider = document.getElementById('move-slider');
     if (slider) {
@@ -90,17 +72,18 @@ export function render() {
         }
         if (!isPlaying) player.experimentalCurrentMoveIndex = step;
         
-        document.getElementById('step-counter').textContent = step;
+        const counter = document.getElementById('step-counter');
+        if (counter) counter.textContent = step;
+        
         const indicator = document.getElementById('move-indicator');
         if (indicator) {
             indicator.textContent = isPlaying ? "Playing..." : (step > 0 ? activeMoves[step-1] : "---");
         }
     }
 
-    // Save Hash
+    // Hash Update
     if (!isPlaying) {
-        const maskStr = stickerColors.map(v => v === null ? "1" : v).join("");
-        const rawData = `${maskStr}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
+        const rawData = `${stickerMask.join("")}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
         const hashValue = `v5:${btoa(rawData)}`;
         window.history.replaceState(null, "", "#" + hashValue);
         const hd = document.getElementById('hash-display');
@@ -123,7 +106,8 @@ export async function togglePlay() {
         const sync = () => {
             if (!isPlaying) return;
             slider.value = player.experimentalCurrentMoveIndex;
-            document.getElementById('step-counter').textContent = slider.value;
+            const counter = document.getElementById('step-counter');
+            if (counter) counter.textContent = slider.value;
             if (parseInt(slider.value) >= activeMoves.length) stopPlay();
             else requestAnimationFrame(sync);
         };
@@ -142,7 +126,6 @@ export function handleScramble() {
     stopPlay();
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
-    setupMoves = [...activeMoves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0,-1) : m+"'"));
     const slider = document.getElementById('move-slider');
     if (slider) { slider.max = activeMoves.length; slider.value = 0; }
     currentDomAlg = "__RESET__";
@@ -161,7 +144,6 @@ export function applySetup() {
     stopPlay();
     const val = document.getElementById('command-box').value.trim();
     activeMoves = val ? val.split(/\s+/) : [];
-    setupMoves = [...activeMoves].reverse().map(m => m.endsWith("2") ? m : (m.endsWith("'") ? m.slice(0,-1) : m+"'"));
     const slider = document.getElementById('move-slider');
     if (slider) { slider.max = activeMoves.length; slider.value = 0; }
     currentDomAlg = "__FORCE__";
