@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KAZCUBE Lab - Paint & Rotate</title>
+    <!-- Twisty Player Library -->
+    <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f172a; color: #f8fafc; overflow: hidden; font-family: sans-serif; }
@@ -23,10 +25,8 @@
             <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
             <h1 class="text-sm font-black tracking-tighter text-slate-200">KAZCUBE <span class="text-emerald-500">LAB</span></h1>
         </div>
-        <div class="flex gap-2">
-            <button onclick="location.reload()" class="p-2 text-slate-400 hover:text-white transition">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
-            </button>
+        <div class="flex gap-2 text-[10px] font-mono text-slate-500">
+            v2.0.44
         </div>
     </header>
 
@@ -38,7 +38,6 @@
             <twisty-player 
                 id="main-cube"
                 puzzle="3x3x3"
-                initial-pose="custom"
                 camera-latitude="30"
                 camera-longitude="-30"
                 background="none"
@@ -56,24 +55,22 @@
         <!-- Mode & Tool Container -->
         <div class="px-4 pb-4 w-full max-w-lg mx-auto space-y-4">
             
-            <!-- Mode Selector + Sub Panels (Dynamic) -->
-            <div id="mode-container" class="flex items-center justify-between bg-slate-900/80 p-1 rounded-xl border border-slate-800 shadow-xl">
+            <!-- Mode Selector -->
+            <div id="mode-container" class="flex items-center justify-between bg-slate-900/80 p-1 rounded-xl border border-slate-800 shadow-xl min-h-[50px]">
                 <div class="flex p-0.5 gap-1">
                     <button id="mode-rotate" class="px-5 py-2 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/20 transition">ROTATE</button>
                     <button id="mode-paint" class="px-5 py-2 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition">PAINT</button>
                 </div>
-                <!-- Paint Palette or Orbit buttons will be injected here by paint-tool.js -->
+                <!-- Dynamic Panel Location -->
             </div>
 
             <!-- Main Control Grid (Rotate Mode) -->
             <div id="move-grid-container" class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 shadow-xl space-y-4">
-                <div id="move-grid" class="grid grid-cols-6 gap-2">
-                    <!-- Buttons injected via app.js -->
-                </div>
+                <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
 
                 <!-- Slider & Play -->
                 <div class="flex items-center gap-4 bg-slate-950/50 p-3 rounded-xl border border-slate-800">
-                    <button id="play-btn" class="w-10 h-10 flex items-center justify-center bg-emerald-600 rounded-full text-white hover:bg-emerald-500 transition active:scale-90 shadow-lg shadow-emerald-900/20">
+                    <button id="play-btn" class="w-10 h-10 flex items-center justify-center bg-emerald-600 rounded-full text-white hover:bg-emerald-500 transition active:scale-90">
                         <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                         <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
@@ -89,14 +86,14 @@
 
             <!-- Command Bar -->
             <div class="flex gap-2">
-                <input type="text" id="command-box" placeholder="U R U' R' ..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm font-mono text-emerald-400 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                <button id="apply-btn" class="px-6 bg-slate-100 text-slate-900 font-black text-xs rounded-xl hover:bg-white active:scale-95 transition">APPLY</button>
+                <input type="text" id="command-box" placeholder="U R U' R' ..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm font-mono text-emerald-400 focus:outline-none">
+                <button id="apply-btn" class="px-6 bg-slate-100 text-slate-900 font-black text-xs rounded-xl hover:bg-white transition">APPLY</button>
             </div>
 
             <!-- Sub Actions -->
             <div class="flex gap-2">
-                <button id="scramble-btn" class="flex-1 py-3 bg-slate-800/50 text-slate-300 font-bold text-[10px] rounded-xl border border-slate-700 hover:bg-slate-800 transition uppercase tracking-widest">Scramble</button>
-                <button id="reset-btn" class="flex-1 py-3 bg-slate-800/50 text-rose-400 font-bold text-[10px] rounded-xl border border-slate-700 hover:bg-slate-800 transition uppercase tracking-widest">Reset All</button>
+                <button id="scramble-btn" class="flex-1 py-3 bg-slate-800/50 text-slate-300 font-bold text-[10px] rounded-xl border border-slate-700 hover:bg-slate-800 transition uppercase">Scramble</button>
+                <button id="reset-btn" class="flex-1 py-3 bg-slate-800/50 text-rose-400 font-bold text-[10px] rounded-xl border border-slate-700 hover:bg-slate-800 transition uppercase">Reset All</button>
             </div>
         </div>
     </main>
@@ -107,10 +104,14 @@
     </footer>
 
     <!-- Scripts -->
-    <!-- キャッシュを回避するため、クエリパラメータに最新バージョン v2.0.44 を指定 -->
     <script type="module">
         import { initApp } from './js/app.js?v=2.0.44';
-        window.onload = initApp;
+        // HTMLが完全に読み込まれてから実行
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html>
