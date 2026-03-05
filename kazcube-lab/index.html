@@ -3,40 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KAZCUBE Lab - Fixed LayoutV2.0.49</title>
+    <title>KAZCUBE Lab - Final Layout Fix</title>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f172a; color: #f8fafc; overflow: hidden; font-family: sans-serif; }
         .no-select { user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        /* キューブ表示エリアの固定 */
-        .stage-area { height: 45vh; min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative; }
-        twisty-player { width: 90%; height: 90%; max-width: 380px; max-height: 380px; --twisty-frame-background: none; }
-        #main-cube { filter: drop-shadow(0 20px 40px rgb(0 0 0 / 0.6)); }
+        /* キューブ表示エリアの完全固定 */
+        .stage-area { 
+            height: 45vh; 
+            min-height: 320px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%);
+        }
+        twisty-player { 
+            width: 100%; 
+            height: 100%; 
+            max-width: 400px; 
+            max-height: 400px; 
+            --twisty-frame-background: none; 
+        }
+        #main-cube { filter: drop-shadow(0 25px 50px rgb(0 0 0 / 0.6)); }
 
-        /* スライダーの装飾 */
+        /* スライダー */
         input[type="range"] { accent-color: #10b981; }
         
         /* アニメーション */
-        .mode-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .mode-transition { transition: all 0.2s ease-out; }
     </style>
 </head>
 <body class="h-screen flex flex-col no-select">
 
     <!-- Header -->
-    <header class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-900/80 backdrop-blur-md z-30">
+    <header class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-900/90 backdrop-blur-md z-30">
         <div class="flex items-center gap-2">
             <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
             <h1 class="text-sm font-black tracking-tighter text-slate-200 uppercase">KAZCUBE <span class="text-emerald-500 font-extrabold">LAB</span></h1>
         </div>
-        <div class="text-[10px] font-mono text-slate-500 tracking-widest">v2.0.49</div>
+        <div class="text-[10px] font-mono text-slate-500 tracking-widest">v2.0.50</div>
     </header>
 
     <!-- Main View -->
     <main class="flex-1 flex flex-col min-h-0 overflow-hidden">
         
-        <!-- Cube Display -->
+        <!-- Cube Display (Size Fixed) -->
         <section class="stage-area">
             <twisty-player 
                 id="main-cube"
@@ -49,47 +63,47 @@
             ></twisty-player>
 
             <!-- Floating Step Indicator -->
-            <div class="absolute top-6 px-4 py-1.5 bg-slate-900/90 border border-slate-700 rounded-full shadow-2xl backdrop-blur-sm">
+            <div class="absolute top-6 px-4 py-1.5 bg-slate-900/95 border border-slate-700 rounded-full shadow-2xl backdrop-blur-sm">
                 <span id="move-indicator" class="text-[10px] font-black text-emerald-400 tracking-[0.2em] uppercase">---</span>
             </div>
         </section>
 
         <!-- Controls Container -->
-        <section class="flex-1 bg-slate-900/40 border-t border-slate-800/50 p-4 overflow-y-auto">
+        <section class="flex-1 bg-slate-900/40 border-t border-slate-800 p-4 overflow-y-auto">
             <div class="max-w-md mx-auto space-y-4 pb-8">
                 
-                <!-- 1. Mode Switcher & Paint Tools -->
-                <div class="bg-slate-900 border border-slate-800 p-1 rounded-2xl shadow-xl flex items-center justify-between">
-                    <div class="flex p-1 gap-1 bg-slate-950 rounded-xl">
+                <!-- 1. Mode Switcher & Integrated Paint Tools -->
+                <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center justify-between min-h-[58px]">
+                    <div class="flex p-1 gap-1 bg-slate-950 rounded-xl border border-slate-800/50">
                         <button id="mode-rotate" class="px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg transition-all mode-transition">ROTATE</button>
                         <button id="mode-paint" class="px-5 py-2.5 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all mode-transition">PAINT</button>
                     </div>
                     
-                    <!-- Integrated Paint Tools (Hidden by default) -->
+                    <!-- Integrated Paint Tools -->
                     <div id="paint-controls" class="hidden flex-1 flex items-center justify-end gap-3 px-3">
                         <div class="flex gap-1 border-r border-slate-800 pr-3">
-                            <button id="btn-gray" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-[9px] font-bold text-slate-300">GRAY</button>
-                            <button id="btn-cc" class="px-2 py-1.5 bg-indigo-900/50 hover:bg-indigo-800 rounded text-[9px] font-bold text-indigo-300 border border-indigo-500/30">C+C</button>
-                            <button id="btn-full" class="px-2 py-1.5 bg-emerald-900/50 hover:bg-emerald-800 rounded text-[9px] font-bold text-emerald-300 border border-emerald-500/30">FULL</button>
+                            <button id="btn-gray" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-[9px] font-black text-slate-300">GRAY</button>
+                            <button id="btn-cc" class="px-2 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 rounded text-[9px] font-black text-indigo-300 border border-indigo-500/30">C+C</button>
+                            <button id="btn-full" class="px-2 py-1.5 bg-emerald-900/60 hover:bg-emerald-800 rounded text-[9px] font-black text-emerald-300 border border-emerald-500/30">FULL</button>
                         </div>
                         <div id="swatch-container" class="flex gap-2"></div>
                     </div>
                 </div>
 
-                <!-- 2. Main Rotation Grid (18 Buttons, 3 Rows) -->
+                <!-- 2. Main Rotation Grid (18 Buttons Generated by JS) -->
                 <div id="rotate-panel" class="space-y-4">
                     <div id="move-grid" class="grid grid-cols-6 gap-2">
-                        <!-- JS injects 18 buttons here -->
+                        <!-- js/app.js inserts 18 buttons here -->
                     </div>
 
                     <!-- Playback & Timeline -->
-                    <div class="bg-slate-950/50 p-3 rounded-2xl border border-slate-800/50 flex items-center gap-4">
-                        <button id="play-btn" class="w-12 h-12 flex items-center justify-center bg-emerald-600 rounded-full text-white hover:bg-emerald-500 active:scale-95 shadow-lg shadow-emerald-900/20">
+                    <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800/50 flex items-center gap-4">
+                        <button id="play-btn" class="w-12 h-12 flex items-center justify-center bg-emerald-600 rounded-full text-white hover:bg-emerald-500 active:scale-95 shadow-lg shadow-emerald-900/30 transition-all">
                             <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                             <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                         </button>
                         <div class="flex-1 space-y-1">
-                            <div class="flex justify-between text-[10px] font-bold text-slate-500 tracking-tight">
+                            <div class="flex justify-between text-[10px] font-black text-slate-500 tracking-tighter">
                                 <span>STEP <span id="step-counter" class="text-emerald-500">0</span></span>
                                 <span class="uppercase">Timeline</span>
                             </div>
@@ -105,8 +119,8 @@
                         <button id="apply-btn" class="px-6 bg-slate-200 text-slate-900 font-black text-[11px] rounded-xl hover:bg-white active:scale-95 shadow-lg">APPLY</button>
                     </div>
                     <div class="flex gap-2">
-                        <button id="scramble-btn" class="flex-1 py-3.5 bg-slate-800/40 text-slate-300 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 transition uppercase tracking-widest">Scramble</button>
-                        <button id="reset-btn" class="flex-1 py-3.5 bg-slate-800/40 text-rose-400 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 transition uppercase tracking-widest">Reset Cube</button>
+                        <button id="scramble-btn" class="flex-1 py-4 bg-slate-800/40 text-slate-300 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 transition uppercase tracking-widest">Scramble</button>
+                        <button id="reset-btn" class="flex-1 py-4 bg-slate-800/40 text-rose-400 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 transition uppercase tracking-widest">Reset Cube</button>
                     </div>
                 </div>
             </div>
@@ -119,7 +133,7 @@
     </footer>
 
     <script type="module">
-        import { initApp } from './js/app.js?v=2.0.48';
+        import { initApp } from './js/app.js?v=2.0.50';
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
