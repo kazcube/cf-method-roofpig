@@ -1,24 +1,21 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.24: Fixed "Cannot get .alg" error by using a local variable to track applied alg.
+ * v2.0.25: Final fix for Setup logic using experimental-setup-alg for robust scrambling.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.24");
+console.log("LOG: cube-core.js loaded. Version: v2.0.25");
 
-export const JS_VERSION = "v2.0.24";
+export const JS_VERSION = "v2.0.25";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 let playTimer = null;
-let lastAppliedAlg = ""; // player.alg の代わりに比較用で使用
 
 /* [LOCKED: NO-REMOVE] */
 export function resetAll() {
-    console.log("DEBUG: resetAll called");
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
-    lastAppliedAlg = "";
     stopPlay();
     const cb = document.getElementById('command-box');
     if (cb) cb.value = "";
@@ -60,7 +57,7 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.24] player.alg からの読み取りを廃止 */
+/* [FIXED: v2.0.25] setup-alg 属性を活用し、スライダー 0 での崩し状態を確定させる */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -73,20 +70,20 @@ export function render() {
     if (slider) {
         const step = parseInt(slider.value) || 0;
         
-        // 数学的逆手順(setup) + 現在の進捗(active)
-        const currentActive = activeMoves.slice(0, step);
-        const fullMoves = [...setupMoves, ...currentActive];
-        const algStr = fullMoves.join(" ");
-
-        console.log(`DEBUG RENDER: step=${step}, alg="${algStr}"`);
-
-        player.tempoScale = isPlaying ? 1 : 0;
-        
-        // player.alg を直接 get しないように修正
-        if (lastAppliedAlg !== algStr) {
-            player.alg = algStr;
-            lastAppliedAlg = algStr;
+        // 1. セットアップ（崩し）手順を experimentalSetupAlg に設定
+        // これにより、キューブの「初期状態」そのものが逆手順後の状態になる
+        const setupStr = setupMoves.join(" ");
+        if (player.experimentalSetupAlg !== setupStr) {
+            player.experimentalSetupAlg = setupStr;
         }
+
+        // 2. 実行手順（スライダーの進捗）を alg に設定
+        const activeStr = activeMoves.slice(0, step).join(" ");
+        
+        player.tempoScale = isPlaying ? 1 : 0;
+        player.alg = activeStr;
+
+        console.log(`RENDER v2.0.25: step=${step}, setupAlg="${setupStr}", currentAlg="${activeStr}"`);
         
         document.getElementById('step-counter').textContent = step;
         const indicator = document.getElementById('move-indicator');
@@ -138,7 +135,6 @@ export function stopPlay() {
 export function handleScramble() {
     stopPlay();
     setupMoves = [];
-    lastAppliedAlg = "";
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
     const cb = document.getElementById('command-box');
@@ -151,33 +147,31 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.24] Mathmatical inverse confirmed */
+/* [FIXED: v2.0.25] セットアップボタン押下時の挙動を最適化 */
 export function applySetup() {
-    console.log("DEBUG: applySetup START");
     stopPlay();
     const cb = document.getElementById('command-box');
     if (!cb) return;
     const val = cb.value.trim();
     if (!val) return;
 
+    // 入力手順をそのまま activeMoves に
     const rawMoves = val.split(/\s+/).filter(m => m.length > 0);
     activeMoves = [...rawMoves];
     
-    // 数学的逆手順の生成 (U R -> R' U')
+    // 数学的逆手順を setupMoves に（崩し用）
     setupMoves = [...rawMoves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    console.log("DEBUG: setupMoves generated:", setupMoves);
+    console.log("APPLY SETUP: Scramble with", setupMoves);
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
-        slider.value = 0; 
+        slider.value = 0; // スライダーを0にする＝崩し状態のみ表示
     }
     
-    // 手順が完全に変わるのでキャッシュをクリア
-    lastAppliedAlg = "__FORCE_REFRESH__";
     render();
 }
