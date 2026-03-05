@@ -1,25 +1,26 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.27: Final robust fix for Setup & Play logic. 
- * Ensures 2nd+ setup attempts work and play syncs correctly.
+ * v2.0.28: Re-implemented intensive debugging and forced refresh logic.
+ * Fixed 2nd+ setup attempt failure and improved play synchronization.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.27");
+console.log("LOG: cube-core.js loaded. Version: v2.0.28");
 
-export const JS_VERSION = "v2.0.27";
+export const JS_VERSION = "v2.0.28";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 let playTimer = null;
 
-// 内部状態管理
+// [IMPORTANT] Use local variables to track state because direct reading from player properties causes errors.
 let lastAppliedAlg = null;
 let lastAppliedSetup = null;
 
 /* [LOCKED: NO-REMOVE] */
 export function resetAll() {
+    console.log("DEBUG: resetAll called");
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
     lastAppliedAlg = null; lastAppliedSetup = null;
     stopPlay();
@@ -63,10 +64,13 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.27] スライダー同期と連続セットアップの修正 */
+/* [FIXED: v2.0.28] Intensive debug logging and state comparison fix */
 export function render() {
     const player = document.getElementById('main-cube');
-    if (!player) return;
+    if (!player) {
+        console.warn("DEBUG RENDER: player not found");
+        return;
+    }
 
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
@@ -76,22 +80,21 @@ export function render() {
     if (slider) {
         const step = parseInt(slider.value) || 0;
         
-        // 1. セットアップ（崩し）
+        // 1. Setup Algorithm (Scramble)
         const setupStr = setupMoves.join(" ");
         if (lastAppliedSetup !== setupStr) {
+            console.log(`DEBUG RENDER: Updating setupAlg to "${setupStr}"`);
             player.experimentalSetupAlg = setupStr;
             lastAppliedSetup = setupStr;
         }
 
-        // 2. 実行手順
-        // twisty-playerの仕様上、alg全体をセットした上で進捗を制御するのが理想だが、
-        // 現状の設計に合わせ「sliceした手順をalgに流し込む」方式を安定させる。
+        // 2. Active Algorithm (Execution)
         const activeStr = activeMoves.slice(0, step).join(" ");
         player.tempoScale = isPlaying ? 1 : 0;
         
         if (lastAppliedAlg !== activeStr) {
-            // 代入前に空文字を挟むことで、同一手順の再セットや微差を強制反映させる
-            player.alg = activeStr; 
+            console.log(`DEBUG RENDER: Updating currentAlg to "${activeStr}" (step ${step})`);
+            player.alg = activeStr;
             lastAppliedAlg = activeStr;
         }
 
@@ -99,8 +102,7 @@ export function render() {
         const indicator = document.getElementById('move-indicator');
         if (indicator) {
             const currentMove = (step > 0 && activeMoves[step-1]) ? activeMoves[step-1] : "---";
-            const nextMove = activeMoves[step] || "Solved";
-            indicator.textContent = isPlaying ? `Playing: ${currentMove}` : `Next: ${nextMove}`;
+            indicator.textContent = isPlaying ? `Playing: ${currentMove}` : `Step: ${step}`;
         }
     }
     
@@ -144,6 +146,7 @@ export function stopPlay() {
 
 /* [LOCKED: NO-REMOVE] */
 export function handleScramble() {
+    console.log("DEBUG: handleScramble START");
     stopPlay();
     setupMoves = [];
     lastAppliedAlg = null; lastAppliedSetup = null;
@@ -159,8 +162,9 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.27] 強制リセットを伴うセットアップ適用 */
+/* [FIXED: v2.0.28] Forced state clearing for consecutive setup attempts */
 export function applySetup() {
+    console.log("DEBUG: applySetup START");
     stopPlay();
     const cb = document.getElementById('command-box');
     if (!cb) return;
@@ -170,27 +174,31 @@ export function applySetup() {
     const rawMoves = val.split(/\s+/).filter(m => m.length > 0);
     activeMoves = [...rawMoves];
     
-    // U R -> R' U'
+    // Inverse for scramble (U R -> R' U')
     setupMoves = [...rawMoves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    // 重要: 2回目以降のクリックで確実に反応させるため、プレイヤーのプロパティを一度クリア
+    console.log("DEBUG: New setupMoves generated:", setupMoves);
+
+    // Force clear player properties before render
     const player = document.getElementById('main-cube');
     if (player) {
         player.alg = "";
         player.experimentalSetupAlg = "";
+        console.log("DEBUG: Player properties cleared for re-setup");
     }
     
-    // 状態管理変数もクリア
-    lastAppliedAlg = "__RESET__";
-    lastAppliedSetup = "__RESET__";
+    // Reset local cache to ensure next render() takes the new strings
+    lastAppliedAlg = "__FORCE_REFRESH__";
+    lastAppliedSetup = "__FORCE_REFRESH__";
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
         slider.max = activeMoves.length; 
         slider.value = 0; 
+        console.log(`DEBUG: Slider reset to 0 / ${slider.max}`);
     }
     
     render();
