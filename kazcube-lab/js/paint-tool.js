@@ -1,37 +1,36 @@
 /**
  * KAZCUBE Lab Paint Tool Module
- * v2.0.46: Logic for Orbit buttons and color swatches using MASK.
+ * v2.0.47: Restored MASK buttons and fixed color swatches interaction.
  */
 
-import * as Core from './cube-core.js?v=2.0.46';
+import * as Core from './cube-core.js?v=2.0.47';
 
-let selectedMode = 1; // 1 = Visible, 0 = Hidden (Gray)
+let selectedMode = 1; // 1: Visible, 0: Gray
 
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
-    if (!player) return;
     
     player.addEventListener('pointerdown', (e) => {
-        const isPaint = document.getElementById('mode-paint').classList.contains('bg-emerald-500');
-        if (!isPaint) return;
+        const isPaintMode = document.getElementById('mode-paint').classList.contains('bg-emerald-500');
+        if (!isPaintMode) return;
         
         const idx = e.stickerIndex;
         if (idx !== undefined) {
             Core.updateStickerState(idx, selectedMode);
-            Core.render();
+            Core.render(true); // Force update to ensure mask applies
         }
     });
 
     // Orbit Buttons
-    document.getElementById('btn-gray').onclick = () => { Core.setAllStickers(0); Core.render(); };
+    document.getElementById('btn-gray').onclick = () => { Core.setAllStickers(0); Core.render(true); };
     document.getElementById('btn-cc').onclick = () => { 
         Core.setAllStickers(0);
-        // centers + corners
+        // Centers + Corners
         const ccIdx = [4, 13, 22, 31, 40, 49, 0, 2, 6, 8, 9, 11, 15, 17, 18, 20, 24, 26, 27, 29, 33, 35, 36, 38, 42, 44, 45, 47, 51, 53];
         ccIdx.forEach(i => Core.updateStickerState(i, 1));
-        Core.render();
+        Core.render(true);
     };
-    document.getElementById('btn-full').onclick = () => { Core.setAllStickers(1); Core.render(); };
+    document.getElementById('btn-full').onclick = () => { Core.setAllStickers(1); Core.render(true); };
 
     renderSwatches();
 }
@@ -39,23 +38,22 @@ export function initPaintTool() {
 function renderSwatches() {
     const container = document.getElementById('swatch-container');
     if (!container) return;
+    container.innerHTML = "";
     
-    // 現在のMASKベースでは「色そのもの」を変えるのではなく、
-    // 「表示するか(1)」「消すか(0)」のみですが、UIとしてパレットを置きます
-    const colors = [
-        { id: 1, hex: '#10b981', label: 'DRAW' },
+    const options = [
+        { id: 1, hex: '#ffffff', label: 'DRAW' },
         { id: 0, hex: '#4b5563', label: 'ERASE' }
     ];
 
-    colors.forEach(c => {
+    options.forEach(opt => {
         const btn = document.createElement('button');
-        btn.className = `w-5 h-5 rounded-full border border-slate-700 transition swatch-item ${c.id === selectedMode ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 scale-110' : ''}`;
-        btn.style.backgroundColor = c.hex;
+        btn.className = `w-6 h-6 rounded-full border border-slate-700 transition-all swatch-item ${opt.id === selectedMode ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-slate-900 scale-110' : ''}`;
+        btn.style.backgroundColor = opt.hex;
         btn.onclick = (e) => {
             e.stopPropagation();
-            selectedMode = c.id;
-            document.querySelectorAll('.swatch-item').forEach(b => b.classList.remove('ring-2', 'ring-white', 'ring-offset-2', 'scale-110'));
-            btn.classList.add('ring-2', 'ring-white', 'ring-offset-2', 'scale-110');
+            selectedMode = opt.id;
+            document.querySelectorAll('.swatch-item').forEach(b => b.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2', 'scale-110'));
+            btn.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'scale-110');
         };
         container.appendChild(btn);
     });
@@ -63,17 +61,22 @@ function renderSwatches() {
 
 export function setPaintMode(mode) {
     const isPaint = (mode === 'paint');
-    document.getElementById('rotate-panel').style.display = isPaint ? 'none' : 'block';
-    document.getElementById('paint-controls').style.display = isPaint ? 'flex' : 'none';
+    const rotateBtn = document.getElementById('mode-rotate');
+    const paintBtn = document.getElementById('mode-paint');
+    const rotatePanel = document.getElementById('rotate-panel');
+    const paintControls = document.getElementById('paint-controls');
 
-    const pb = document.getElementById('mode-paint');
-    const rb = document.getElementById('mode-rotate');
-    
     if (isPaint) {
-        pb.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/20 transition-all";
-        rb.className = "px-5 py-2.5 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all";
+        paintBtn.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/20";
+        rotateBtn.className = "px-5 py-2.5 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg hover:text-white";
+        rotatePanel.classList.add('hidden');
+        paintControls.classList.remove('hidden');
+        paintControls.classList.add('flex');
     } else {
-        rb.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/20 transition-all";
-        pb.className = "px-5 py-2.5 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all";
+        rotateBtn.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/20";
+        paintBtn.className = "px-5 py-2.5 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg hover:text-white";
+        rotatePanel.classList.remove('hidden');
+        paintControls.classList.add('hidden');
+        paintControls.classList.remove('flex');
     }
 }
