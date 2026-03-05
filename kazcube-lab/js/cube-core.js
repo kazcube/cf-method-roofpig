@@ -1,20 +1,19 @@
 /**
  * KAZCUBE Lab Core Module
  * [History]
- * v2.0.29: Fixed rendering logic for setup and play.
- * Added forced seek to 0 before applying algorithms to ensure visual update.
+ * v2.0.30: Fixed play synchronization after setup.
+ * Added logging for play loop and reinforced slider max update.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.29");
+console.log("LOG: cube-core.js loaded. Version: v2.0.30");
 
-export const JS_VERSION = "v2.0.29";
+export const JS_VERSION = "v2.0.30";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 let playTimer = null;
 
-// Local state tracking to avoid direct player property access errors
 let lastAppliedAlg = null;
 let lastAppliedSetup = null;
 
@@ -64,7 +63,7 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.29] Improved sync logic */
+/* [FIXED: v2.0.30] Added more debug for play state */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -77,7 +76,7 @@ export function render() {
     if (slider) {
         const step = parseInt(slider.value) || 0;
         
-        // 1. Setup Algorithm (Scramble)
+        // 1. Setup Algorithm
         const setupStr = setupMoves.join(" ");
         if (lastAppliedSetup !== setupStr) {
             console.log(`DEBUG RENDER: Updating setupAlg to "${setupStr}"`);
@@ -85,13 +84,14 @@ export function render() {
             lastAppliedSetup = setupStr;
         }
 
-        // 2. Active Algorithm (Execution)
+        // 2. Active Algorithm
         const activeStr = activeMoves.slice(0, step).join(" ");
+        
+        // Ensure tempo is 1 during play, otherwise moves won't animate
         player.tempoScale = isPlaying ? 1 : 0;
         
         if (lastAppliedAlg !== activeStr) {
-            console.log(`DEBUG RENDER: Updating currentAlg to "${activeStr}" (step ${step})`);
-            // Set alg
+            console.log(`DEBUG RENDER: Updating currentAlg to "${activeStr}" (step ${step}/${activeMoves.length})`);
             player.alg = activeStr;
             lastAppliedAlg = activeStr;
         }
@@ -116,29 +116,44 @@ export function render() {
     if (playBtn) playBtn.textContent = isPlaying ? "||" : "▶";
 }
 
-/* [LOCKED: NO-REMOVE] */
+/* [FIXED: v2.0.30] Added logging to check play interval */
 export function togglePlay() {
+    console.log("DEBUG: togglePlay clicked. Current isPlaying:", isPlaying);
     if (isPlaying) { stopPlay(); } 
     else {
         const slider = document.getElementById('move-slider');
-        if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
+        if (!slider) return;
+
+        // If at the end, reset to start
+        if (parseInt(slider.value) >= activeMoves.length) {
+            console.log("DEBUG: Resetting slider to 0 for replay");
+            slider.value = 0;
+        }
+        
         isPlaying = true;
+        console.log(`DEBUG: Starting play loop. Total moves: ${activeMoves.length}`);
         render(); 
         
         playTimer = setInterval(() => {
             const current = parseInt(slider.value);
             if (current < activeMoves.length) {
                 slider.value = current + 1;
+                console.log(`DEBUG: Play interval tick. Step: ${slider.value}`);
                 render();
-            } else { stopPlay(); }
+            } else {
+                console.log("DEBUG: Reached end of moves. Stopping.");
+                stopPlay();
+            }
         }, 500);
     }
 }
 
 /* [LOCKED: NO-REMOVE] */
 export function stopPlay() {
+    console.log("DEBUG: stopPlay called");
     isPlaying = false;
-    clearInterval(playTimer);
+    if (playTimer) clearInterval(playTimer);
+    playTimer = null;
     render();
 }
 
@@ -160,7 +175,7 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.29] Total Reset before Applying new Setup */
+/* [FIXED: v2.0.30] Ensure slider max is robustly updated */
 export function applySetup() {
     console.log("DEBUG: applySetup START");
     stopPlay();
@@ -172,20 +187,17 @@ export function applySetup() {
     const rawMoves = val.split(/\s+/).filter(m => m.length > 0);
     activeMoves = [...rawMoves];
     
-    // Inverse for scramble (U R -> R' U')
     setupMoves = [...rawMoves].reverse().map(m => {
         if (m.endsWith("2")) return m;
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    console.log("DEBUG: setupMoves generated:", setupMoves);
+    console.log(`DEBUG: Setup generated. ActiveMoves length: ${activeMoves.length}`);
 
-    // [CRITICAL] Reset everything on player to ensure it re-draws correctly
     const player = document.getElementById('main-cube');
     if (player) {
         player.alg = "";
         player.experimentalSetupAlg = "";
-        // Force visual update by clearing local cache
         lastAppliedAlg = "__RESET__";
         lastAppliedSetup = "__RESET__";
     }
@@ -194,8 +206,8 @@ export function applySetup() {
     if (slider) { 
         slider.max = activeMoves.length; 
         slider.value = 0; 
+        console.log(`DEBUG: Slider MAX set to ${slider.max}, VALUE set to ${slider.value}`);
     }
     
-    // Call render twice or once with forced variables
     render();
 }
