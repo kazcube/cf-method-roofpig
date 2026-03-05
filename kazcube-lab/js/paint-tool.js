@@ -1,15 +1,16 @@
 /**
  * KAZCUBE Lab Paint Tool Module
- * v2.0.47: Restored MASK buttons and fixed color swatches interaction.
+ * v2.0.49: Integrated Orbit buttons with MASK logic.
  */
 
-import * as Core from './cube-core.js?v=2.0.47';
+import * as Core from './cube-core.js?v=2.0.49';
 
-let selectedMode = 1; // 1: Visible, 0: Gray
+let selectedMode = 1; // 1: DRAW, 0: ERASE
 
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
     
+    // スティッカークリックでの着色(表示/非表示)
     player.addEventListener('pointerdown', (e) => {
         const isPaintMode = document.getElementById('mode-paint').classList.contains('bg-emerald-500');
         if (!isPaintMode) return;
@@ -17,11 +18,11 @@ export function initPaintTool() {
         const idx = e.stickerIndex;
         if (idx !== undefined) {
             Core.updateStickerState(idx, selectedMode);
-            Core.render(true); // Force update to ensure mask applies
+            Core.render(true);
         }
     });
 
-    // Orbit Buttons
+    // Orbit操作ボタン
     document.getElementById('btn-gray').onclick = () => { Core.setAllStickers(0); Core.render(true); };
     document.getElementById('btn-cc').onclick = () => { 
         Core.setAllStickers(0);
@@ -47,13 +48,15 @@ function renderSwatches() {
 
     options.forEach(opt => {
         const btn = document.createElement('button');
-        btn.className = `w-6 h-6 rounded-full border border-slate-700 transition-all swatch-item ${opt.id === selectedMode ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-slate-900 scale-110' : ''}`;
+        btn.className = `w-7 h-7 rounded-full border border-slate-700 transition-all swatch-item ${opt.id === selectedMode ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-slate-900 scale-110 shadow-lg' : 'opacity-60 hover:opacity-100'}`;
         btn.style.backgroundColor = opt.hex;
+        btn.title = opt.label;
         btn.onclick = (e) => {
             e.stopPropagation();
             selectedMode = opt.id;
-            document.querySelectorAll('.swatch-item').forEach(b => b.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2', 'scale-110'));
-            btn.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'scale-110');
+            document.querySelectorAll('.swatch-item').forEach(b => b.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2', 'scale-110', 'shadow-lg', 'opacity-100'));
+            btn.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'scale-110', 'shadow-lg');
+            btn.classList.remove('opacity-60');
         };
         container.appendChild(btn);
     });
@@ -67,14 +70,14 @@ export function setPaintMode(mode) {
     const paintControls = document.getElementById('paint-controls');
 
     if (isPaint) {
-        paintBtn.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/20";
-        rotateBtn.className = "px-5 py-2.5 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg hover:text-white";
+        paintBtn.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/30 transition-all";
+        rotateBtn.className = "px-5 py-2.5 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all";
         rotatePanel.classList.add('hidden');
         paintControls.classList.remove('hidden');
         paintControls.classList.add('flex');
     } else {
-        rotateBtn.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/20";
-        paintBtn.className = "px-5 py-2.5 bg-slate-800 text-slate-500 font-black text-[10px] rounded-lg hover:text-white";
+        rotateBtn.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/30 transition-all";
+        paintBtn.className = "px-5 py-2.5 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all";
         rotatePanel.classList.remove('hidden');
         paintControls.classList.add('hidden');
         paintControls.classList.remove('flex');

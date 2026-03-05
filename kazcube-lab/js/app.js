@@ -1,10 +1,10 @@
 /**
  * KAZCUBE Lab Application Module
- * v2.0.44: Fixed initApp export and ensured safe move filtering.
+ * v2.0.49: Restored 3-row grid layout and move definitions.
  */
 
-import * as Core from './cube-core.js?v=2.0.44';
-import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.44';
+import * as Core from './cube-core.js?v=2.0.49';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.49';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -12,79 +12,41 @@ const moveSets = {
     slice: ["E", "M", "S", "x", "y", "z"]
 };
 
-/**
- * [LOCKED: NO-REMOVE]
- * index.htmlから呼び出される初期化関数
- */
 export function initApp() {
-    console.log("LOG: initApp starting...");
+    console.log("LOG: initApp starting... v2.0.49");
     
-    // Coreの初期化
+    // 回転ボタンの生成 (6x3のグリッド)
+    const grid = document.getElementById('move-grid');
+    if (grid) {
+        grid.innerHTML = "";
+        const allMoves = [...moveSets.basic, ...moveSets.wide, ...moveSets.slice];
+        allMoves.forEach(move => {
+            const btn = document.createElement('button');
+            btn.className = "py-3 bg-slate-800/60 text-slate-100 font-black text-[11px] rounded-xl border border-slate-700/50 hover:bg-slate-700 hover:border-emerald-500/50 transition-all active:scale-90 shadow-sm";
+            btn.textContent = move;
+            btn.onclick = () => Core.addMove(move);
+            grid.appendChild(btn);
+        });
+    }
+
+    // UI イベントリスナー
+    document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
+    document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
+    document.getElementById('play-btn').onclick = () => Core.togglePlay();
+    document.getElementById('scramble-btn').onclick = () => Core.handleScramble();
+    document.getElementById('reset-btn').onclick = () => Core.resetAll();
+    document.getElementById('apply-btn').onclick = () => Core.applySetup();
+    
+    const slider = document.getElementById('move-slider');
+    slider.oninput = () => {
+        Core.stopPlay();
+        Core.render();
+    };
+
+    // 初期化実行
+    initPaintTool();
     Core.loadFromHash();
     
-    // UIの構築
-    updateMoveGrid();
-    initEventListeners();
-    initPaintTool();
-
-    // 初期状態の描画
-    Core.render();
-}
-
-function updateMoveGrid() {
-    const grid = document.getElementById('move-grid');
-    if (!grid) return;
-    grid.innerHTML = "";
-
-    const allMoves = [...moveSets.basic, ...moveSets.wide, ...moveSets.slice];
-    
-    allMoves.forEach(m => {
-        const btn = document.createElement('button');
-        btn.className = "h-10 bg-slate-800 border border-slate-700 rounded-lg text-[10px] font-black hover:bg-slate-700 hover:text-emerald-400 active:scale-90 transition shadow-sm";
-        btn.textContent = m;
-        btn.onclick = () => Core.addMove(m);
-        grid.appendChild(btn);
-    });
-}
-
-function initEventListeners() {
-    // Play/Pause
-    const playBtn = document.getElementById('play-btn');
-    if (playBtn) playBtn.onclick = Core.togglePlay;
-
-    // Apply
-    const applyBtn = document.getElementById('apply-btn');
-    if (applyBtn) applyBtn.onclick = Core.applySetup;
-
-    // Scramble
-    const scrambleBtn = document.getElementById('scramble-btn');
-    if (scrambleBtn) scrambleBtn.onclick = Core.handleScramble;
-
-    // Reset
-    const resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) resetBtn.onclick = Core.resetAll;
-
-    // Slider
-    const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.oninput = () => {
-            if (Core.isPlaying) Core.stopPlay();
-            Core.render();
-        };
-    }
-
-    // Mode Switching
-    const btnRotate = document.getElementById('mode-rotate');
-    const btnPaint = document.getElementById('mode-paint');
-
-    if (btnRotate) btnRotate.onclick = () => setPaintMode('rotate');
-    if (btnPaint) btnPaint.onclick = () => setPaintMode('paint');
-
-    // Command Box Enter Key
-    const cb = document.getElementById('command-box');
-    if (cb) {
-        cb.onkeydown = (e) => {
-            if (e.key === 'Enter') Core.applySetup();
-        };
-    }
+    // 初期描画の遅延実行（TwistyPlayerのロード待ち）
+    setTimeout(() => Core.render(true), 200);
 }

@@ -1,21 +1,25 @@
 /**
  * KAZCUBE Lab Core Module
- * v2.0.47: Fixed stickering logic to avoid "undefined reading 0" error.
+ * v2.0.49: Robust MASK logic and state management.
  */
 
-export const JS_VERSION = "v2.0.47";
+export const JS_VERSION = "v2.0.49";
 export let setupMoves = [];
 export let activeMoves = [];
-export let stickerMask = Array(54).fill(1); // 1: Visible, 0: Hidden
+export let stickerMask = Array(54).fill(1); // 1: 表示, 0: 非表示(Gray)
 export let isPlaying = false;
 
 let lastRenderedMask = "";
 
 export function resetAll() {
-    setupMoves = []; activeMoves = []; stickerMask.fill(1);
+    setupMoves = []; 
+    activeMoves = []; 
+    stickerMask.fill(1);
     stopPlay();
     const cb = document.getElementById('command-box');
     if (cb) cb.value = "";
+    const slider = document.getElementById('move-slider');
+    if (slider) { slider.value = 0; slider.max = 0; }
     render(true);
 }
 
@@ -38,8 +42,13 @@ export function loadFromHash() {
         }
         setupMoves = (setup && setup !== "") ? setup.split(",") : [];
         activeMoves = (active && active !== "") ? active.split(",") : [];
+        
         const slider = document.getElementById('move-slider');
         if (slider) slider.max = activeMoves.length;
+        
+        const cb = document.getElementById('command-box');
+        if (cb) cb.value = activeMoves.join(" ");
+        
         render(true);
     } catch (e) { console.error("Hash Load Error", e); }
 }
@@ -48,10 +57,9 @@ export function render(force = false) {
     const player = document.getElementById('main-cube');
     if (!player) return;
 
-    // Apply Masking Logic (Reliable Property)
+    // MASKロジックの適用 (以前正常に動作していた方式)
     const currentMaskStr = stickerMask.join("");
     if (force || lastRenderedMask !== currentMaskStr) {
-        // 'static' sticker orbits use 0-54 indexing
         const orbits = stickerMask.map(v => v === 1 ? "I" : "-").join("");
         player.experimentalStickeringMaskOrbits = `3x3x3:${orbits}`;
         lastRenderedMask = currentMaskStr;
@@ -59,21 +67,28 @@ export function render(force = false) {
 
     const slider = document.getElementById('move-slider');
     const step = parseInt(slider.value) || 0;
+    const activeStr = activeMoves.join(" ");
     
-    if (player.alg !== activeMoves.join(" ")) {
-        player.alg = activeMoves.join(" ");
+    // アルゴリズムの同期
+    if (player.alg !== activeStr) {
+        player.alg = activeStr;
     }
     
+    // 現在のステップ同期
     if (!isPlaying) {
         player.experimentalCurrentMoveIndex = step;
     }
 
-    // Update UI Counters
-    document.getElementById('step-counter').textContent = step;
+    // UI表示の更新
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = step;
+    
     const indicator = document.getElementById('move-indicator');
-    indicator.textContent = isPlaying ? "Playing..." : (step > 0 ? activeMoves[step-1] : "---");
+    if (indicator) {
+        indicator.textContent = isPlaying ? "Playing..." : (step > 0 ? activeMoves[step-1] : "---");
+    }
 
-    // Update Hash
+    // Hash更新
     if (!isPlaying) {
         const rawData = `${stickerMask.join("")}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
         const hashValue = `v5:${btoa(rawData)}`;
@@ -99,7 +114,8 @@ export async function togglePlay() {
         const sync = () => {
             if (!isPlaying) return;
             slider.value = player.experimentalCurrentMoveIndex;
-            document.getElementById('step-counter').textContent = slider.value;
+            const counter = document.getElementById('step-counter');
+            if (counter) counter.textContent = slider.value;
             if (parseInt(slider.value) >= activeMoves.length) stopPlay();
             else requestAnimationFrame(sync);
         };
@@ -119,8 +135,10 @@ export function handleScramble() {
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
     const slider = document.getElementById('move-slider');
-    slider.max = activeMoves.length;
-    slider.value = 0;
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = 0;
+    }
     render(true);
 }
 
@@ -128,8 +146,10 @@ export function addMove(move) {
     stopPlay();
     activeMoves.push(move);
     const slider = document.getElementById('move-slider');
-    slider.max = activeMoves.length;
-    slider.value = activeMoves.length;
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = activeMoves.length;
+    }
     render(true);
 }
 
@@ -138,7 +158,9 @@ export function applySetup() {
     const val = document.getElementById('command-box').value.trim();
     activeMoves = val ? val.split(/\s+/) : [];
     const slider = document.getElementById('move-slider');
-    slider.max = activeMoves.length;
-    slider.value = 0;
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = 0;
+    }
     render(true);
 }
