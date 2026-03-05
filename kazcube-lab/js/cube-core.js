@@ -1,12 +1,12 @@
 /**
  * KAZCUBE Lab Core Module
- * v2.0.38: Final Stable Version
- * 解決策: 古いキャッシュ(v2.0.6)を破棄するため、クエリパラメータに依存しないクリーンな構造に変更。
+ * v2.0.39: Fix rotation direction and setup logic.
+ * 修正点: グリッドボタン押下時は「解決手順」を増やし、セットアップボタン押下時に「逆順」を崩しとして設定する。
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.38");
+console.log("LOG: cube-core.js loaded. Version: v2.0.39");
 
-export const JS_VERSION = "v2.0.38";
+export const JS_VERSION = "v2.0.39";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
@@ -52,6 +52,9 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
+/**
+ * 現在のactiveMovesを逆順にしてsetupMoves（崩し状態）に設定する
+ */
 function updateSetupFromActive() {
     setupMoves = [...activeMoves].reverse().map(m => {
         if (m.endsWith("2")) return m;
@@ -59,14 +62,23 @@ function updateSetupFromActive() {
     });
 }
 
+/**
+ * 手順の追加：ボタンから一歩ずつ手順を増やす
+ */
 export function addMove(move) {
     stopPlay();
     activeMoves.push(move);
-    updateSetupFromActive();
+    
     const cb = document.getElementById('command-box');
     if (cb) cb.value = activeMoves.join(" ");
+    
     const slider = document.getElementById('move-slider');
-    if (slider) { slider.max = activeMoves.length; slider.value = 0; }
+    if (slider) {
+        slider.max = activeMoves.length;
+        // 追加した直後の状態（最後の手の手前）を表示させたい場合は length-1
+        // 追加した状態を確定させたい場合は length
+        slider.value = activeMoves.length - 1; 
+    }
     render();
 }
 
@@ -74,7 +86,6 @@ export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
     
-    // スティッカーマスクの適用
     player.experimentalStickeringMaskOrbits = generateOrbitMask();
     
     const slider = document.getElementById('move-slider');
@@ -85,7 +96,6 @@ export function render() {
         const activeStr = activeMoves.join(" ");
         const setupStr = setupMoves.join(" ");
         
-        // experimental APIを使用（古い.setupや.jumpToStepは使用しない）
         if (currentDomSetup !== setupStr) {
             player.experimentalSetupAlg = setupStr;
             currentDomSetup = setupStr;
@@ -160,7 +170,10 @@ export function handleScramble() {
     stopPlay();
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
+    
+    // スクランブル時は「今のランダム手順」を逆にたどることで崩し状態を作る
     updateSetupFromActive();
+    
     const cb = document.getElementById('command-box');
     if (cb) cb.value = activeMoves.join(" ");
     const slider = document.getElementById('move-slider');
@@ -176,7 +189,10 @@ export function applySetup() {
     const val = cb.value.trim();
     if (!val) return;
     activeMoves = val.split(/\s+/).filter(m => m.length > 0);
+    
+    // セットアップボタン押下時に、入力された手順の「逆」を崩し状態として確定させる
     updateSetupFromActive();
+    
     const slider = document.getElementById('move-slider');
     if (slider) { slider.max = activeMoves.length; slider.value = 0; }
     currentDomAlg = "__FORCE__";
