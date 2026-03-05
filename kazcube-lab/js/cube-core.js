@@ -1,26 +1,27 @@
 /**
  * KAZCUBE Lab Core Module
- * [History]
- * v2.0.31: Switched to player.play() for smoother animation.
- * Removed manual setInterval for movement to prevent sync issues.
+ * [Final Restructured Version]
+ * v2.0.34: Refined sync logic for setup vs play.
+ * Uses native player properties for position control to ensure stability.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.31");
+console.log("LOG: cube-core.js loaded. Version: v2.0.34");
 
-export const JS_VERSION = "v2.0.31";
+export const JS_VERSION = "v2.0.34";
 export let setupMoves = [];
 export let activeMoves = [];
 export let stickerStates = Array(54).fill(1);
 export let isPlaying = false;
 
-let lastAppliedAlg = null;
-let lastAppliedSetup = null;
+// DOMの属性値を追跡するためのキャッシュ（不必要なリセットを防ぐ）
+let currentDomAlg = "";
+let currentDomSetup = "";
 
 /* [LOCKED: NO-REMOVE] */
 export function resetAll() {
-    console.log("DEBUG: resetAll called");
+    console.log("DEBUG: resetAll");
     setupMoves = []; activeMoves = []; stickerStates.fill(1);
-    lastAppliedAlg = null; lastAppliedSetup = null;
+    currentDomAlg = null; currentDomSetup = null;
     stopPlay();
     const cb = document.getElementById('command-box');
     if (cb) cb.value = "";
@@ -62,7 +63,9 @@ function generateOrbitMask() {
     return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
 }
 
-/* [FIXED: v2.0.31] Sync player state with slider for manual move/play */
+/**
+ * 描画関数: プレイヤーのプロパティを物理的な状態に同期させる
+ */
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
@@ -74,25 +77,26 @@ export function render() {
     
     if (slider) {
         const step = parseInt(slider.value) || 0;
-        
-        // 1. Setup Algorithm
         const setupStr = setupMoves.join(" ");
-        if (lastAppliedSetup !== setupStr) {
+        const activeStr = activeMoves.join(" ");
+
+        // セットアップ手順の同期
+        if (currentDomSetup !== setupStr) {
+            console.log("DEBUG RENDER: Setting setupAlg:", setupStr);
             player.experimentalSetupAlg = setupStr;
-            lastAppliedSetup = setupStr;
+            currentDomSetup = setupStr;
         }
 
-        // 2. Active Algorithm
-        const activeStr = activeMoves.join(" "); // Set FULL alg
-        if (lastAppliedAlg !== activeStr) {
+        // 実行手順の同期（常に全手順をセット）
+        if (currentDomAlg !== activeStr) {
+            console.log("DEBUG RENDER: Setting alg:", activeStr);
             player.alg = activeStr;
-            lastAppliedAlg = activeStr;
+            currentDomAlg = activeStr;
         }
 
-        // Sync slider with player's animation timeline
-        // If not playing, jump to specific move
+        // 位置の同期（再生中でないときのみ物理的にジャンプ）
         if (!isPlaying) {
-            player.jumpToStep(step);
+            player.experimentalCurrentMoveIndex = step;
         }
 
         document.getElementById('step-counter').textContent = step;
@@ -105,7 +109,6 @@ export function render() {
     
     const rawData = `${stickerStates.join("")}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
     const hashValue = `v5:${btoa(rawData)}`;
-    
     if (!isPlaying) {
         window.history.replaceState(null, "", "#" + hashValue);
         if (hashDisp) hashDisp.value = hashValue;
@@ -115,7 +118,9 @@ export function render() {
     if (playBtn) playBtn.textContent = isPlaying ? "||" : "▶";
 }
 
-/* [FIXED: v2.0.31] Use twisty-player's built-in play method */
+/**
+ * 再生制御: プレイヤー自身の内部アニメーションを使用
+ */
 export async function togglePlay() {
     const player = document.getElementById('main-cube');
     const slider = document.getElementById('move-slider');
@@ -124,31 +129,34 @@ export async function togglePlay() {
     if (isPlaying) {
         stopPlay();
     } else {
+        console.log("DEBUG: togglePlay - Start");
         isPlaying = true;
-        player.tempoScale = 1.0;
         
-        // If we are at the end, jump to start
+        // 既に最後まで行っている場合は0に戻す
         if (parseInt(slider.value) >= activeMoves.length) {
             slider.value = 0;
-            player.jumpToStep(0);
+            player.experimentalCurrentMoveIndex = 0;
         }
 
-        render();
-
-        // Use twisty-player's built-in play mechanism
-        // We listen to the move events to update our slider
+        player.tempoScale = 1.0;
+        render(); // UI表示更新
+        
         player.play();
 
+        // プレイヤーの内部進捗を監視してスライダーに反映
         const syncLoop = () => {
             if (!isPlaying) return;
-            // Update slider based on player's current internal step
-            const currentStep = player.experimentalCurrentMoveIndex;
-            if (currentStep !== undefined && slider.value != currentStep) {
-                slider.value = currentStep;
-                document.getElementById('step-counter').textContent = currentStep;
+            
+            const pIndex = player.experimentalCurrentMoveIndex;
+            if (pIndex !== undefined && slider.value != pIndex) {
+                slider.value = pIndex;
+                document.getElementById('step-counter').textContent = pIndex;
+                // 注意: ここで render() を呼ぶと alg の再代入が走る可能性があるため、
+                // 必要最小限のUI更新に留めるか、render内の if ガードに任せる。
             }
             
-            if (currentStep >= activeMoves.length) {
+            if (pIndex >= activeMoves.length) {
+                console.log("DEBUG: togglePlay - Finished");
                 stopPlay();
             } else {
                 requestAnimationFrame(syncLoop);
@@ -158,10 +166,12 @@ export async function togglePlay() {
     }
 }
 
-/* [FIXED: v2.0.31] */
 export function stopPlay() {
     const player = document.getElementById('main-cube');
-    if (player) player.pause();
+    if (player) {
+        player.pause();
+        console.log("DEBUG: stopPlay - Paused at", player.experimentalCurrentMoveIndex);
+    }
     isPlaying = false;
     render();
 }
@@ -170,7 +180,7 @@ export function stopPlay() {
 export function handleScramble() {
     stopPlay();
     setupMoves = [];
-    lastAppliedAlg = null; lastAppliedSetup = null;
+    currentDomAlg = "__RESET__"; currentDomSetup = "__RESET__";
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
     const cb = document.getElementById('command-box');
@@ -183,8 +193,11 @@ export function handleScramble() {
     render();
 }
 
-/* [FIXED: v2.0.31] */
+/**
+ * セットアップ適用
+ */
 export function applySetup() {
+    console.log("DEBUG: applySetup START");
     stopPlay();
     const cb = document.getElementById('command-box');
     if (!cb) return;
@@ -199,13 +212,9 @@ export function applySetup() {
         return m.endsWith("'") ? m.slice(0, -1) : m + "'";
     });
 
-    const player = document.getElementById('main-cube');
-    if (player) {
-        player.alg = "";
-        player.experimentalSetupAlg = "";
-        lastAppliedAlg = "__RESET__";
-        lastAppliedSetup = "__RESET__";
-    }
+    // 内部キャッシュをリセットして render で強制反映させる
+    currentDomAlg = "__FORCE__";
+    currentDomSetup = "__FORCE__";
 
     const slider = document.getElementById('move-slider');
     if (slider) { 
