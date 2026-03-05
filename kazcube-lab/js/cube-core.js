@@ -1,22 +1,34 @@
 /**
  * KAZCUBE Lab Core Module
- * v2.0.39: Fix rotation direction and setup logic.
- * 修正点: グリッドボタン押下時は「解決手順」を増やし、セットアップボタン押下時に「逆順」を崩しとして設定する。
+ * v2.0.43: Enhanced stickering with custom colors via stickerFill.
  */
 
-console.log("LOG: cube-core.js loaded. Version: v2.0.39");
+console.log("LOG: cube-core.js loaded. Version: v2.0.43");
 
-export const JS_VERSION = "v2.0.39";
+export const JS_VERSION = "v2.0.43";
 export let setupMoves = [];
 export let activeMoves = [];
-export let stickerStates = Array(54).fill(1);
+
+// スティッカーの色状態 (0: グレー, 1-6: 各色)
+// 初期状態はnull（標準配色を使用）
+export let stickerColors = Array(54).fill(null);
 export let isPlaying = false;
 
 let currentDomAlg = "";
 let currentDomSetup = "";
 
+const colorMap = {
+    0: "#4b5563", // Gray
+    1: "#ffffff", // White
+    2: "#ffff00", // Yellow
+    3: "#00ff00", // Green
+    4: "#0000ff", // Blue
+    5: "#ff0000", // Red
+    6: "#ffa500"  // Orange
+};
+
 export function resetAll() {
-    setupMoves = []; activeMoves = []; stickerStates.fill(1);
+    setupMoves = []; activeMoves = []; stickerColors.fill(null);
     currentDomAlg = null; currentDomSetup = null;
     stopPlay();
     const cb = document.getElementById('command-box');
@@ -24,8 +36,13 @@ export function resetAll() {
     render();
 }
 
-export function updateStickerState(idx, state) { stickerStates[idx] = state; }
-export function setAllStickers(state) { stickerStates.fill(state); }
+export function updateStickerColor(idx, colorId) { 
+    stickerColors[idx] = colorId; 
+}
+
+export function setAllStickers(colorId) { 
+    stickerColors.fill(colorId); 
+}
 
 export function loadFromHash(targetHash = null) {
     const hash = targetHash || window.location.hash.replace(/^#/, "");
@@ -33,7 +50,10 @@ export function loadFromHash(targetHash = null) {
     try {
         const decoded = atob(hash.substring(3));
         const [mask, setup, active] = decoded.split("|");
-        if (mask && mask.length === 54) stickerStates = mask.split("").map(Number);
+        // 下位互換性のため、maskの長さをチェック
+        if (mask && mask.length === 54) {
+            stickerColors = mask.split("").map(v => v === "1" ? null : 0);
+        }
         setupMoves = (setup && setup !== "") ? setup.split(",") : [];
         activeMoves = (active && active !== "") ? active.split(",") : [];
         const cb = document.getElementById('command-box');
@@ -44,49 +64,18 @@ export function loadFromHash(targetHash = null) {
     } catch (e) { console.error("Import Error", e); }
 }
 
-function generateOrbitMask() {
-    const getMask = (indices) => indices.map(i => stickerStates[i] ? '-' : 'I').join('');
-    const e = [1,3,5,7,10,12,14,16,19,21,23,25,28,30,32,34,37,39,41,43,46,48,50,52].slice(0, 12);
-    const c = [0,2,6,8,9,11,15,17,18,20,24,26,27,29,33,35,36,38,42,44,45,47,51,53].slice(0, 8);
-    const ct = [4,13,22,31,40,49];
-    return `EDGES:${getMask(e)},CORNERS:${getMask(c)},CENTERS:${getMask(ct)}`;
-}
-
-/**
- * 現在のactiveMovesを逆順にしてsetupMoves（崩し状態）に設定する
- */
-function updateSetupFromActive() {
-    setupMoves = [...activeMoves].reverse().map(m => {
-        if (m.endsWith("2")) return m;
-        return m.endsWith("'") ? m.slice(0, -1) : m + "'";
-    });
-}
-
-/**
- * 手順の追加：ボタンから一歩ずつ手順を増やす
- */
-export function addMove(move) {
-    stopPlay();
-    activeMoves.push(move);
-    
-    const cb = document.getElementById('command-box');
-    if (cb) cb.value = activeMoves.join(" ");
-    
-    const slider = document.getElementById('move-slider');
-    if (slider) {
-        slider.max = activeMoves.length;
-        // 追加した直後の状態（最後の手の手前）を表示させたい場合は length-1
-        // 追加した状態を確定させたい場合は length
-        slider.value = activeMoves.length - 1; 
-    }
-    render();
-}
-
 export function render() {
     const player = document.getElementById('main-cube');
     if (!player) return;
     
-    player.experimentalStickeringMaskOrbits = generateOrbitMask();
+    // カスタムカラーの適用 (stickerFillプロパティを使用)
+    const fills = {};
+    stickerColors.forEach((cId, idx) => {
+        if (cId !== null) {
+            fills[idx] = colorMap[cId];
+        }
+    });
+    player.stickerFill = Object.keys(fills).length > 0 ? (idx) => fills[idx] || null : null;
     
     const slider = document.getElementById('move-slider');
     const hashDisp = document.getElementById('hash-display');
@@ -117,14 +106,14 @@ export function render() {
         }
     }
     
-    const rawData = `${stickerStates.join("")}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
+    // Hash保存（色の状態を簡易的に保存）
+    const maskStr = stickerColors.map(v => v === null ? "1" : v).join("");
+    const rawData = `${maskStr}|${setupMoves.join(",")}|${activeMoves.join(",")}`;
     const hashValue = `v5:${btoa(rawData)}`;
     if (!isPlaying) {
         window.history.replaceState(null, "", "#" + hashValue);
         if (hashDisp) hashDisp.value = hashValue;
     }
-    const playBtn = document.getElementById('play-btn');
-    if (playBtn) playBtn.textContent = isPlaying ? "||" : "▶";
 }
 
 export async function togglePlay() {
@@ -141,7 +130,6 @@ export async function togglePlay() {
             player.experimentalCurrentMoveIndex = 0;
         }
         player.play();
-        
         const syncLoop = () => {
             if (!isPlaying) return;
             const pIndex = player.experimentalCurrentMoveIndex;
@@ -170,15 +158,28 @@ export function handleScramble() {
     stopPlay();
     const faces=['U','D','L','R','F','B'], mods=['',"'",'2'];
     activeMoves = Array.from({length:20},()=>faces[Math.floor(Math.random()*6)]+mods[Math.floor(Math.random()*3)]);
-    
-    // スクランブル時は「今のランダム手順」を逆にたどることで崩し状態を作る
     updateSetupFromActive();
-    
-    const cb = document.getElementById('command-box');
-    if (cb) cb.value = activeMoves.join(" ");
     const slider = document.getElementById('move-slider');
     if (slider) { slider.max = activeMoves.length; slider.value = 0; }
     currentDomAlg = "__RESET__";
+    render();
+}
+
+function updateSetupFromActive() {
+    setupMoves = [...activeMoves].reverse().map(m => {
+        if (m.endsWith("2")) return m;
+        return m.endsWith("'") ? m.slice(0, -1) : m + "'";
+    });
+}
+
+export function addMove(move) {
+    stopPlay();
+    activeMoves.push(move);
+    const slider = document.getElementById('move-slider');
+    if (slider) {
+        slider.max = activeMoves.length;
+        slider.value = activeMoves.length - 1; 
+    }
     render();
 }
 
@@ -189,10 +190,7 @@ export function applySetup() {
     const val = cb.value.trim();
     if (!val) return;
     activeMoves = val.split(/\s+/).filter(m => m.length > 0);
-    
-    // セットアップボタン押下時に、入力された手順の「逆」を崩し状態として確定させる
     updateSetupFromActive();
-    
     const slider = document.getElementById('move-slider');
     if (slider) { slider.max = activeMoves.length; slider.value = 0; }
     currentDomAlg = "__FORCE__";
