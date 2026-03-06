@@ -1,10 +1,10 @@
 /**
  * KAZCUBE Lab Application Module
- * v2.0.49: Restored 3-row grid layout and move definitions.
+ * v2.1.1: Fixed event listeners and side-by-side layout logic.
  */
 
-import * as Core from './cube-core.js?v=2.0.49';
-import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.0.49';
+import * as Core from './cube-core.js?v=2.1.1';
+import { initPaintTool, setPaintMode } from './paint-tool.js?v=2.1.1';
 
 const moveSets = {
     basic: ["U", "D", "L", "R", "F", "B"],
@@ -13,9 +13,8 @@ const moveSets = {
 };
 
 export function initApp() {
-    console.log("LOG: initApp starting... v2.0.49");
+    console.log("LOG: initApp starting... v2.1.1");
     
-    // 回転ボタンの生成 (6x3のグリッド)
     const grid = document.getElementById('move-grid');
     if (grid) {
         grid.innerHTML = "";
@@ -24,12 +23,16 @@ export function initApp() {
             const btn = document.createElement('button');
             btn.className = "py-3 bg-slate-800/60 text-slate-100 font-black text-[11px] rounded-xl border border-slate-700/50 hover:bg-slate-700 hover:border-emerald-500/50 transition-all active:scale-90 shadow-sm";
             btn.textContent = move;
-            btn.onclick = () => Core.addMove(move);
+            // 直接Coreの関数を呼ぶ
+            btn.onclick = () => {
+                console.log("Click move:", move);
+                Core.addMove(move);
+            };
             grid.appendChild(btn);
         });
     }
 
-    // UI イベントリスナー
+    // UI Events
     document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
     document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
     document.getElementById('play-btn').onclick = () => Core.togglePlay();
@@ -43,10 +46,10 @@ export function initApp() {
         Core.render();
     };
 
-    // 初期化実行
+    // Initialize tools
     initPaintTool();
     Core.loadFromHash();
     
-    // 初期描画の遅延実行（TwistyPlayerのロード待ち）
-    setTimeout(() => Core.render(true), 200);
+    // Initial Render
+    setTimeout(() => Core.render(true), 100);
 }
