@@ -3,71 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KAZCUBE Lab - Desktop Layout v2.2.0</title>
+    <title>KAZCUBE Lab - v2.5.1 [UI & Logic Sync]</title>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f172a; color: #f8fafc; overflow: hidden; font-family: sans-serif; }
         .no-select { user-select: none; -webkit-tap-highlight-color: transparent; }
-        
         twisty-player { 
-            width: 100%; 
-            height: 100%; 
-            max-width: 500px; 
-            max-height: 500px; 
+            width: 100%; height: 100%; max-width: 500px; max-height: 500px; 
             --twisty-frame-background: none; 
         }
         #main-cube { filter: drop-shadow(0 25px 50px rgb(0 0 0 / 0.6)); }
-
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-        
         input[type="range"] { accent-color: #10b981; }
     </style>
 </head>
 <body class="h-screen flex flex-col no-select">
 
-    <header class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-900/90 backdrop-blur-md z-30 shrink-0">
+    <header class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-900/95 backdrop-blur-md z-30 shrink-0">
         <div class="flex items-center gap-2">
-            <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
+            <div class="w-2 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
             <h1 class="text-sm font-black tracking-tighter text-slate-200 uppercase">KAZCUBE <span class="text-emerald-500 font-extrabold">LAB</span></h1>
         </div>
-        <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">v2.2.0</div>
+        <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">v2.5.1 Stable</div>
     </header>
 
     <main class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
-        
-        <!-- Left: Cube Display -->
+        <!-- Left Section -->
         <section class="flex-[1.2] relative flex flex-col items-center justify-center p-4 bg-slate-900/20 border-r border-slate-800/50">
-            <div class="absolute top-8 z-10">
-                <div class="px-8 py-2.5 bg-slate-900/95 border border-slate-700 rounded-full shadow-2xl backdrop-blur-sm min-w-[140px] text-center">
-                    <span id="move-indicator" class="text-[14px] font-black text-emerald-400 tracking-[0.2em] uppercase">READY</span>
+            <div class="absolute top-8 z-10 w-full flex justify-center pointer-events-none">
+                <div class="px-8 py-2.5 bg-slate-900/95 border border-slate-700 rounded-full shadow-2xl backdrop-blur-sm min-w-[160px] text-center pointer-events-auto">
+                    <span id="move-indicator" class="text-[13px] font-black text-emerald-400 tracking-[0.25em] uppercase">READY</span>
                 </div>
             </div>
 
             <div class="w-full h-full flex items-center justify-center">
-                <twisty-player 
-                    id="main-cube"
-                    puzzle="3x3x3"
-                    camera-latitude="30"
-                    camera-longitude="-30"
-                    background="none"
-                    control-panel="none"
-                    hint-stickers="none"
-                ></twisty-player>
+                <twisty-player id="main-cube" puzzle="3x3x3" camera-latitude="30" camera-longitude="-30" background="none" control-panel="none"></twisty-player>
             </div>
 
-            <div class="w-full max-w-md mb-8">
-                <div class="bg-slate-950/80 p-5 rounded-3xl border border-slate-800/50 flex items-center gap-6 shadow-2xl">
-                    <button id="play-btn" class="w-14 h-14 flex items-center justify-center bg-emerald-600 rounded-2xl text-white hover:bg-emerald-500 active:scale-95 shadow-lg transition-all">
+            <div class="w-full max-w-md mb-8 px-4">
+                <div class="bg-slate-950/80 p-5 rounded-3xl border border-slate-800/50 flex items-center gap-6 shadow-2xl backdrop-blur-md">
+                    <button id="play-btn" class="w-14 h-14 flex-none flex items-center justify-center bg-emerald-600 rounded-2xl text-white hover:bg-emerald-500 active:scale-95 transition-all shadow-lg">
                         <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                         <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
                     <div class="flex-1 space-y-2">
                         <div class="flex justify-between text-[10px] font-black text-slate-500 tracking-widest uppercase">
-                            <span>Step <span id="step-counter" class="text-emerald-500">0</span></span>
-                            <span>Progress</span>
+                            <span>Step <span id="step-counter" class="text-emerald-500 text-xs">0</span></span>
+                            <span>Timeline</span>
                         </div>
                         <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
                     </div>
@@ -75,53 +60,57 @@
             </div>
         </section>
 
-        <!-- Right: Operation Panel -->
-        <section class="flex-1 bg-slate-900/40 p-6 overflow-y-auto custom-scroll">
-            <div class="max-w-md mx-auto space-y-8 pb-10">
-                
+        <!-- Right Section -->
+        <section class="flex-1 bg-slate-900/40 p-6 md:p-8 overflow-y-auto custom-scroll border-t md:border-t-0 border-slate-800">
+            <div class="max-w-md mx-auto space-y-10 pb-12">
                 <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center justify-between min-h-[64px]">
                     <div class="flex p-1 gap-1 bg-slate-950 rounded-xl border border-slate-800/50">
                         <button id="mode-rotate" class="px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg transition-all">ROTATE</button>
                         <button id="mode-paint" class="px-5 py-2.5 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all">PAINT</button>
                     </div>
-                    
                     <div id="paint-controls" class="hidden flex-1 flex items-center justify-end gap-3 px-3">
-                        <div class="flex gap-1 border-r border-slate-800 pr-3">
-                            <button id="btn-gray" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-[9px] font-black text-slate-300">GRAY</button>
-                            <button id="btn-full" class="px-2 py-1.5 bg-emerald-900/60 hover:bg-emerald-800 rounded text-[9px] font-black text-emerald-300 border border-emerald-500/30">FULL</button>
+                        <div class="flex gap-1.5 border-r border-slate-800 pr-3">
+                            <button id="btn-gray" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-[9px] font-black text-slate-300 uppercase">Gray</button>
+                            <button id="btn-full" class="px-2 py-1.5 bg-emerald-900/60 hover:bg-emerald-800 rounded text-[9px] font-black text-emerald-300 border border-emerald-500/30 uppercase">Full</button>
                         </div>
-                        <div id="swatch-container" class="grid grid-cols-4 gap-1.5"></div>
+                        <div id="swatch-container" class="grid grid-cols-4 gap-2"></div>
                     </div>
                 </div>
 
                 <div id="rotate-panel" class="space-y-4">
-                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] pl-1">Move Controls</h3>
-                    <div id="move-grid" class="grid grid-cols-6 gap-2"></div>
+                    <div class="flex items-center justify-between pl-1">
+                        <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Move Controls</h3>
+                        <div class="h-[1px] flex-1 bg-slate-800 ml-4"></div>
+                    </div>
+                    <div id="move-grid" class="grid grid-cols-6 gap-2.5"></div>
                 </div>
 
-                <div class="space-y-4">
-                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] pl-1">Alg / Setup</h3>
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between pl-1">
+                        <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Algorithm / Setup</h3>
+                        <div class="h-[1px] flex-1 bg-slate-800 ml-4"></div>
+                    </div>
                     <div class="flex gap-2">
                         <input type="text" id="command-box" placeholder="R U R' U' ..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-4 text-sm font-mono text-emerald-400 placeholder:text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500/50">
-                        <button id="apply-btn" class="px-5 bg-slate-200 text-slate-900 font-black text-[10px] rounded-xl hover:bg-white active:scale-95 shadow-lg">APPLY</button>
+                        <button id="apply-btn" class="px-6 bg-slate-200 text-slate-900 font-black text-[11px] rounded-xl hover:bg-white active:scale-95 shadow-lg">APPLY</button>
                     </div>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="scramble-btn" class="py-4 bg-slate-800/40 text-slate-300 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 transition uppercase tracking-widest">Scramble</button>
-                        <button id="reset-btn" class="py-4 bg-slate-800/40 text-rose-400 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 transition uppercase tracking-widest">Reset Cube</button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button id="scramble-btn" class="py-4 bg-slate-800/40 text-slate-300 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 uppercase tracking-[0.2em]">Scramble</button>
+                        <button id="reset-btn" class="py-4 bg-slate-800/40 text-rose-400 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 uppercase tracking-[0.2em]">Reset</button>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="p-2 border-t border-slate-800/50 bg-slate-900 shrink-0">
-        <input type="text" id="hash-display" readonly class="w-full bg-transparent text-[9px] font-mono text-slate-800 border-none focus:outline-none text-center" value="---">
+    <footer class="p-2 border-t border-slate-800/50 bg-slate-900 shrink-0 flex items-center justify-center gap-4">
+        <input type="text" id="hash-display" readonly class="bg-transparent text-[9px] font-mono text-slate-700 border-none focus:outline-none text-center w-64" value="---">
+        <button id="btn-copy-link" class="text-[9px] font-black text-emerald-500 border border-emerald-500/30 px-3 py-1 rounded hover:bg-emerald-500/10 transition-colors uppercase">Copy Link</button>
     </footer>
 
     <script type="module">
-        import { initApp } from './js/app.js?v=2.2.0';
-        document.addEventListener('DOMContentLoaded', initApp);
+        import { initApp } from './js/app.js?v=2.5.1';
+        window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
