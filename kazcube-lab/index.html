@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KAZCUBE Lab - Desktop Layout Refined</title>
+    <title>KAZCUBE Lab - Side-by-Side Fixed</title>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -14,8 +14,8 @@
         twisty-player { 
             width: 100%; 
             height: 100%; 
-            max-width: 500px; 
-            max-height: 500px; 
+            max-width: 480px; 
+            max-height: 480px; 
             --twisty-frame-background: none; 
         }
         #main-cube { filter: drop-shadow(0 25px 50px rgb(0 0 0 / 0.6)); }
@@ -36,17 +36,19 @@
             <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
             <h1 class="text-sm font-black tracking-tighter text-slate-200 uppercase">KAZCUBE <span class="text-emerald-500 font-extrabold">LAB</span></h1>
         </div>
-        <div class="text-[10px] font-mono text-slate-500 tracking-widest">v2.1.0 (Side-by-Side)</div>
+        <div class="text-[10px] font-mono text-slate-500 tracking-widest">v2.1.1</div>
     </header>
 
     <!-- Main Content (Side-by-Side Layout) -->
     <main class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
         
         <!-- Left: Cube & Timeline Area -->
-        <section class="flex-[1.2] relative flex flex-col items-center justify-center p-4 bg-slate-900/20">
-            <!-- Floating Indicator -->
-            <div class="absolute top-8 px-4 py-1.5 bg-slate-900/95 border border-slate-700 rounded-full shadow-2xl backdrop-blur-sm z-10">
-                <span id="move-indicator" class="text-[10px] font-black text-emerald-400 tracking-[0.2em] uppercase">---</span>
+        <section class="flex-[1.2] relative flex flex-col items-center justify-center p-4 bg-slate-900/20 border-r border-slate-800/50">
+            <!-- Move Indicator -->
+            <div class="absolute top-8 z-10">
+                <div class="px-6 py-2 bg-slate-900/95 border border-slate-700 rounded-full shadow-2xl backdrop-blur-sm min-w-[100px] text-center">
+                    <span id="move-indicator" class="text-[12px] font-black text-emerald-400 tracking-[0.2em] uppercase">READY</span>
+                </div>
             </div>
 
             <div class="w-full h-full flex items-center justify-center">
@@ -61,61 +63,62 @@
                 ></twisty-player>
             </div>
 
-            <!-- Vertical Timeline (Desktop only option) or Bottom Slider -->
-            <div class="w-full max-w-md mt-4 px-6 md:px-0">
-                <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800/50 flex items-center gap-4">
-                    <button id="play-btn" class="w-10 h-10 flex items-center justify-center bg-emerald-600 rounded-full text-white hover:bg-emerald-500 active:scale-95 shadow-lg transition-all">
-                        <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            <!-- Bottom Slider (Integrated with Cube Area) -->
+            <div class="w-full max-w-md mb-8">
+                <div class="bg-slate-950/80 p-4 rounded-3xl border border-slate-800/50 flex items-center gap-5 shadow-2xl">
+                    <button id="play-btn" class="w-12 h-12 flex items-center justify-center bg-emerald-600 rounded-2xl text-white hover:bg-emerald-500 active:scale-95 shadow-lg shadow-emerald-900/20 transition-all">
+                        <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
-                    <div class="flex-1">
+                    <div class="flex-1 space-y-1">
+                        <div class="flex justify-between text-[10px] font-black text-slate-500 tracking-widest uppercase">
+                            <span>Step <span id="step-counter" class="text-emerald-500">0</span></span>
+                            <span>Progress</span>
+                        </div>
                         <input type="range" id="move-slider" min="0" max="0" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
-                    </div>
-                    <div class="text-[10px] font-black text-emerald-500 w-8 text-center">
-                        <span id="step-counter">0</span>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Right: Operation Panel -->
-        <section class="flex-1 border-t md:border-t-0 md:border-l border-slate-800 bg-slate-900/40 p-6 overflow-y-auto custom-scroll">
-            <div class="max-w-md mx-auto space-y-6 pb-10">
+        <section class="flex-1 bg-slate-900/40 p-6 overflow-y-auto custom-scroll">
+            <div class="max-w-md mx-auto space-y-8 pb-10">
                 
-                <!-- Mode & Paint Panel -->
-                <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center justify-between min-h-[58px]">
+                <!-- 1. Mode Switcher & Paint Tools -->
+                <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center justify-between min-h-[64px]">
                     <div class="flex p-1 gap-1 bg-slate-950 rounded-xl border border-slate-800/50">
                         <button id="mode-rotate" class="px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg transition-all">ROTATE</button>
                         <button id="mode-paint" class="px-5 py-2.5 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all">PAINT</button>
                     </div>
                     
+                    <!-- Integrated Paint Tools -->
                     <div id="paint-controls" class="hidden flex-1 flex items-center justify-end gap-3 px-3">
                         <div class="flex gap-1 border-r border-slate-800 pr-3">
                             <button id="btn-gray" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-[9px] font-black text-slate-300">GRAY</button>
                             <button id="btn-cc" class="px-2 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 rounded text-[9px] font-black text-indigo-300 border border-indigo-500/30">C+C</button>
                             <button id="btn-full" class="px-2 py-1.5 bg-emerald-900/60 hover:bg-emerald-800 rounded text-[9px] font-black text-emerald-300 border border-emerald-500/30">FULL</button>
                         </div>
-                        <div id="swatch-container" class="flex gap-2"></div>
+                        <div id="swatch-container" class="flex gap-1.5"></div>
                     </div>
                 </div>
 
-                <!-- Rotation Grid Panel -->
+                <!-- 2. Rotation Grid Panel -->
                 <div id="rotate-panel" class="space-y-4">
-                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Move Controls</h3>
+                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] pl-1">Move Controls</h3>
                     <div id="move-grid" class="grid grid-cols-6 gap-2">
                         <!-- JS injects 18 buttons -->
                     </div>
                 </div>
 
-                <!-- Command & Setup Panel -->
-                <div class="space-y-4 pt-2">
-                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Alg / Setup</h3>
+                <!-- 3. Command & Setup Panel -->
+                <div class="space-y-4">
+                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] pl-1">Alg / Setup</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="command-box" placeholder="Algorithm..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm font-mono text-emerald-400 placeholder:text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500/50">
+                        <input type="text" id="command-box" placeholder="Algorithm (e.g. R U R' U')..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-sm font-mono text-emerald-400 placeholder:text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500/50">
                         <button id="apply-btn" class="px-5 bg-slate-200 text-slate-900 font-black text-[10px] rounded-xl hover:bg-white active:scale-95 shadow-lg">APPLY</button>
                     </div>
                     
-                    <!-- Utility Buttons -->
                     <div class="grid grid-cols-2 gap-3">
                         <button id="scramble-btn" class="py-4 bg-slate-800/40 text-slate-300 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 transition uppercase tracking-widest">Scramble</button>
                         <button id="reset-btn" class="py-4 bg-slate-800/40 text-rose-400 font-black text-[10px] rounded-xl border border-slate-700/50 hover:bg-slate-800 transition uppercase tracking-widest">Reset Cube</button>
@@ -132,7 +135,7 @@
     </footer>
 
     <script type="module">
-        import { initApp } from './js/app.js?v=2.1.0';
+        import { initApp } from './js/app.js?v=2.1.1';
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
