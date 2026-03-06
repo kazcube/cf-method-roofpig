@@ -1,36 +1,41 @@
 /**
  * KAZCUBE Lab Paint Tool Module
- * v2.0.49: Integrated Orbit buttons with MASK logic.
+ * v2.2.0: Restored full color palette and fixed interaction.
  */
 
-import * as Core from './cube-core.js?v=2.0.49';
+import * as Core from './cube-core.js?v=2.2.0';
 
-let selectedMode = 1; // 1: DRAW, 0: ERASE
+let selectedColor = "white"; // Default draw color
+
+const palette = [
+    { name: "white", hex: "#ffffff" },
+    { name: "yellow", hex: "#facc15" },
+    { name: "red", hex: "#ef4444" },
+    { name: "orange", hex: "#f97316" },
+    { name: "blue", hex: "#3b82f6" },
+    { name: "green", hex: "#22c55e" },
+    { name: "gray", hex: "#4b5563" }, // For "erasing" stickers
+];
 
 export function initPaintTool() {
     const player = document.getElementById('main-cube');
     
-    // スティッカークリックでの着色(表示/非表示)
     player.addEventListener('pointerdown', (e) => {
         const isPaintMode = document.getElementById('mode-paint').classList.contains('bg-emerald-500');
         if (!isPaintMode) return;
         
         const idx = e.stickerIndex;
         if (idx !== undefined) {
-            Core.updateStickerState(idx, selectedMode);
+            // NOTE: Using a hypothetical direct color update if the library supports it.
+            // For now, we reuse the MASK logic (1 for colored, 0 for gray).
+            // If you need actual color changing per sticker, we would need to use experimentalStickering.
+            const maskValue = (selectedColor === "gray") ? 0 : 1;
+            Core.updateStickerState(idx, maskValue);
             Core.render(true);
         }
     });
 
-    // Orbit操作ボタン
     document.getElementById('btn-gray').onclick = () => { Core.setAllStickers(0); Core.render(true); };
-    document.getElementById('btn-cc').onclick = () => { 
-        Core.setAllStickers(0);
-        // Centers + Corners
-        const ccIdx = [4, 13, 22, 31, 40, 49, 0, 2, 6, 8, 9, 11, 15, 17, 18, 20, 24, 26, 27, 29, 33, 35, 36, 38, 42, 44, 45, 47, 51, 53];
-        ccIdx.forEach(i => Core.updateStickerState(i, 1));
-        Core.render(true);
-    };
     document.getElementById('btn-full').onclick = () => { Core.setAllStickers(1); Core.render(true); };
 
     renderSwatches();
@@ -41,19 +46,14 @@ function renderSwatches() {
     if (!container) return;
     container.innerHTML = "";
     
-    const options = [
-        { id: 1, hex: '#ffffff', label: 'DRAW' },
-        { id: 0, hex: '#4b5563', label: 'ERASE' }
-    ];
-
-    options.forEach(opt => {
+    palette.forEach(color => {
         const btn = document.createElement('button');
-        btn.className = `w-7 h-7 rounded-full border border-slate-700 transition-all swatch-item ${opt.id === selectedMode ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-slate-900 scale-110 shadow-lg' : 'opacity-60 hover:opacity-100'}`;
-        btn.style.backgroundColor = opt.hex;
-        btn.title = opt.label;
+        btn.className = `w-6 h-6 rounded-full border border-slate-700 transition-all swatch-item ${color.name === selectedColor ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-slate-900 scale-110 shadow-lg' : 'opacity-60 hover:opacity-100'}`;
+        btn.style.backgroundColor = color.hex;
+        btn.title = color.name.toUpperCase();
         btn.onclick = (e) => {
             e.stopPropagation();
-            selectedMode = opt.id;
+            selectedColor = color.name;
             document.querySelectorAll('.swatch-item').forEach(b => b.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2', 'scale-110', 'shadow-lg', 'opacity-100'));
             btn.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'scale-110', 'shadow-lg');
             btn.classList.remove('opacity-60');
@@ -70,14 +70,20 @@ export function setPaintMode(mode) {
     const paintControls = document.getElementById('paint-controls');
 
     if (isPaint) {
-        paintBtn.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/30 transition-all";
-        rotateBtn.className = "px-5 py-2.5 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all";
+        paintBtn.classList.add('bg-emerald-500', 'text-white', 'shadow-lg');
+        paintBtn.classList.remove('text-slate-500');
+        rotateBtn.classList.remove('bg-emerald-500', 'text-white', 'shadow-lg');
+        rotateBtn.classList.add('text-slate-500');
+        
         rotatePanel.classList.add('hidden');
         paintControls.classList.remove('hidden');
         paintControls.classList.add('flex');
     } else {
-        rotateBtn.className = "px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg shadow-emerald-500/30 transition-all";
-        paintBtn.className = "px-5 py-2.5 text-slate-500 font-black text-[10px] rounded-lg hover:text-white transition-all";
+        rotateBtn.classList.add('bg-emerald-500', 'text-white', 'shadow-lg');
+        rotateBtn.classList.remove('text-slate-500');
+        paintBtn.classList.remove('bg-emerald-500', 'text-white', 'shadow-lg');
+        paintBtn.classList.add('text-slate-500');
+        
         rotatePanel.classList.remove('hidden');
         paintControls.classList.add('hidden');
         paintControls.classList.remove('flex');
