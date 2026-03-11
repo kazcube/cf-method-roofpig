@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KAZCUBE Lab - v2.5.2 [Full Integrated]</title>
+    <title>KAZCUBE Lab - v2.5.3 [Fixed & Improved]</title>
     <!-- External Libraries -->
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,6 +19,8 @@
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
         input[type="range"] { accent-color: #10b981; }
+        /* Hash Input Focus Effect */
+        #hash-display:focus { border-color: #10b981; color: #f8fafc; background-color: #020617; }
     </style>
 </head>
 <body class="h-screen flex flex-col no-select">
@@ -29,39 +31,45 @@
             <div class="w-2 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
             <h1 class="text-sm font-black tracking-tighter text-slate-200 uppercase">KAZCUBE <span class="text-emerald-500 font-extrabold">LAB</span></h1>
         </div>
-        <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">v2.5.2 Perfect Single-File</div>
+        <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">v2.5.3 Fixed</div>
     </header>
 
     <main class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
         <!-- Left: Visualization Section -->
         <section class="flex-[1.2] relative flex flex-col items-center justify-center p-4 bg-slate-900/20 border-r border-slate-800/50">
-            <div class="absolute top-8 z-10 w-full flex justify-center pointer-events-none">
-                <div class="px-8 py-2.5 bg-slate-900/95 border border-slate-700 rounded-full shadow-2xl backdrop-blur-sm min-w-[160px] text-center pointer-events-auto">
-                    <span id="move-indicator" class="text-[13px] font-black text-emerald-400 tracking-[0.25em] uppercase">READY</span>
+            
+            <!-- NEW: Hash Display at Top -->
+            <div class="absolute top-4 z-20 w-full px-6 flex flex-col items-center gap-2">
+                <div class="flex items-center gap-2 w-full max-w-md">
+                    <input type="text" id="hash-display" readonly class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg px-3 py-1.5 text-[9px] font-mono text-slate-600 focus:outline-none transition-all" value="---">
+                    <button id="btn-copy-hash" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 font-black text-[9px] rounded-lg transition-all uppercase whitespace-nowrap">Copy</button>
+                </div>
+                
+                <!-- Move Indicator Below Hash -->
+                <div class="px-8 py-2 bg-slate-900/95 border border-slate-700 rounded-full shadow-xl backdrop-blur-sm min-w-[140px] text-center">
+                    <span id="move-indicator" class="text-[12px] font-black text-emerald-400 tracking-[0.2em] uppercase">READY</span>
                 </div>
             </div>
 
-            <div class="w-full h-full flex items-center justify-center">
+            <div class="w-full h-full flex items-center justify-center pt-12">
                 <twisty-player id="main-cube" puzzle="3x3x3" camera-latitude="30" camera-longitude="-30" background="none" control-panel="none"></twisty-player>
             </div>
 
-            <!-- Enhanced Playback Area -->
+            <!-- Playback Area -->
             <div class="w-full max-w-xl mb-8 px-4">
                 <div class="bg-slate-950/80 p-6 rounded-[2.5rem] border border-slate-800/50 flex flex-col gap-4 shadow-2xl backdrop-blur-md">
-                    <!-- Slider & Counter -->
                     <div class="flex items-center gap-4 px-2">
-                        <span class="text-[10px] font-mono text-slate-500 w-8 text-center">START</span>
-                        <input type="range" id="move-slider" min="0" max="0" value="0" class="flex-1 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        <span class="text-[10px] font-mono text-slate-500 w-8 text-center uppercase tracking-tighter">Start</span>
+                        <input type="range" id="move-slider" min="0" max="0" value="0" class="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
                         <span class="text-[10px] font-mono text-emerald-500 w-8 text-center font-bold"><span id="step-counter">0</span></span>
                     </div>
 
-                    <!-- Playback Controls -->
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex gap-2">
-                            <button id="nav-first" title="First Step" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
+                            <button id="nav-first" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/></svg>
                             </button>
-                            <button id="nav-prev" title="Prev Step" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
+                            <button id="nav-prev" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                             </button>
                         </div>
@@ -72,10 +80,10 @@
                         </button>
 
                         <div class="flex gap-2">
-                            <button id="nav-next" title="Next Step" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
+                            <button id="nav-next" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                             </button>
-                            <button id="nav-last" title="Last Step" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
+                            <button id="nav-last" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13 17 5-5-5-5M6 17l5-5-5-5"/></svg>
                             </button>
                         </div>
@@ -122,7 +130,7 @@
                         <div class="flex flex-col gap-2">
                             <label class="text-[9px] font-bold text-slate-600 uppercase ml-1">Setup Moves (Fixed State)</label>
                             <div class="flex gap-2">
-                                <input type="text" id="setup-box" placeholder="Scramble or Setup..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm font-mono text-slate-400 placeholder:text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-700">
+                                <input type="text" id="setup-box" placeholder="R U R' U' ..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm font-mono text-slate-400 placeholder:text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-700">
                                 <button id="setup-btn" class="px-5 bg-slate-800 text-slate-200 font-black text-[10px] rounded-xl hover:bg-slate-700 active:scale-95 transition-all">SET</button>
                             </div>
                         </div>
@@ -145,29 +153,23 @@
         </section>
     </main>
 
-    <!-- Footer: Hash & Sharing -->
-    <footer class="p-3 border-t border-slate-800/50 bg-slate-900 shrink-0 flex flex-col md:flex-row items-center justify-between gap-4 px-6">
-        <div class="flex items-center gap-3 w-full md:w-auto">
-            <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest shrink-0">State Hash</span>
-            <div class="relative flex-1 md:w-80">
-                <input type="text" id="hash-display" readonly class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-[10px] font-mono text-slate-500 focus:outline-none" value="---">
-            </div>
-        </div>
-        <div class="flex gap-2 w-full md:w-auto">
-            <button id="btn-copy-hash" class="flex-1 md:flex-none px-4 py-2 bg-slate-800 text-slate-300 font-black text-[10px] rounded-lg hover:bg-slate-700 transition-all uppercase">Copy Hash</button>
-            <button id="btn-copy-link" class="flex-1 md:flex-none px-6 py-2 bg-emerald-600 text-white font-black text-[10px] rounded-lg hover:bg-emerald-500 transition-all shadow-lg uppercase tracking-wider">Share Link</button>
-        </div>
+    <!-- Footer: Simplified Sharing -->
+    <footer class="p-4 border-t border-slate-800/50 bg-slate-900 shrink-0 flex items-center justify-end px-8">
+        <button id="btn-copy-link" class="px-8 py-2.5 bg-emerald-600 text-white font-black text-[10px] rounded-xl hover:bg-emerald-500 transition-all shadow-lg uppercase tracking-[0.2em]">Share Lab Link</button>
     </footer>
 
-    <!-- ALL LOGIC INTEGRATED HERE -->
     <script type="module">
         // --- GLOBAL STATE ---
         let activeMoves = [];
         let setupMoves = "";
-        let stickerMask = Array(54).fill(1); // 1: colored, 0: gray
+        let stickerMask = Array(54).fill(1);
         let isPlaying = false;
-        let currentMode = 'rotate'; // 'rotate' | 'paint'
-        let selectedColorIdx = 0; // index in palette
+        let currentMode = 'rotate';
+        let selectedColorIdx = 0;
+
+        // Tracks for TwistyPlayer (Prevent Direct Access Error)
+        let lastAppliedAlg = "";
+        let lastAppliedSetup = "";
 
         const palette = [
             { name: "white", hex: "#ffffff" },
@@ -179,26 +181,28 @@
             { name: "gray", hex: "#4b5563" }
         ];
 
-        // --- CORE LOGIC ---
-
-        function render(force = false) {
+        // --- CORE RENDER ---
+        function render() {
             const player = document.getElementById('main-cube');
             if (!player) return;
 
-            // Algorithm String Construction
-            const mainAlg = activeMoves.join(" ");
+            const mainAlgString = activeMoves.join(" ");
             
-            // Set Alg & Setup
-            if (player.alg !== mainAlg) player.alg = mainAlg;
-            if (player.setupAlg !== setupMoves) player.setupAlg = setupMoves;
+            // Apply only if changed to avoid internal re-renders
+            if (lastAppliedAlg !== mainAlgString) {
+                player.alg = mainAlgString;
+                lastAppliedAlg = mainAlgString;
+            }
+            if (lastAppliedSetup !== setupMoves) {
+                player.setupAlg = setupMoves;
+                lastAppliedSetup = setupMoves;
+            }
 
-            // Apply Sticker Mask (TwistyPlayer Orbit Format)
             try {
                 const orbits = stickerMask.map(v => v === 1 ? "I" : "-").join("");
                 player.experimentalStickeringMaskOrbits = `3x3x3:${orbits}`;
-            } catch (e) { /* silent fail for init timing */ }
+            } catch (e) {}
 
-            // UI Elements Sync
             const slider = document.getElementById('move-slider');
             const step = parseInt(slider.value) || 0;
 
@@ -209,12 +213,13 @@
             document.getElementById('step-counter').textContent = step;
             const indicator = document.getElementById('move-indicator');
             if (indicator) {
-                indicator.textContent = isPlaying ? "PLAYING" : (step > 0 ? activeMoves[step - 1] : "READY");
+                indicator.textContent = isPlaying ? "PLAYING" : (step > 0 && activeMoves[step - 1] ? activeMoves[step - 1] : "READY");
             }
 
             syncHash();
         }
 
+        // --- CONTROLS ---
         function stopPlay() {
             const player = document.getElementById('main-cube');
             if (player) player.pause();
@@ -241,8 +246,12 @@
 
                 const syncLoop = () => {
                     if (!isPlaying) return;
-                    slider.value = player.experimentalCurrentMoveIndex;
-                    if (parseInt(slider.value) >= activeMoves.length) stopPlay();
+                    // Note: accessing player.experimentalCurrentMoveIndex is usually safe for reading
+                    const currentIndex = player.experimentalCurrentMoveIndex;
+                    slider.value = currentIndex;
+                    document.getElementById('step-counter').textContent = currentIndex;
+                    
+                    if (currentIndex >= activeMoves.length) stopPlay();
                     else requestAnimationFrame(syncLoop);
                 };
                 requestAnimationFrame(syncLoop);
@@ -255,6 +264,7 @@
             const slider = document.getElementById('move-slider');
             slider.max = activeMoves.length;
             slider.value = activeMoves.length;
+            document.getElementById('command-box').value = activeMoves.join(" ");
             render();
         }
 
@@ -284,17 +294,18 @@
                 slider.max = activeMoves.length;
                 slider.value = 0;
             }
-            render(true);
+            render();
         }
 
         function handleScramble() {
             stopPlay();
             const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
             activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
+            document.getElementById('command-box').value = activeMoves.join(" ");
             const slider = document.getElementById('move-slider');
             slider.max = activeMoves.length;
             slider.value = 0;
-            render(true);
+            render();
         }
 
         function resetAll() {
@@ -302,20 +313,16 @@
             setupMoves = "";
             stickerMask.fill(1);
             isPlaying = false;
-            
             document.getElementById('command-box').value = "";
             document.getElementById('setup-box').value = "";
-            
             const slider = document.getElementById('move-slider');
             slider.max = 0;
             slider.value = 0;
-            
             stopPlay();
-            render(true);
+            render();
         }
 
-        // --- PAINT TOOL LOGIC ---
-
+        // --- PAINT TOOL ---
         function initPaintTool() {
             const swatch = document.getElementById('swatch-container');
             swatch.innerHTML = "";
@@ -325,7 +332,7 @@
                 btn.style.backgroundColor = color.hex;
                 btn.onclick = () => {
                     selectedColorIdx = idx;
-                    initPaintTool(); // re-draw swatches
+                    initPaintTool();
                 };
                 swatch.appendChild(btn);
             });
@@ -334,7 +341,6 @@
         function setPaintMode(mode) {
             currentMode = mode;
             const isPaint = mode === 'paint';
-            
             document.getElementById('rotate-panel').classList.toggle('hidden', isPaint);
             document.getElementById('paint-controls').classList.toggle('hidden', !isPaint);
             
@@ -350,8 +356,7 @@
             }
         }
 
-        // --- HASH & SHARING LOGIC ---
-
+        // --- HASH & SYNC ---
         function syncHash() {
             const state = {
                 a: activeMoves,
@@ -359,14 +364,14 @@
                 m: stickerMask,
                 v: parseInt(document.getElementById('move-slider').value) || 0
             };
-            const hashStr = `v5:${btoa(JSON.stringify(state))}`;
+            const hashStr = `v6:${btoa(JSON.stringify(state))}`;
             document.getElementById('hash-display').value = hashStr;
             window.history.replaceState(null, null, `#${hashStr}`);
         }
 
         function loadFromHash() {
             const hash = window.location.hash.substring(1);
-            if (!hash.startsWith('v5:')) return;
+            if (!hash.startsWith('v6:')) return;
             try {
                 const decoded = JSON.parse(atob(hash.substring(3)));
                 activeMoves = decoded.a || [];
@@ -390,23 +395,18 @@
                 await navigator.clipboard.writeText(url);
                 const btn = document.getElementById('btn-copy-link');
                 const oldText = btn.textContent;
-                btn.textContent = "LINK COPIED!";
-                btn.className = btn.className.replace("bg-emerald-600", "bg-emerald-500 scale-105");
+                btn.textContent = "COPIED TO CLIPBOARD!";
+                btn.className = btn.className.replace("bg-emerald-600", "bg-emerald-400");
                 setTimeout(() => {
                     btn.textContent = oldText;
-                    btn.className = btn.className.replace("bg-emerald-500 scale-105", "bg-emerald-600");
+                    btn.className = btn.className.replace("bg-emerald-400", "bg-emerald-600");
                 }, 2000);
-            } catch (err) {
-                console.error("Copy failed", err);
-            }
+            } catch (err) {}
         }
 
-        // --- APP INITIALIZATION ---
-
         function initApp() {
-            console.log("KAZCUBE Lab Single-File Initializing...");
+            console.log("KAZCUBE Lab v2.5.3 Initializing...");
 
-            // Generate Rotation Grid
             const grid = document.getElementById('move-grid');
             const moves = ["U","D","L","R","F","B","u","d","l","r","f","b","E","M","S","x","y","z"];
             grid.innerHTML = "";
@@ -418,7 +418,6 @@
                 grid.appendChild(btn);
             });
 
-            // Bind Events
             document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
             document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
             document.getElementById('play-btn').onclick = togglePlay;
@@ -432,36 +431,35 @@
             document.getElementById('nav-prev').onclick = () => stepMove(-1);
             document.getElementById('nav-next').onclick = () => stepMove(1);
 
-            document.getElementById('btn-gray').onclick = () => { stickerMask.fill(0); render(true); };
-            document.getElementById('btn-full').onclick = () => { stickerMask.fill(1); render(true); };
+            document.getElementById('btn-gray').onclick = () => { stickerMask.fill(0); render(); };
+            document.getElementById('btn-full').onclick = () => { stickerMask.fill(1); render(); };
 
             document.getElementById('btn-copy-hash').onclick = () => {
                 const hash = document.getElementById('hash-display').value;
                 navigator.clipboard.writeText(hash);
                 const btn = document.getElementById('btn-copy-hash');
-                btn.textContent = "COPIED!";
-                setTimeout(() => btn.textContent = "COPY HASH", 1500);
+                btn.textContent = "DONE";
+                setTimeout(() => btn.textContent = "Copy", 1500);
             };
             document.getElementById('btn-copy-link').onclick = copyLink;
 
             const slider = document.getElementById('move-slider');
             slider.oninput = () => { stopPlay(); render(); };
 
-            // Handle Sticker Clicks
             const player = document.getElementById('main-cube');
             player.addEventListener('twisty-sticker-click', (e) => {
                 if (currentMode !== 'paint') return;
-                const idx = e.detail.stickerIndex; // Note: simplified for 3x3x3 mapping
+                const idx = e.detail.stickerIndex;
                 if (idx !== undefined) {
                     stickerMask[idx] = (palette[selectedColorIdx].name === 'gray') ? 0 : 1;
-                    render(true);
+                    render();
                 }
             });
 
-            // Initial State
             initPaintTool();
             loadFromHash();
-            setTimeout(() => render(true), 300);
+            // Initial render after a small delay to ensure web component is ready
+            setTimeout(() => render(), 500);
         }
 
         window.addEventListener('DOMContentLoaded', initApp);
