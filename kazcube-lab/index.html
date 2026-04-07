@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KAZCUBE Lab - v2.5.8 [Smart Setup]</title>
-    <!-- External Libraries -->
+    <title>KAZCUBE Lab - v2.5.9 [Reverse Scramble Setup]</title>
     <script src="https://cdn.cubing.net/v0/js/cubing/twisty" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,37 +18,23 @@
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
         input[type="range"] { accent-color: #10b981; }
-        
         .tab-active { color: #10b981; border-bottom: 2px solid #10b981; }
-        
-        .move-grid-container { 
-            position: relative;
-            min-height: 130px; 
-        }
-        .move-grid-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-        }
-        .move-grid-content.hidden {
-            display: none;
-        }
+        .move-grid-container { position: relative; min-height: 130px; }
+        .move-grid-content { position: absolute; top: 0; left: 0; width: 100%; }
+        .move-grid-content.hidden { display: none; }
     </style>
 </head>
 <body class="h-screen flex flex-col no-select">
 
-    <!-- Header -->
     <header class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-900/95 backdrop-blur-md z-30 shrink-0">
         <div class="flex items-center gap-2">
             <div class="w-2 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
             <h1 class="text-sm font-black tracking-tighter text-slate-200 uppercase">KAZCUBE <span class="text-emerald-500 font-extrabold">LAB</span></h1>
         </div>
-        <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">v2.5.8 Smart Setup</div>
+        <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">v2.5.9 Solver Setup</div>
     </header>
 
     <main class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
-        <!-- Left: Visualization Section -->
         <section class="flex-[1.2] relative flex flex-col items-center justify-center p-4 bg-slate-900/20 border-r border-slate-800/50">
             
             <div class="absolute top-4 z-20 w-full px-6 flex flex-col items-center gap-2">
@@ -70,7 +55,6 @@
                 <twisty-player id="main-cube" puzzle="3x3x3" camera-latitude="30" camera-longitude="-30" background="none" control-panel="none"></twisty-player>
             </div>
 
-            <!-- Playback Area -->
             <div class="w-full max-w-xl mb-8 px-4">
                 <div class="bg-slate-950/80 p-6 rounded-[2.5rem] border border-slate-800/50 flex flex-col gap-4 shadow-2xl backdrop-blur-md">
                     <div class="flex items-center gap-4 px-2">
@@ -107,11 +91,9 @@
             </div>
         </section>
 
-        <!-- Right: Control Section -->
         <section class="flex-1 bg-slate-900/40 p-6 md:p-8 overflow-y-auto custom-scroll border-t md:border-t-0 border-slate-800">
             <div class="max-w-md mx-auto space-y-10 pb-12">
                 
-                <!-- Main Mode Switcher -->
                 <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center justify-between min-h-[64px]">
                     <div class="flex p-1 gap-1 bg-slate-950 rounded-xl border border-slate-800/50">
                         <button id="mode-rotate" class="px-5 py-2.5 bg-emerald-500 font-black text-[10px] rounded-lg text-white shadow-lg uppercase">Rotate</button>
@@ -126,7 +108,6 @@
                     </div>
                 </div>
 
-                <!-- Tabbed Rotation Panel -->
                 <div id="rotate-panel" class="space-y-4">
                     <div class="flex items-center gap-4 border-b border-slate-800 pb-1">
                         <button data-tab="basic" class="move-tab tab-active px-2 py-1 text-[10px] font-black uppercase tracking-widest transition-all">Basic</button>
@@ -141,7 +122,6 @@
                     </div>
                 </div>
 
-                <!-- Unified Algorithm Control -->
                 <div class="space-y-5">
                     <div class="flex items-center justify-between pl-1">
                         <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Algorithm Execution</h3>
@@ -152,16 +132,16 @@
                         <div class="flex flex-col gap-2">
                             <div class="flex justify-between items-center px-1">
                                 <label class="text-[9px] font-bold text-emerald-900/80 uppercase">Input Algorithm / Moves</label>
-                                <span id="setup-indicator" class="hidden text-[8px] font-black px-2 py-0.5 bg-amber-900/40 text-amber-500 border border-amber-800 rounded uppercase">Setup Applied</span>
+                                <span id="setup-indicator" class="hidden text-[8px] font-black px-2 py-0.5 bg-amber-900/40 text-amber-500 border border-amber-800 rounded uppercase">Solver Mode Active</span>
                             </div>
                             <div class="relative">
-                                <textarea id="command-box" placeholder="R U R' U' ..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-4 text-sm font-mono text-emerald-400 placeholder:text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 shadow-inner resize-none min-h-[80px]"></textarea>
+                                <textarea id="command-box" placeholder="U R ..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-4 text-sm font-mono text-emerald-400 placeholder:text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 shadow-inner resize-none min-h-[80px]"></textarea>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-2">
-                            <button id="setup-btn" title="Convert input to a scramble state" class="py-3 bg-slate-800 text-slate-200 font-black text-[10px] rounded-xl hover:bg-slate-700 active:scale-95 transition-all uppercase">Fixed Setup</button>
-                            <button id="apply-btn" title="Apply input as animated algorithm" class="py-3 bg-emerald-600 text-white font-black text-[10px] rounded-xl hover:bg-emerald-500 active:scale-95 transition-all shadow-lg uppercase">Apply Alg</button>
+                            <button id="setup-btn" title="Create a scrambled state that solves with this alg" class="py-3 bg-slate-800 text-slate-200 font-black text-[10px] rounded-xl hover:bg-slate-700 active:scale-95 transition-all uppercase">Setup Solver</button>
+                            <button id="apply-btn" title="Apply input as normal algorithm" class="py-3 bg-emerald-600 text-white font-black text-[10px] rounded-xl hover:bg-emerald-500 active:scale-95 transition-all shadow-lg uppercase">Apply Alg</button>
                         </div>
                     </div>
                     
@@ -175,14 +155,12 @@
     </main>
 
     <script type="module">
-        // --- GLOBAL STATE ---
         let activeMoves = [];
         let setupMoves = "";
         let stickerMask = Array(54).fill(1);
         let isPlaying = false;
         let currentMode = 'rotate';
         let selectedColorIdx = 0;
-
         let lastAppliedAlg = "";
         let lastAppliedSetup = "";
 
@@ -196,28 +174,27 @@
             { name: "gray", hex: "#4b5563" }
         ];
 
-        // --- INVERSE LOGIC ---
         function getInverseMove(m) {
             if (!m) return "";
-            if (m.endsWith("2")) return m; // R2 の逆は R2
-            if (m.endsWith("'")) return m.slice(0, -1); // R' の逆は R
-            return m + "'"; // R の逆は R'
+            if (m.endsWith("2")) return m;
+            if (m.endsWith("'")) return m.slice(0, -1);
+            return m + "'";
         }
 
         function getInverseAlg(algStr) {
             if (!algStr.trim()) return "";
             const moves = algStr.trim().split(/\s+/);
-            // 逆手順は「各回転の逆回転」を「後ろから順に」並べたもの
-            return moves.reverse().map(getInverseMove).join(" ");
+            // Reverse order and invert each move
+            return [...moves].reverse().map(getInverseMove).join(" ");
         }
 
-        // --- CORE RENDER ---
         function render() {
             const player = document.getElementById('main-cube');
             if (!player) return;
 
             const mainAlgString = activeMoves.join(" ");
             
+            // Only update when changed to prevent unnecessary re-renders
             if (lastAppliedAlg !== mainAlgString) {
                 player.alg = mainAlgString;
                 lastAppliedAlg = mainAlgString;
@@ -249,7 +226,6 @@
             syncHash();
         }
 
-        // --- CONTROLS ---
         function stopPlay() {
             const player = document.getElementById('main-cube');
             if (player) player.pause();
@@ -267,7 +243,10 @@
                 stopPlay();
             } else {
                 const slider = document.getElementById('move-slider');
-                if (parseInt(slider.value) >= activeMoves.length) slider.value = 0;
+                if (parseInt(slider.value) >= activeMoves.length) {
+                    slider.value = 0;
+                    player.experimentalCurrentMoveIndex = 0;
+                }
 
                 isPlaying = true;
                 document.getElementById('play-icon').classList.add('hidden');
@@ -317,22 +296,29 @@
             const inputVal = document.getElementById('command-box').value.trim();
             
             if (mode === 'setup') {
-                // 入力された手順の「逆手順」を計算して初期状態（崩し状態）としてセット
+                // IMPORTANT: Use INVERSE of input to scramble the cube
+                // If input is "U R", setupMoves becomes "R' U'"
                 setupMoves = getInverseAlg(inputVal);
-                // 手順エリアに入力手順自体をセット
                 activeMoves = inputVal ? inputVal.split(/\s+/) : [];
             } else {
+                // Standard mode: Start from solved state
+                setupMoves = "";
                 activeMoves = inputVal ? inputVal.split(/\s+/) : [];
             }
             
             const slider = document.getElementById('move-slider');
             slider.max = activeMoves.length;
-            slider.value = 0; // 開始位置に戻す
+            slider.value = 0; // Always start at 0
+            
+            // Re-sync UI
+            document.getElementById('command-box').value = activeMoves.join(" ");
+            
             render();
         }
 
         function handleScramble() {
             stopPlay();
+            setupMoves = ""; // Scramble starts from solved
             const faces = ['U','D','L','R','F','B'], mods = ['', "'", '2'];
             activeMoves = Array.from({length:20}, () => faces[Math.floor(Math.random()*6)] + mods[Math.floor(Math.random()*3)]);
             document.getElementById('command-box').value = activeMoves.join(" ");
@@ -355,7 +341,6 @@
             render();
         }
 
-        // --- PAINT TOOL ---
         function initPaintTool() {
             const swatch = document.getElementById('swatch-container');
             swatch.innerHTML = "";
@@ -389,7 +374,6 @@
             }
         }
 
-        // --- HASH & SYNC ---
         function syncHash() {
             const state = {
                 a: activeMoves,
@@ -410,11 +394,9 @@
                 activeMoves = decoded.a || [];
                 setupMoves = decoded.s || "";
                 stickerMask = decoded.m || Array(54).fill(1);
-                
                 const slider = document.getElementById('move-slider');
                 slider.max = activeMoves.length;
                 slider.value = decoded.v || 0;
-                
                 document.getElementById('command-box').value = activeMoves.join(" ");
             } catch (e) {}
         }
@@ -434,11 +416,9 @@
             } catch (err) {}
         }
 
-        // --- UI UTILS ---
         function initTabs() {
             const tabButtons = document.querySelectorAll('.move-tab');
             const gridContents = document.querySelectorAll('.move-grid-content');
-
             tabButtons.forEach(btn => {
                 btn.onclick = () => {
                     const target = btn.getAttribute('data-tab');
@@ -457,7 +437,6 @@
                 wide: ["u","d","l","r","f","b","u'","d'","l'","r'","f'","b'","u2","d2","l2","r2","f2","b2"],
                 slice: ["E","M","S","E'","M'","S'","x","y","z","x'","y'","z'","x2","y2","z2"]
             };
-
             Object.entries(sets).forEach(([key, moves]) => {
                 const container = document.getElementById(`grid-${key}`);
                 container.innerHTML = "";
@@ -474,7 +453,6 @@
         function initApp() {
             populateMoveGrids();
             initTabs();
-
             document.getElementById('mode-rotate').onclick = () => setPaintMode('rotate');
             document.getElementById('mode-paint').onclick = () => setPaintMode('paint');
             document.getElementById('play-btn').onclick = togglePlay;
@@ -482,15 +460,12 @@
             document.getElementById('reset-btn').onclick = resetAll;
             document.getElementById('setup-btn').onclick = () => handleUnifiedApply('setup');
             document.getElementById('apply-btn').onclick = () => handleUnifiedApply('apply');
-            
             document.getElementById('nav-first').onclick = () => jumpToStep(0);
             document.getElementById('nav-last').onclick = () => jumpToStep(-1);
             document.getElementById('nav-prev').onclick = () => stepMove(-1);
             document.getElementById('nav-next').onclick = () => stepMove(1);
-
             document.getElementById('btn-gray').onclick = () => { stickerMask.fill(0); render(); };
             document.getElementById('btn-full').onclick = () => { stickerMask.fill(1); render(); };
-
             document.getElementById('btn-copy-hash').onclick = () => {
                 const hash = document.getElementById('hash-display').value;
                 navigator.clipboard.writeText(hash);
@@ -499,10 +474,8 @@
                 setTimeout(() => btn.textContent = "Copy", 1500);
             };
             document.getElementById('btn-share-url').onclick = copyLink;
-
             const slider = document.getElementById('move-slider');
             slider.oninput = () => { stopPlay(); render(); };
-
             const player = document.getElementById('main-cube');
             player.addEventListener('twisty-sticker-click', (e) => {
                 if (currentMode !== 'paint') return;
@@ -512,12 +485,10 @@
                     render();
                 }
             });
-
             initPaintTool();
             loadFromHash();
             setTimeout(() => render(), 500);
         }
-
         window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
